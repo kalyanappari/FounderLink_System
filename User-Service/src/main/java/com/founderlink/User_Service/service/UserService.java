@@ -1,0 +1,53 @@
+package com.founderlink.User_Service.service;
+
+import com.founderlink.User_Service.dto.UserRequestDto;
+import com.founderlink.User_Service.dto.UserResponseDto;
+import com.founderlink.User_Service.entity.User;
+import com.founderlink.User_Service.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class UserService {
+
+    private final UserRepository repository;
+    private final ModelMapper modelMapper;
+
+    public UserResponseDto getUser(Long id) {
+        User user = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User Not Found."));
+        return modelMapper.map(user, UserResponseDto.class);
+    }
+
+    // Just for testing
+    public UserResponseDto createUser(UserRequestDto dto) {
+        User user = modelMapper.map(dto, User.class);
+        user.setUpdatedAt(LocalDateTime.now());
+
+        return modelMapper.map(repository.save(user), UserResponseDto.class);
+    }
+
+    public List<UserResponseDto> getAllUsers() {
+        return repository.findAll()
+                .stream()
+                .map(u -> modelMapper.map(u, UserResponseDto.class))
+                .toList();
+    }
+
+    public UserResponseDto updateUser(Long id, UserRequestDto dto) {
+        User user = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User Not Found."));
+
+        modelMapper.map(dto, user);
+        user.setUpdatedAt(LocalDateTime.now());
+
+        return modelMapper.map(repository.save(user), UserResponseDto.class);
+    }
+
+
+}
