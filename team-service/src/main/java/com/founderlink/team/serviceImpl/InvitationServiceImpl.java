@@ -5,15 +5,19 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.founderlink.team.client.StartupServiceClient;
 import com.founderlink.team.dto.request.InvitationRequestDto;
 import com.founderlink.team.dto.response.InvitationResponseDto;
+import com.founderlink.team.dto.response.StartupResponseDto;
 import com.founderlink.team.entity.Invitation;
 import com.founderlink.team.entity.InvitationStatus;
 import com.founderlink.team.events.TeamEventPublisher;
 import com.founderlink.team.events.TeamInviteEvent;
 import com.founderlink.team.exception.DuplicateInvitationException;
+import com.founderlink.team.exception.ForbiddenAccessException;
 import com.founderlink.team.exception.InvalidInvitationStatusException;
 import com.founderlink.team.exception.InvitationNotFoundException;
+import com.founderlink.team.exception.StartupNotFoundException;
 import com.founderlink.team.exception.UnauthorizedAccessException;
 import com.founderlink.team.mapper.InvitationMapper;
 import com.founderlink.team.repository.InvitationRepository;
@@ -30,6 +34,7 @@ public class InvitationServiceImpl implements InvitationService {
     private final InvitationRepository invitationRepository;
     private final InvitationMapper invitationMapper;
     private final TeamEventPublisher eventPublisher;
+    private final StartupServiceClient startupServiceClient;
 
     // ─────────────────────────────────────────
     // SEND INVITATION
@@ -37,6 +42,9 @@ public class InvitationServiceImpl implements InvitationService {
     @Override
     public InvitationResponseDto sendInvitation(Long founderId,
                                                  InvitationRequestDto requestDto) {
+    	
+    	
+    	verifyFounderOwnsStartup(requestDto.getStartupId(),founderId);
 
         // Edge case 1 — founder inviting themselves
         if (founderId.equals(requestDto.getInvitedUserId())) {
@@ -166,8 +174,7 @@ public class InvitationServiceImpl implements InvitationService {
     public List<InvitationResponseDto> getInvitationsByUserId(Long userId) {
 
         return invitationRepository
-                .findByInvitedUserIdAndStatus(
-                        userId, InvitationStatus.PENDING)
+                .findByInvitedUserId(userId)
                 .stream()
                 .map(invitationMapper::toResponseDto)
                 .collect(Collectors.toList());
@@ -178,12 +185,37 @@ public class InvitationServiceImpl implements InvitationService {
     // ─────────────────────────────────────────
     @Override
     public List<InvitationResponseDto> getInvitationsByStartupId(
-            Long startupId) {
+            Long startupId,Long founderId) {
+    	
+    	verifyFounderOwnsStartup(
+                startupId, founderId);
 
         return invitationRepository
                 .findByStartupId(startupId)
                 .stream()
                 .map(invitationMapper::toResponseDto)
                 .collect(Collectors.toList());
+    }
+    
+    public void verifyFounderOwnsStartup(
+            Long startupId,
+            Long founderId) {
+
+        // Call Startup Service
+        StartupResponseDto startup = startupServiceClient
+                .getStartupById(startupId);
+
+        // Startup not found
+        if (startup == null) {
+            throw new StartupNotFoundException(
+                    "Startup not found with id: " + startupId);
+        }
+
+        // Founder does not own startup
+        if (!startup.getFounderId().equals(founderId)) {
+            throw new ForbiddenAccessException(
+                    "You are not authorized to " +
+                    "perform this action on this startup");
+        }
     }
 }

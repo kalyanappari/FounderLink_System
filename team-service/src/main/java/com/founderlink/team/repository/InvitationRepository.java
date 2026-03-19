@@ -52,4 +52,7 @@ public interface InvitationRepository
     List<Invitation> findByInvitedUserIdAndStatus(
             Long invitedUserId,
             InvitationStatus status);
+    
+    List<Invitation> findByInvitedUserId(
+            Long invitedUserId);
 }

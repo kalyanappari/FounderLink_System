@@ -29,6 +29,7 @@ out/
 # ==========================================
 .metadata/
 .classpath
+.factorypath
 .project
 .settings/
 .loadpath
@@ -58,7 +59,7 @@ application-local.properties
 application-dev.properties
 application-prod.properties
 secrets.properties
-
+application.properties
 # ==========================================
 # OS GENERATED FILES
 # ==========================================

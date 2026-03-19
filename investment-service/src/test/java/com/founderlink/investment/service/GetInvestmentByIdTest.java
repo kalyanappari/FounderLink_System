@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.founderlink.investment.client.StartupServiceClient;
 import com.founderlink.investment.dto.response.InvestmentResponseDto;
 import com.founderlink.investment.entity.Investment;
 import com.founderlink.investment.entity.InvestmentStatus;
@@ -35,6 +36,9 @@ class GetInvestmentByIdTest {
 
     @Mock
     private InvestmentEventPublisher eventPublisher;
+
+    @Mock
+    private StartupServiceClient startupServiceClient;
 
     @InjectMocks
     private InvestmentServiceImpl investmentService;
@@ -61,6 +65,9 @@ class GetInvestmentByIdTest {
         responseDto.setCreatedAt(LocalDateTime.now());
     }
 
+    // ─────────────────────────────────────────
+    // SUCCESS
+    // ─────────────────────────────────────────
     @Test
     void getInvestmentById_Success() {
 
@@ -85,6 +92,9 @@ class GetInvestmentByIdTest {
                 .isEqualTo(InvestmentStatus.PENDING);
     }
 
+    // ─────────────────────────────────────────
+    // NOT FOUND
+    // ─────────────────────────────────────────
     @Test
     void getInvestmentById_NotFound_ThrowsException() {
 
@@ -96,6 +106,7 @@ class GetInvestmentByIdTest {
         assertThatThrownBy(() ->
                 investmentService.getInvestmentById(999L))
                 .isInstanceOf(InvestmentNotFoundException.class)
-                .hasMessage("Investment not found with id: 999");
+                .hasMessage(
+                        "Investment not found with id: 999");
     }
 }

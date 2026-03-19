@@ -25,4 +25,6 @@ public interface InvestmentRepository extends JpaRepository<Investment, Long> {
 
     // Check if investor already invested in same startup
     boolean existsByStartupIdAndInvestorId(Long startupId, Long investorId);
+
+	boolean existsByStartupIdAndInvestorIdAndStatus(Long startupId, Long investorId, InvestmentStatus pending);
 }

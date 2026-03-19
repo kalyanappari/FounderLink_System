@@ -181,10 +181,43 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
     
- // ─────────────────────────────────────────
- // Invalid Enum Value → 400
- // handles invalid role values
- // ─────────────────────────────────────────
+	 // ─────────────────────────────────────────
+	 // Forbidden Access → 403
+	 // ─────────────────────────────────────────
+	 @ExceptionHandler(ForbiddenAccessException.class)
+	 public ResponseEntity<ErrorResponse> handleForbiddenAccessException(
+	         ForbiddenAccessException ex) {
+	
+	     log.error("Forbidden access: {}", ex.getMessage());
+	
+	     ErrorResponse error = new ErrorResponse(
+	             HttpStatus.FORBIDDEN.value(),
+	             ex.getMessage(),
+	             LocalDateTime.now()
+	     );
+	
+	     return ResponseEntity
+	             .status(HttpStatus.FORBIDDEN)
+	             .body(error);
+	 }
+	 
+	 @ExceptionHandler(StartupNotFoundException.class)
+	 public ResponseEntity<ErrorResponse> handleStartupNotFoundException(
+	         StartupNotFoundException ex) {
+
+	     log.error("Startup not found: {}", ex.getMessage());
+
+	     ErrorResponse error = new ErrorResponse(
+	             HttpStatus.NOT_FOUND.value(),
+	             ex.getMessage(),
+	             LocalDateTime.now()
+	     );
+
+	     return ResponseEntity
+	             .status(HttpStatus.NOT_FOUND)
+	             .body(error);
+	 }
+    
 	 @ExceptionHandler(HttpMessageNotReadableException.class)
 	 public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
 	         HttpMessageNotReadableException ex) {
