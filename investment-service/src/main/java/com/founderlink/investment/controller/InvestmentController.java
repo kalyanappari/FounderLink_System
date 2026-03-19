@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.founderlink.investment.dto.request.InvestmentRequestDto;
 import com.founderlink.investment.dto.request.InvestmentStatusUpdateDto;
+import com.founderlink.investment.dto.response.ApiResponse;
 import com.founderlink.investment.dto.response.InvestmentResponseDto;
+import com.founderlink.investment.exception.ForbiddenAccessException;
 import com.founderlink.investment.service.InvestmentService;
 
 import jakarta.validation.Valid;
@@ -27,77 +29,133 @@ import lombok.RequiredArgsConstructor;
 public class InvestmentController {
 
     private final InvestmentService investmentService;
-
+    
     // CREATE INVESTMENT
     // POST /investments
-    // Called by → Investor
+    // Called by → INVESTOR
     
     @PostMapping
-    public ResponseEntity<InvestmentResponseDto> createInvestment(
+    public ResponseEntity<ApiResponse<?>> createInvestment(
             @RequestHeader("X-User-Id") Long investorId,
+            @RequestHeader("X-User-Role") String userRole,
             @Valid @RequestBody InvestmentRequestDto requestDto) {
+
+        if (!userRole.equals("ROLE_INVESTOR")) {
+            throw new ForbiddenAccessException(
+                    "Access denied. Only INVESTORS can create investments");
+        }
 
         InvestmentResponseDto response = investmentService
                 .createInvestment(investorId, requestDto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(
+                        "Investment created successfully",
+                        response));
     }
 
     // GET INVESTMENTS BY STARTUP ID
     // GET /investments/startup/{startupId}
-    // Called by → Founder
-
+    // Called by → FOUNDER
     
     @GetMapping("/startup/{startupId}")
-    public ResponseEntity<List<InvestmentResponseDto>> getInvestmentsByStartupId(
+    public ResponseEntity<ApiResponse<?>> getInvestmentsByStartupId(
+            @RequestHeader("X-User-Id") Long founderId,
+            @RequestHeader("X-User-Role") String userRole,
             @PathVariable Long startupId) {
+
+        if (!userRole.equals("ROLE_FOUNDER") &&
+            !userRole.equals("ROLE_ADMIN")) {
+            throw new ForbiddenAccessException(
+                    "Access denied. Only FOUNDERS can view startup investments");
+        }
+
+        // TODO: FeignClient verify founder owns startup
 
         List<InvestmentResponseDto> response = investmentService
                 .getInvestmentsByStartupId(startupId);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity
+                .ok(new ApiResponse<>(
+                        "Investments fetched successfully",
+                        response));
     }
 
     // GET INVESTMENTS BY INVESTOR ID
-    // GET /investments/investor/{investorId}
-    // Called by → Investor
+    // GET /investments/investor
+    // Called by → INVESTOR
     
-    @GetMapping("/investor/{investorId}")
-    public ResponseEntity<List<InvestmentResponseDto>> getInvestmentsByInvestorId(
-            @PathVariable Long investorId) {
+    @GetMapping("/investor")
+    public ResponseEntity<ApiResponse<?>> getInvestmentsByInvestorId(
+            @RequestHeader("X-User-Id") Long investorId,
+            @RequestHeader("X-User-Role") String userRole) {
+
+        if (!userRole.equals("ROLE_INVESTOR") &&
+            !userRole.equals("ROLE_ADMIN")) {
+            throw new ForbiddenAccessException(
+                    "Access denied. Only INVESTORS can view their portfolio");
+        }
 
         List<InvestmentResponseDto> response = investmentService
                 .getInvestmentsByInvestorId(investorId);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity
+                .ok(new ApiResponse<>(
+                        "Investments fetched successfully",
+                        response));
     }
 
     // UPDATE INVESTMENT STATUS
     // PUT /investments/{id}/status
-    // Called by → Founder
+    // Called by → FOUNDER
     
     @PutMapping("/{id}/status")
-    public ResponseEntity<InvestmentResponseDto> updateInvestmentStatus(
+    public ResponseEntity<ApiResponse<?>> updateInvestmentStatus(
+            @RequestHeader("X-User-Id") Long founderId,
+            @RequestHeader("X-User-Role") String userRole,
             @PathVariable Long id,
             @Valid @RequestBody InvestmentStatusUpdateDto statusUpdateDto) {
+
+        if (!userRole.equals("ROLE_FOUNDER") &&
+            !userRole.equals("ROLE_ADMIN")) {
+            throw new ForbiddenAccessException(
+                    "Access denied. Only FOUNDERS can update investment status");
+        }
+
+        // TODO: FeignClient verify founder owns startup
 
         InvestmentResponseDto response = investmentService
                 .updateInvestmentStatus(id, statusUpdateDto);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity
+                .ok(new ApiResponse<>(
+                        "Investment status updated successfully",
+                        response));
     }
-
+    
     // GET INVESTMENT BY ID
     // GET /investments/{id}
-    // Called by → Anyone
+    // Called by → FOUNDER + INVESTOR
     
     @GetMapping("/{id}")
-    public ResponseEntity<InvestmentResponseDto> getInvestmentById(
+    public ResponseEntity<ApiResponse<?>> getInvestmentById(
+            @RequestHeader("X-User-Role") String userRole,
             @PathVariable Long id) {
+
+        if (!userRole.equals("ROLE_FOUNDER") &&
+            !userRole.equals("ROLE_INVESTOR") &&
+            !userRole.equals("ROLE_ADMIN")) {
+            throw new ForbiddenAccessException(
+                    "Access denied");
+        }
 
         InvestmentResponseDto response = investmentService
                 .getInvestmentById(id);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity
+                .ok(new ApiResponse<>(
+                        "Investment fetched successfully",
+                        response));
     }
 }

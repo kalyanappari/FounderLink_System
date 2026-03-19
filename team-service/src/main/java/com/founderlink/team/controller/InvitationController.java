@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.founderlink.team.dto.request.InvitationRequestDto;
+import com.founderlink.team.dto.response.ApiResponse;
 import com.founderlink.team.dto.response.InvitationResponseDto;
+import com.founderlink.team.exception.ForbiddenAccessException;
 import com.founderlink.team.service.InvitationService;
 
 import jakarta.validation.Valid;
@@ -32,14 +34,15 @@ public class InvitationController {
     // Called by → FOUNDER
     
     @PostMapping("/invite")
-    public ResponseEntity<InvitationResponseDto> sendInvitation(
+    public ResponseEntity<ApiResponse<?>> sendInvitation(
             @RequestHeader("X-User-Id") Long founderId,
             @RequestHeader("X-User-Role") String userRole,
             @Valid @RequestBody InvitationRequestDto requestDto) {
 
-        // Only founder can send invitation
+        // Throw exception instead of returning response
         if (!userRole.equals("ROLE_FOUNDER")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new ForbiddenAccessException(
+                    "Access denied. Only FOUNDERS can send invitations");
         }
 
         InvitationResponseDto response = invitationService
@@ -47,7 +50,9 @@ public class InvitationController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(response);
+                .body(new ApiResponse<>(
+                        "Invitation sent successfully",
+                        response));
     }
 
     // CANCEL INVITATION
@@ -55,20 +60,23 @@ public class InvitationController {
     // Called by → FOUNDER
     
     @PutMapping("/invitations/{id}/cancel")
-    public ResponseEntity<InvitationResponseDto> cancelInvitation(
+    public ResponseEntity<ApiResponse<?>> cancelInvitation(
             @RequestHeader("X-User-Id") Long founderId,
             @RequestHeader("X-User-Role") String userRole,
             @PathVariable Long id) {
 
-        // Only founder can cancel
         if (!userRole.equals("ROLE_FOUNDER")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new ForbiddenAccessException(
+                    "Access denied. Only FOUNDERS can cancel invitations");
         }
 
         InvitationResponseDto response = invitationService
                 .cancelInvitation(id, founderId);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity
+                .ok(new ApiResponse<>(
+                        "Invitation cancelled successfully",
+                        response));
     }
     
     // REJECT INVITATION
@@ -76,40 +84,47 @@ public class InvitationController {
     // Called by → CO-FOUNDER
     
     @PutMapping("/invitations/{id}/reject")
-    public ResponseEntity<InvitationResponseDto> rejectInvitation(
+    public ResponseEntity<ApiResponse<?>> rejectInvitation(
             @RequestHeader("X-User-Id") Long userId,
             @RequestHeader("X-User-Role") String userRole,
             @PathVariable Long id) {
 
-        // Only co-founder can reject
         if (!userRole.equals("ROLE_COFOUNDER")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new ForbiddenAccessException(
+                    "Access denied. Only CO-FOUNDERS can reject invitations");
         }
 
         InvitationResponseDto response = invitationService
                 .rejectInvitation(id, userId);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity
+                .ok(new ApiResponse<>(
+                        "Invitation rejected successfully",
+                        response));
     }
+
 
     // GET INVITATIONS BY USER ID
     // GET /teams/invitations/user/{userId}
     // Called by → CO-FOUNDER
     
     @GetMapping("/invitations/user")
-    public ResponseEntity<List<InvitationResponseDto>> getInvitationsByUserId(
+    public ResponseEntity<ApiResponse<?>> getInvitationsByUserId(
             @RequestHeader("X-User-Id") Long userId,
             @RequestHeader("X-User-Role") String userRole) {
 
-        // Only co-founder can view their invitations
         if (!userRole.equals("ROLE_COFOUNDER")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new ForbiddenAccessException(
+                    "Access denied. Only CO-FOUNDERS can view their invitations");
         }
 
         List<InvitationResponseDto> response = invitationService
                 .getInvitationsByUserId(userId);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity
+                .ok(new ApiResponse<>(
+                        "Invitations fetched successfully",
+                        response));
     }
     
     // GET INVITATIONS BY STARTUP ID
@@ -117,18 +132,22 @@ public class InvitationController {
     // Called by → FOUNDER
     
     @GetMapping("/invitations/startup/{startupId}")
-    public ResponseEntity<List<InvitationResponseDto>> getInvitationsByStartupId(
+    public ResponseEntity<ApiResponse<?>> getInvitationsByStartupId(
+            @RequestHeader("X-User-Id") Long founderId,
             @RequestHeader("X-User-Role") String userRole,
             @PathVariable Long startupId) {
 
-        // Only founder can view startup invitations
         if (!userRole.equals("ROLE_FOUNDER")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new ForbiddenAccessException(
+                    "Access denied. Only FOUNDERS can view startup invitations");
         }
 
         List<InvitationResponseDto> response = invitationService
                 .getInvitationsByStartupId(startupId);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity
+                .ok(new ApiResponse<>(
+                        "Invitations fetched successfully",
+                        response));
     }
 }

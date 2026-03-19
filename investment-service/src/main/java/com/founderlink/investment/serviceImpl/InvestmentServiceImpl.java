@@ -34,17 +34,22 @@ public class InvestmentServiceImpl implements InvestmentService {
     @Override
     public InvestmentResponseDto createInvestment(Long investorId,
                                                    InvestmentRequestDto requestDto) {
-    	
-        if (investmentRepository.existsByStartupIdAndInvestorId(
-                requestDto.getStartupId(), investorId)) {
+
+        // Check duplicate PENDING investment only
+        if (investmentRepository
+                .existsByStartupIdAndInvestorIdAndStatus(
+                        requestDto.getStartupId(),
+                        investorId,
+                        InvestmentStatus.PENDING)) {
             throw new DuplicateInvestmentException(
-                    "You have already invested in this startup");
+                    "You have already invested in this startup waiting for the acceptance!!");
         }
 
-        Investment investment = investmentMapper.toEntity(requestDto, investorId);
+        Investment investment = investmentMapper
+                .toEntity(requestDto, investorId);
 
- 
-        Investment savedInvestment = investmentRepository.save(investment);
+        Investment savedInvestment = investmentRepository
+                .save(investment);
 
         InvestmentCreatedEvent event = new InvestmentCreatedEvent(
                 savedInvestment.getStartupId(),

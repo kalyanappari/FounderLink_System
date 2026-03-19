@@ -181,6 +181,26 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
     
+	 // ─────────────────────────────────────────
+	 // Forbidden Access → 403
+	 // ─────────────────────────────────────────
+	 @ExceptionHandler(ForbiddenAccessException.class)
+	 public ResponseEntity<ErrorResponse> handleForbiddenAccessException(
+	         ForbiddenAccessException ex) {
+	
+	     log.error("Forbidden access: {}", ex.getMessage());
+	
+	     ErrorResponse error = new ErrorResponse(
+	             HttpStatus.FORBIDDEN.value(),
+	             ex.getMessage(),
+	             LocalDateTime.now()
+	     );
+	
+	     return ResponseEntity
+	             .status(HttpStatus.FORBIDDEN)
+	             .body(error);
+	 }
+    
 	 @ExceptionHandler(HttpMessageNotReadableException.class)
 	 public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
 	         HttpMessageNotReadableException ex) {

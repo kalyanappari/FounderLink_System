@@ -166,8 +166,7 @@ public class InvitationServiceImpl implements InvitationService {
     public List<InvitationResponseDto> getInvitationsByUserId(Long userId) {
 
         return invitationRepository
-                .findByInvitedUserIdAndStatus(
-                        userId, InvitationStatus.PENDING)
+                .findByInvitedUserId(userId)
                 .stream()
                 .map(invitationMapper::toResponseDto)
                 .collect(Collectors.toList());
