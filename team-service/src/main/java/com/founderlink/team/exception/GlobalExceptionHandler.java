@@ -181,10 +181,6 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
     
- // ─────────────────────────────────────────
- // Invalid Enum Value → 400
- // handles invalid role values
- // ─────────────────────────────────────────
 	 @ExceptionHandler(HttpMessageNotReadableException.class)
 	 public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
 	         HttpMessageNotReadableException ex) {
