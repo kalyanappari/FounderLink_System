@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.founderlink.investment.client.StartupServiceClient;
 import com.founderlink.investment.dto.response.InvestmentResponseDto;
 import com.founderlink.investment.entity.Investment;
 import com.founderlink.investment.entity.InvestmentStatus;
@@ -33,6 +34,9 @@ class GetInvestmentByInvestorIdTest {
 
     @Mock
     private InvestmentEventPublisher eventPublisher;
+
+    @Mock
+    private StartupServiceClient startupServiceClient;
 
     @InjectMocks
     private InvestmentServiceImpl investmentService;
@@ -59,10 +63,14 @@ class GetInvestmentByInvestorIdTest {
         responseDto.setCreatedAt(LocalDateTime.now());
     }
 
+    // SUCCESS
+    
     @Test
     void getInvestmentsByInvestorId_Success() {
 
         // Arrange
+        // No FeignClient needed
+        // investor sees their own data
         when(investmentRepository.findByInvestorId(202L))
                 .thenReturn(List.of(investment));
         when(investmentMapper.toResponseDto(investment))
@@ -75,8 +83,11 @@ class GetInvestmentByInvestorIdTest {
         // Assert
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getInvestorId()).isEqualTo(202L);
+        assertThat(result.get(0).getInvestorId())
+                .isEqualTo(202L);
     }
+
+    // EMPTY LIST
 
     @Test
     void getInvestmentsByInvestorId_NoInvestments_ReturnsEmptyList() {
@@ -93,6 +104,9 @@ class GetInvestmentByInvestorIdTest {
         assertThat(result).isEmpty();
     }
 
+
+    // MULTIPLE STARTUPS
+
     @Test
     void getInvestmentsByInvestorId_MultipleStartups_ReturnsAll() {
 
@@ -104,7 +118,8 @@ class GetInvestmentByInvestorIdTest {
         investment2.setAmount(new BigDecimal("500000.00"));
         investment2.setStatus(InvestmentStatus.APPROVED);
 
-        InvestmentResponseDto responseDto2 = new InvestmentResponseDto();
+        InvestmentResponseDto responseDto2 =
+                new InvestmentResponseDto();
         responseDto2.setId(2L);
         responseDto2.setStartupId(202L);
         responseDto2.setInvestorId(202L);
@@ -124,7 +139,9 @@ class GetInvestmentByInvestorIdTest {
 
         // Assert
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).getStartupId()).isEqualTo(101L);
-        assertThat(result.get(1).getStartupId()).isEqualTo(202L);
+        assertThat(result.get(0).getStartupId())
+                .isEqualTo(101L);
+        assertThat(result.get(1).getStartupId())
+                .isEqualTo(202L);
     }
 }

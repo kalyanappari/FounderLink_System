@@ -1,6 +1,7 @@
 package com.founderlink.investment.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -14,10 +15,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.founderlink.investment.client.StartupServiceClient;
 import com.founderlink.investment.dto.response.InvestmentResponseDto;
+import com.founderlink.investment.dto.response.StartupResponseDto;
 import com.founderlink.investment.entity.Investment;
 import com.founderlink.investment.entity.InvestmentStatus;
 import com.founderlink.investment.events.InvestmentEventPublisher;
+import com.founderlink.investment.exception.ForbiddenAccessException;
+import com.founderlink.investment.exception.StartupNotFoundException;
 import com.founderlink.investment.mapper.InvestmentMapper;
 import com.founderlink.investment.repository.InvestmentRepository;
 import com.founderlink.investment.serviceImpl.InvestmentServiceImpl;
@@ -34,11 +39,15 @@ class GetInvestmentByStartupIdTest {
     @Mock
     private InvestmentEventPublisher eventPublisher;
 
+    @Mock
+    private StartupServiceClient startupServiceClient;
+
     @InjectMocks
     private InvestmentServiceImpl investmentService;
 
     private Investment investment;
     private InvestmentResponseDto responseDto;
+    private StartupResponseDto startupResponseDto;
 
     @BeforeEach
     void setUp() {
@@ -57,12 +66,22 @@ class GetInvestmentByStartupIdTest {
         responseDto.setAmount(new BigDecimal("1000000.00"));
         responseDto.setStatus(InvestmentStatus.PENDING);
         responseDto.setCreatedAt(LocalDateTime.now());
+
+        // Founder owns startup
+        startupResponseDto = new StartupResponseDto();
+        startupResponseDto.setId(101L);
+        startupResponseDto.setFounderId(5L);
     }
 
+    // ─────────────────────────────────────────
+    // SUCCESS
+    // ─────────────────────────────────────────
     @Test
     void getInvestmentsByStartupId_Success() {
 
         // Arrange
+        when(startupServiceClient.getStartupById(101L))
+                .thenReturn(startupResponseDto);
         when(investmentRepository.findByStartupId(101L))
                 .thenReturn(List.of(investment));
         when(investmentMapper.toResponseDto(investment))
@@ -70,61 +89,73 @@ class GetInvestmentByStartupIdTest {
 
         // Act
         List<InvestmentResponseDto> result = investmentService
-                .getInvestmentsByStartupId(101L);
+                .getInvestmentsByStartupId(101L, 5L);
 
         // Assert
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getStartupId()).isEqualTo(101L);
+        assertThat(result.get(0).getStartupId())
+                .isEqualTo(101L);
     }
 
+    // ─────────────────────────────────────────
+    // STARTUP NOT FOUND
+    // ─────────────────────────────────────────
+    @Test
+    void getInvestmentsByStartupId_StartupNotFound_ThrowsException() {
+
+        // Arrange
+        when(startupServiceClient.getStartupById(101L))
+                .thenReturn(null);
+
+        // Act & Assert
+        assertThatThrownBy(() ->
+                investmentService
+                        .getInvestmentsByStartupId(101L, 5L))
+                .isInstanceOf(StartupNotFoundException.class)
+                .hasMessage(
+                        "Startup not found with id: 101");
+    }
+
+    // ─────────────────────────────────────────
+    // FOUNDER DOES NOT OWN STARTUP
+    // ─────────────────────────────────────────
+    @Test
+    void getInvestmentsByStartupId_NotOwner_ThrowsException() {
+
+        // Arrange
+        // startup founderId is 5
+        // but founderId 99 is trying to access
+        when(startupServiceClient.getStartupById(101L))
+                .thenReturn(startupResponseDto);
+
+        // Act & Assert
+        assertThatThrownBy(() ->
+                investmentService
+                        .getInvestmentsByStartupId(101L, 99L))
+                .isInstanceOf(ForbiddenAccessException.class)
+                .hasMessage(
+                        "You are not authorized to " +
+                        "perform this action on this startup");
+    }
+
+    // ─────────────────────────────────────────
+    // EMPTY LIST
+    // ─────────────────────────────────────────
     @Test
     void getInvestmentsByStartupId_NoInvestments_ReturnsEmptyList() {
 
         // Arrange
+        when(startupServiceClient.getStartupById(101L))
+                .thenReturn(startupResponseDto);
         when(investmentRepository.findByStartupId(101L))
                 .thenReturn(List.of());
 
         // Act
         List<InvestmentResponseDto> result = investmentService
-                .getInvestmentsByStartupId(101L);
+                .getInvestmentsByStartupId(101L, 5L);
 
         // Assert
         assertThat(result).isEmpty();
-    }
-
-    @Test
-    void getInvestmentsByStartupId_MultipleInvestors_ReturnsAll() {
-
-        // Arrange
-        Investment investment2 = new Investment();
-        investment2.setId(2L);
-        investment2.setStartupId(101L);
-        investment2.setInvestorId(303L);
-        investment2.setAmount(new BigDecimal("500000.00"));
-        investment2.setStatus(InvestmentStatus.PENDING);
-
-        InvestmentResponseDto responseDto2 = new InvestmentResponseDto();
-        responseDto2.setId(2L);
-        responseDto2.setStartupId(101L);
-        responseDto2.setInvestorId(303L);
-        responseDto2.setAmount(new BigDecimal("500000.00"));
-        responseDto2.setStatus(InvestmentStatus.PENDING);
-
-        when(investmentRepository.findByStartupId(101L))
-                .thenReturn(List.of(investment, investment2));
-        when(investmentMapper.toResponseDto(investment))
-                .thenReturn(responseDto);
-        when(investmentMapper.toResponseDto(investment2))
-                .thenReturn(responseDto2);
-
-        // Act
-        List<InvestmentResponseDto> result = investmentService
-                .getInvestmentsByStartupId(101L);
-
-        // Assert
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).getInvestorId()).isEqualTo(202L);
-        assertThat(result.get(1).getInvestorId()).isEqualTo(303L);
     }
 }

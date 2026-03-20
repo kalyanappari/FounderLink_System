@@ -6,14 +6,18 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.founderlink.team.client.StartupServiceClient;
 import com.founderlink.team.dto.request.JoinTeamRequestDto;
+import com.founderlink.team.dto.response.StartupResponseDto;
 import com.founderlink.team.dto.response.TeamMemberResponseDto;
 import com.founderlink.team.entity.Invitation;
 import com.founderlink.team.entity.InvitationStatus;
 import com.founderlink.team.entity.TeamMember;
 import com.founderlink.team.exception.AlreadyTeamMemberException;
+import com.founderlink.team.exception.ForbiddenAccessException;
 import com.founderlink.team.exception.InvalidInvitationStatusException;
 import com.founderlink.team.exception.InvitationNotFoundException;
+import com.founderlink.team.exception.StartupNotFoundException;
 import com.founderlink.team.exception.TeamMemberNotFoundException;
 import com.founderlink.team.exception.UnauthorizedAccessException;
 import com.founderlink.team.mapper.TeamMemberMapper;
@@ -32,6 +36,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     private final TeamMemberRepository teamMemberRepository;
     private final InvitationRepository invitationRepository;
     private final TeamMemberMapper teamMemberMapper;
+    private final StartupServiceClient startupServiceClient;
 
     // JOIN TEAM
     
@@ -98,7 +103,11 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     // GET TEAM BY STARTUP ID
     
     @Override
-    public List<TeamMemberResponseDto> getTeamByStartupId(Long startupId) {
+    public List<TeamMemberResponseDto> getTeamByStartupId(Long startupId,Long userId,String userRole) {
+    	
+    	   if (userRole.equals("ROLE_FOUNDER")) {
+               verifyFounderOwnsStartup(startupId, userId);
+           }
 
         return teamMemberRepository
                 .findByStartupId(startupId)
@@ -118,6 +127,8 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                 .findById(teamMemberId)
                 .orElseThrow(() -> new TeamMemberNotFoundException(
                         "Team member not found with id: " + teamMemberId));
+        
+        verifyFounderOwnsStartup(teamMember.getStartupId(),founderId);
 
         // Edge case — founder cannot remove themselves
         if (teamMember.getUserId().equals(founderId)) {
@@ -136,5 +147,27 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     public boolean isTeamMember(Long startupId, Long userId) {
         return teamMemberRepository
                 .existsByStartupIdAndUserId(startupId, userId);
+    }
+    
+    public void verifyFounderOwnsStartup(
+            Long startupId,
+            Long founderId) {
+
+        // Call Startup Service
+        StartupResponseDto startup = startupServiceClient
+                .getStartupById(startupId);
+
+        // Startup not found
+        if (startup == null) {
+            throw new StartupNotFoundException(
+                    "Startup not found with id: " + startupId);
+        }
+
+        // Founder does not own startup
+        if (!startup.getFounderId().equals(founderId)) {
+            throw new ForbiddenAccessException(
+                    "You are not authorized to " +
+                    "perform this action on this startup");
+        }
     }
 }

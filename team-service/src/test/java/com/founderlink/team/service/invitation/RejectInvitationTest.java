@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.founderlink.team.client.StartupServiceClient;
 import com.founderlink.team.dto.response.InvitationResponseDto;
 import com.founderlink.team.entity.Invitation;
 import com.founderlink.team.entity.InvitationStatus;
@@ -42,6 +43,9 @@ class RejectInvitationTest {
     @Mock
     private TeamEventPublisher eventPublisher;
 
+    @Mock
+    private StartupServiceClient startupServiceClient;
+
     @InjectMocks
     private InvitationServiceImpl invitationService;
 
@@ -64,7 +68,9 @@ class RejectInvitationTest {
         responseDto.setStatus(InvitationStatus.REJECTED);
     }
 
+
     // SUCCESS
+
     @Test
     void rejectInvitation_Success() {
 
@@ -109,9 +115,7 @@ class RejectInvitationTest {
                 .save(any(Invitation.class));
     }
 
-
     // WRONG USER
-
     @Test
     void rejectInvitation_WrongUser_ThrowsException() {
 
@@ -120,7 +124,6 @@ class RejectInvitationTest {
                 .thenReturn(Optional.of(invitation));
 
         // Act & Assert
-        // userId 99L was not the one invited
         assertThatThrownBy(() ->
                 invitationService.rejectInvitation(1L, 99L))
                 .isInstanceOf(UnauthorizedAccessException.class)
@@ -152,6 +155,7 @@ class RejectInvitationTest {
         verify(invitationRepository, never())
                 .save(any(Invitation.class));
     }
+
 
     // ALREADY ACCEPTED
     

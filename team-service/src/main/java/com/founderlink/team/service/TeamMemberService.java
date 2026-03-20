@@ -14,7 +14,7 @@ public interface TeamMemberService {
 
     // Get all members of a startup
     List<TeamMemberResponseDto> getTeamByStartupId(
-            Long startupId);
+            Long startupId,Long userId,String userRole);
 
     // Founder removes a team member
     void removeTeamMember(
