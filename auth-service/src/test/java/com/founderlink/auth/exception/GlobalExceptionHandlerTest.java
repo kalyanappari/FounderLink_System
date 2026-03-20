@@ -89,7 +89,7 @@ class GlobalExceptionHandlerTest {
 
         assertThat(response.getStatusCode().value()).isEqualTo(403);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().message()).isEqualTo("Access denied");
+        assertThat(response.getBody().message()).isEqualTo("Requested role is not allowed");
         assertThat(response.getBody().path()).isEqualTo("/auth/logout");
     }
 

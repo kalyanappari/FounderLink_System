@@ -1,6 +1,5 @@
 package com.founderlink.team.controller;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.founderlink.team.dto.request.JoinTeamRequestDto;
 import com.founderlink.team.dto.response.TeamMemberResponseDto;
-import com.founderlink.team.exception.ErrorResponse;
 import com.founderlink.team.service.TeamMemberService;
 
 import jakarta.validation.Valid;
