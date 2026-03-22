@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.founderlink.team.client.StartupServiceClient;
 import com.founderlink.team.dto.response.InvitationResponseDto;
 import com.founderlink.team.entity.Invitation;
 import com.founderlink.team.entity.InvitationStatus;
@@ -42,6 +43,9 @@ class CancelInvitationTest {
     @Mock
     private TeamEventPublisher eventPublisher;
 
+    @Mock
+    private StartupServiceClient startupServiceClient;
+
     @InjectMocks
     private InvitationServiceImpl invitationService;
 
@@ -65,7 +69,7 @@ class CancelInvitationTest {
     }
 
     // SUCCESS
-    
+
     @Test
     void cancelInvitation_Success() {
 
@@ -89,9 +93,9 @@ class CancelInvitationTest {
         verify(invitationRepository, times(1))
                 .save(any(Invitation.class));
     }
-    
+
     // INVITATION NOT FOUND
-    
+
     @Test
     void cancelInvitation_NotFound_ThrowsException() {
 
@@ -111,7 +115,7 @@ class CancelInvitationTest {
     }
 
     // WRONG FOUNDER
-    
+
     @Test
     void cancelInvitation_WrongFounder_ThrowsException() {
 
@@ -120,7 +124,6 @@ class CancelInvitationTest {
                 .thenReturn(Optional.of(invitation));
 
         // Act & Assert
-        // founderId 99L is not the one who sent
         assertThatThrownBy(() ->
                 invitationService.cancelInvitation(1L, 99L))
                 .isInstanceOf(UnauthorizedAccessException.class)
@@ -132,8 +135,9 @@ class CancelInvitationTest {
                 .save(any(Invitation.class));
     }
 
+
     // ALREADY CANCELLED
-    
+
     @Test
     void cancelInvitation_AlreadyCancelled_ThrowsException() {
 
@@ -152,9 +156,9 @@ class CancelInvitationTest {
         verify(invitationRepository, never())
                 .save(any(Invitation.class));
     }
-
-    // ALREADY ACCEPTED
     
+    // ALREADY ACCEPTED
+
     @Test
     void cancelInvitation_AlreadyAccepted_ThrowsException() {
 

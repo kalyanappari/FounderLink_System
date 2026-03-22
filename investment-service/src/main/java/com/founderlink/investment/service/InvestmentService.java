@@ -12,12 +12,12 @@ public interface InvestmentService {
     InvestmentResponseDto createInvestment(Long investorId,
                                            InvestmentRequestDto requestDto);
 
-    List<InvestmentResponseDto> getInvestmentsByStartupId(Long startupId);
+    List<InvestmentResponseDto> getInvestmentsByStartupId(Long startupId,Long founderId);
 
 
     List<InvestmentResponseDto> getInvestmentsByInvestorId(Long investorId);
 
-    InvestmentResponseDto updateInvestmentStatus(Long investmentId,
+    InvestmentResponseDto updateInvestmentStatus(Long investmentId,Long founderId,
                                                   InvestmentStatusUpdateDto statusUpdateDto);
     
     InvestmentResponseDto getInvestmentById(Long investmentId);

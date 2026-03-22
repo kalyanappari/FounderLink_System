@@ -28,5 +28,5 @@ public interface InvitationService {
 
     // Get all invitations for a startup
     List<InvitationResponseDto> getInvitationsByStartupId(
-            Long startupId);
+            Long startupId,Long founderId);
 }
