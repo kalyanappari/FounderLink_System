@@ -225,37 +225,4 @@ public class InvestmentServiceImpl implements InvestmentService {
         }
     }
     
-    public void verifyFounderOwnsStartup(
-            Long startupId,
-            Long founderId) {
-
-        // Call Startup Service
-        StartupResponseDto startup = startupServiceClient
-                .getStartupById(startupId);
-
-        // Startup not found
-        if (startup == null) {
-            throw new StartupNotFoundException(
-                    "Startup not found with id: " + startupId);
-        }
-
-        // Founder does not own startup
-        if (!startup.getFounderId().equals(founderId)) {
-            throw new ForbiddenAccessException(
-                    "You are not authorized to " +
-                    "perform this action on this startup");
-        }
-    }
-    
-    public void verifyStartupExists(Long startupId) {
-
-        StartupResponseDto startup = startupServiceClient
-                .getStartupById(startupId);
-
-        if (startup == null) {
-            throw new StartupNotFoundException(
-                    "Startup not found with id: " + startupId);
-        }
-    }
-    
 }

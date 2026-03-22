@@ -213,24 +213,6 @@ public class TeamMemberServiceImpl
     // PRIVATE HELPER
     // Verify Founder Owns Startup
     
-    private void verifyFounderOwnsStartup(Long startupId,Long founderId) {
-
-        var startup = startupServiceClient
-                .getStartupById(startupId);
-
-        if (startup == null) {
-            throw new StartupNotFoundException(
-                    "Startup not found with id: "
-                    + startupId);
-        }
-
-        if (!startup.getFounderId().equals(founderId)) {
-            throw new ForbiddenAccessException(
-                    "You are not authorized to " +
-                    "perform this action on this startup");
-        }
-    }
-    
     public void verifyFounderOwnsStartup(
             Long startupId,
             Long founderId) {
