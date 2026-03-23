@@ -4,10 +4,8 @@ server:
 spring:
   application:
     name: messaging-service
-
-  cloud:
-    config:
-      enabled: false
+  config:
+    import: configserver:http://config-server:8888
 
   rabbitmq:
     host: localhost

@@ -8,50 +8,50 @@ spring:
   config:
     import: optional:configserver:http://localhost:8888
 
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
+#   rabbitmq:
+#     host: localhost
+#     port: 5672
+#     username: guest
+#     password: guest
 
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: parthjadhav1000@gmail.com
-    password: nfgmuxgdwvjxpoqv
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
+#   mail:
+#     host: smtp.gmail.com
+#     port: 587
+#     username: parthjadhav1000@gmail.com
+#     password: nfgmuxgdwvjxpoqv
+#     properties:
+#       mail:
+#         smtp:
+#           auth: true
+#           starttls:
+#             enable: true
+#             required: true
 
-  datasource:
-    url: jdbc:mysql://localhost:3306/notification_db
-    username: root
-    password: parth123
-    driver-class-name: com.mysql.cj.jdbc.Driver
+#   datasource:
+#     url: jdbc:mysql://localhost:3306/notification_db
+#     username: root
+#     password: parth123
+#     driver-class-name: com.mysql.cj.jdbc.Driver
 
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    database-platform: org.hibernate.dialect.MySQLDialect
+#   jpa:
+#     hibernate:
+#       ddl-auto: update
+#     show-sql: true
+#     database-platform: org.hibernate.dialect.MySQLDialect
 
-eureka:
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
+# eureka:
+#   client:
+#     register-with-eureka: true
+#     fetch-registry: true
+#     service-url:
+#       defaultZone: http://localhost:8761/eureka/
+#   instance:
+#     prefer-ip-address: true
 
-rabbitmq:
-  exchange: founderlink.exchange
-  queue:
-    startup: startup.queue
-    investment: investment.queue
-    team: team.queue
-    messaging: messaging.queue
+# rabbitmq:
+#   exchange: founderlink.exchange
+#   queue:
+#     startup: startup.queue
+#     investment: investment.queue
+#     team: team.queue
+#     messaging: messaging.queue
