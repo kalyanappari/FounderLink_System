@@ -87,6 +87,10 @@ spring:
 #       roles: [FOUNDER]
 
 #     - method: GET
+#       path: /startup
+#       roles: [FOUNDER, INVESTOR, COFOUNDER, ADMIN]
+
+#     - method: GET
 #       path: /startup/details/*
 #       roles: [FOUNDER, INVESTOR, COFOUNDER, ADMIN]
 
