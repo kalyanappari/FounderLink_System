@@ -38,6 +38,14 @@ public class JwtService {
         if (!StringUtils.hasText(userId)) {
             throw unauthorized("Token subject is missing");
         }
+        if (!userId.matches("\\d+")) {
+            throw unauthorized("Invalid userId format in subject");
+        }
+
+        String roleClaim = claims.get("role", String.class);
+        if (!StringUtils.hasText(roleClaim)) {
+            throw unauthorized("Token role is missing");
+        }
 
         return new AuthenticatedUser(userId, extractRole(claims.get("role")));
     }
