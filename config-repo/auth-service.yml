@@ -34,10 +34,10 @@ security:
 
 seed:
   admin:
-    enabled: false
-    name: Super Admin
-    email: admin@founderlink.com
-    password: ""
+    enabled: ${SEED_ADMIN_ENABLED}
+    name: ${SEED_ADMIN_NAME}
+    email: ${SEED_ADMIN_EMAIL}
+    password: ${SEED_ADMIN_PASSWORD}
 
 user-service:
   client:
