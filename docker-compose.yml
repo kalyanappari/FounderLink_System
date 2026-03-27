@@ -260,6 +260,8 @@ services:
 
   zipkin:
     image: openzipkin/zipkin:latest
+    healthcheck:
+      disable: true 
     container_name: zipkin
     networks:
       - founderlink-internal
