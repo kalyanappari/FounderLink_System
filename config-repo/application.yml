@@ -56,8 +56,6 @@ management:
 logging:
   level:
     root: INFO
-  file:
-    name: logs/${spring.application.name}.log
 
 # Common RabbitMQ exchange
 rabbitmq:
