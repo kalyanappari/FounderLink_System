@@ -16,7 +16,10 @@ pipeline {
         DOCKER_REPO = 'founderlink'
         SERVICES = ''
         INFRA_SERVICES = ''
-        // FIX #3: Flag to skip downstream stages when no services detected
+        // config-repo/ changes don't require a rebuild — just a container restart
+        // so config-server re-fetches the latest config from its Git backend
+        RESTART_SERVICES = ''
+        // FIX #3: Flag to skip downstream stages when nothing at all was detected
         SKIP_BUILD = 'false'
     }
 
@@ -110,8 +113,9 @@ pipeline {
 
                     def fileList = changedFiles ? changedFiles.split("\n") : []
 
-                    def services = [] as Set
-                    def infraServices = [] as Set
+                    def services        = [] as Set
+                    def infraServices   = [] as Set
+                    def restartServices = [] as Set
 
                     fileList.each { file ->
                         if (file.startsWith("auth-service/"))         services.add("auth-service")
@@ -126,15 +130,19 @@ pipeline {
                         if (file.startsWith("api-gateway/"))          services.add("api-gateway")
                         if (file.startsWith("config-server/"))        infraServices.add("config-server")
                         if (file.startsWith("eureka-server/"))        infraServices.add("eureka-server")
-                        // FIX #2: config-repo/ changes affect runtime config served by config-server.
-                        // Any change here must trigger a config-server redeploy so services pick up new values.
-                        if (file.startsWith("config-repo/"))          infraServices.add("config-server")
+                        // config-repo/ is the Git-backed config store read by Spring Cloud Config Server.
+                        // Changing it does NOT mean config-server source code changed — no rebuild or
+                        // new image needed. A simple container restart is enough for config-server to
+                        // re-fetch the latest config from its Git backend.
+                        if (file.startsWith("config-repo/"))          restartServices.add("config-server")
                     }
 
-                    env.SERVICES = services.join(",")
-                    env.INFRA_SERVICES = infraServices.join(",")
+                    env.SERVICES         = services.join(",")
+                    env.INFRA_SERVICES   = infraServices.join(",")
+                    env.RESTART_SERVICES = restartServices.join(",")
 
-                    if (!env.SERVICES && !env.INFRA_SERVICES) {
+                    // Only skip when truly nothing changed across all three categories
+                    if (!env.SERVICES && !env.INFRA_SERVICES && !env.RESTART_SERVICES) {
                         echo "No service changes detected. Skipping build."
                         // FIX #3: Set a flag instead of bare return.
                         // A bare return only exits this script{} closure — all downstream
@@ -143,16 +151,18 @@ pipeline {
                         return
                     }
 
-                    echo "Changed application services: ${env.SERVICES}"
-                    echo "Changed infrastructure services: ${env.INFRA_SERVICES}"
+                    if (env.SERVICES)         echo "Changed application services: ${env.SERVICES}"
+                    if (env.INFRA_SERVICES)   echo "Changed infrastructure services: ${env.INFRA_SERVICES}"
+                    if (env.RESTART_SERVICES) echo "Config-repo changes — will restart: ${env.RESTART_SERVICES}"
                 }
             }
         }
 
         stage('Run Tests') {
             when {
-                // FIX #3: Guard against running when nothing was detected
-                expression { !params.ROLLBACK && env.SKIP_BUILD != 'true' }
+                // FIX #3: Guard against running when nothing was detected.
+                // Also skip for pure config-repo changes — no source code changed, nothing to test.
+                expression { !params.ROLLBACK && env.SKIP_BUILD != 'true' && (env.SERVICES || env.INFRA_SERVICES) }
             }
             steps {
                 script {
@@ -192,8 +202,8 @@ pipeline {
 
         stage('Build Images') {
             when {
-                // FIX #3: Guard against running when nothing was detected
-                expression { !params.ROLLBACK && env.SKIP_BUILD != 'true' }
+                // Also skip for pure config-repo changes — no source code changed, nothing to build.
+                expression { !params.ROLLBACK && env.SKIP_BUILD != 'true' && (env.SERVICES || env.INFRA_SERVICES) }
             }
             steps {
                 script {
@@ -230,7 +240,7 @@ pipeline {
         stage('Push Images') {
             when {
                 // FIX #3 + FIX #5: Skip entirely when no services detected or nothing to push.
-                // Previously docker login ran on every non-rollback build regardless.
+                // Also skip for pure config-repo changes — no new image was built.
                 expression {
                     !params.ROLLBACK &&
                     env.SKIP_BUILD != 'true' &&
@@ -323,12 +333,32 @@ pipeline {
             }
         }
 
+        // Handles config-repo/ changes: no image rebuild, just restart so
+        // Spring Cloud Config Server re-reads the latest config from its Git backend.
+        stage('Restart Config Services') {
+            when {
+                expression { env.RESTART_SERVICES != null && env.RESTART_SERVICES != "" }
+            }
+            steps {
+                script {
+                    env.RESTART_SERVICES.split(",").each { svc ->
+                        echo "Restarting ${svc} to pick up config-repo changes..."
+                        sh "docker compose -f docker-compose.infra.yml restart ${svc}"
+                    }
+                }
+            }
+        }
+
         stage('Health Check') {
             steps {
                 script {
                     def allServices = []
-                    if (env.SERVICES) allServices.addAll(env.SERVICES.split(","))
-                    if (env.INFRA_SERVICES) allServices.addAll(env.INFRA_SERVICES.split(","))
+                    if (env.SERVICES)         allServices.addAll(env.SERVICES.split(","))
+                    if (env.INFRA_SERVICES)   allServices.addAll(env.INFRA_SERVICES.split(","))
+                    if (env.RESTART_SERVICES) allServices.addAll(env.RESTART_SERVICES.split(","))
+
+                    // de-duplicate in case config-server appears in both INFRA_SERVICES and RESTART_SERVICES
+                    allServices = allServices.unique()
 
                     allServices.each { svc ->
                         echo "Checking health of ${svc}"
@@ -367,8 +397,9 @@ pipeline {
                     echo "✅ Pipeline complete — no service changes detected, nothing deployed."
                 } else {
                     def deployed = []
-                    if (env.SERVICES) deployed.add("App: ${env.SERVICES}")
-                    if (env.INFRA_SERVICES) deployed.add("Infra: ${env.INFRA_SERVICES}")
+                    if (env.SERVICES)         deployed.add("App: ${env.SERVICES}")
+                    if (env.INFRA_SERVICES)   deployed.add("Infra: ${env.INFRA_SERVICES}")
+                    if (env.RESTART_SERVICES) deployed.add("Restarted: ${env.RESTART_SERVICES}")
                     echo "✅ Deployment successful for ${deployed.join(' | ')}"
                     echo "Tag: ${env.COMMIT_TAG}"
                 }
