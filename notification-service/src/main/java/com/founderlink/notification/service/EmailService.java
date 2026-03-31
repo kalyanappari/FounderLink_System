@@ -24,7 +24,7 @@ public class EmailService {
             message.setTo(to);
             message.setSubject(subject);
             message.setText(body);
-            message.setFrom("noreply@founderlink.com");
+            message.setFrom("noreply@founderlink.online");
 
             mailSender.send(message);
             log.info("Email sent successfully to: {}", to);
