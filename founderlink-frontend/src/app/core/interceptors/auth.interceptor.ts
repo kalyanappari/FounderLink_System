@@ -15,21 +15,28 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const token = authService.token();
 
-  // Public endpoints that must never have auth headers or trigger refresh
-  const isPublicEndpoint =
+  // Endpoints where we NEVER attach a token (auth routes only)
+  const isPublicAuthEndpoint =
     req.url.includes('/auth/login') ||
     req.url.includes('/auth/register') ||
     req.url.includes('/auth/forgot-password') ||
     req.url.includes('/auth/reset-password') ||
-    req.url.includes('/auth/refresh');   // ← fixed: prevents infinite refresh loop
+    req.url.includes('/auth/refresh');
 
-  const authReq = token && !isPublicEndpoint
+  // Endpoints where a 401 should NOT trigger a redirect to /auth/login
+  // (e.g. public platform features that don't absolutely require being logged in)
+  const ignore401Redirect =
+    isPublicAuthEndpoint ||
+    req.url.includes('/startup') ||
+    req.url.includes('/users/public/stats');
+
+  const authReq = token && !isPublicAuthEndpoint
     ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
     : req;
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && !isPublicEndpoint) {
+      if (error.status === 401 && !ignore401Redirect) {
         return handle401(req, next, authService, router);
       }
       return throwError(() => error);

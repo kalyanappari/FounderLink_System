@@ -1,8 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
+import { UserService } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-register',
@@ -10,29 +11,25 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './register.html',
   styleUrl: './register.css'
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
   form: FormGroup;
   loading    = signal(false);
   errorMsg   = signal('');
   successMsg = signal('');
   showPassword = false;
+  isRoleLocked = false;
+  stats = signal({ founders: 350, investors: 200, cofounders: 120 });
 
   readonly roles = [
-    { value: 'FOUNDER',   icon: '🚀', label: 'Founder',    desc: 'Build a startup' },
-    { value: 'INVESTOR',  icon: '💼', label: 'Investor',   desc: 'Fund startups' },
-    { value: 'COFOUNDER', icon: '🤝', label: 'Co-Founder', desc: 'Join a team' }
+    { value: 'FOUNDER',   icon: 'founder', label: 'Founder',    desc: 'Build a startup' },
+    { value: 'INVESTOR',  icon: 'investor', label: 'Investor',   desc: 'Fund startups' },
+    { value: 'COFOUNDER', icon: 'cofounder', label: 'Co-Founder', desc: 'Join a team' }
   ];
 
   readonly rolePreviews = [
-    { role: 'Founder',    icon: '🚀', desc: 'Create and manage your startup' },
-    { role: 'Investor',   icon: '💼', desc: 'Discover and fund opportunities' },
-    { role: 'Co-Founder', icon: '🤝', desc: 'Join teams and build together' },
-  ];
-
-  readonly stats = [
-    { value: '500+', label: 'Startups' },
-    { value: '200+', label: 'Investors' },
-    { value: '1K+',  label: 'Members' },
+    { role: 'Founder',    icon: 'founder', desc: 'Create and manage your startup' },
+    { role: 'Investor',   icon: 'investor', desc: 'Discover and fund opportunities' },
+    { role: 'Co-Founder', icon: 'cofounder', desc: 'Join teams and build together' },
   ];
 
   get selectedRole(): string {
@@ -44,13 +41,30 @@ export class RegisterComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private userService: UserService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.form = this.fb.group({
       name:     ['', [Validators.required, Validators.minLength(2)]],
       email:    ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       role:     ['', Validators.required]
+    });
+  }
+
+  ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      const qRole = params['role'];
+      if (qRole && ['FOUNDER', 'INVESTOR', 'COFOUNDER'].includes(qRole)) {
+        this.form.patchValue({ role: qRole });
+        this.isRoleLocked = true;
+      }
+    });
+
+    this.userService.getPublicStats().subscribe({
+      next: (data) => this.stats.set(data),
+      error: () => console.warn('Failed to load public stats')
     });
   }
 

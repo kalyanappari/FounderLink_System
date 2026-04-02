@@ -38,11 +38,15 @@ export class UserService {
     );
   }
 
-  /** Get users by role (plain array response) */
   getUsersByRole(role: string): Observable<ApiEnvelope<UserResponse[]>> {
     return this.http.get<UserResponse[]>(`${this.api}/users/role/${role}`).pipe(
       map(normalizeArray),
       catchError(err => throwError(() => normalizeError(err)))
     );
+  }
+
+  /** Get aggregated public stats for landing page */
+  getPublicStats(): Observable<{founders: number, investors: number, cofounders: number}> {
+    return this.http.get<{founders: number, investors: number, cofounders: number}>(`${this.api}/users/public/stats`);
   }
 }

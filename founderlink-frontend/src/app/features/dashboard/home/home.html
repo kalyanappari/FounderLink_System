@@ -1,4 +1,5 @@
-@let role = authService.role();
+@let rawRole = authService.role() ?? '';
+@let role = rawRole.replace('ROLE_', '');
 @let name = (authService.email() ?? '').split('@')[0] || 'there';
 
 <!-- ── Welcome Header ── -->
@@ -20,7 +21,7 @@
   <!-- ══════════════════════════════════════════════════════════ -->
   <!-- FOUNDER DASHBOARD                                          -->
   <!-- ══════════════════════════════════════════════════════════ -->
-  @if (role === 'ROLE_FOUNDER') {
+  @if (role === 'FOUNDER') {
 
     <div class="stats-grid">
       <div class="stat-card">
@@ -143,7 +144,7 @@
   <!-- ══════════════════════════════════════════════════════════ -->
   <!-- INVESTOR DASHBOARD                                         -->
   <!-- ══════════════════════════════════════════════════════════ -->
-  @if (role === 'ROLE_INVESTOR') {
+  @if (role === 'INVESTOR') {
 
     <div class="stats-grid">
       <div class="stat-card">
@@ -244,7 +245,7 @@
   <!-- ══════════════════════════════════════════════════════════ -->
   <!-- COFOUNDER DASHBOARD                                        -->
   <!-- ══════════════════════════════════════════════════════════ -->
-  @if (role === 'ROLE_COFOUNDER') {
+  @if (role === 'COFOUNDER') {
 
     <div class="stats-grid">
       <div class="stat-card">

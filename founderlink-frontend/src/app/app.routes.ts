@@ -2,7 +2,18 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
+
+  // ── Public: Landing page ───────────────────────────────────────────────────
+  {
+    path: '',
+    loadComponent: () => import('./features/landing/landing').then(m => m.LandingComponent)
+  },
+
+  // ── Public: Individual startup detail ─────────────────────────────────────
+  {
+    path: 'startup/:id',
+    loadComponent: () => import('./features/landing/startup-detail/startup-detail').then(m => m.StartupDetailComponent)
+  },
 
   // ── Auth (public) ──────────────────────────────────────────────────────────
   {
@@ -48,5 +59,6 @@ export const routes: Routes = [
     ]
   },
 
-  { path: '**', redirectTo: 'auth/login' }
+  // ── Fallback ───────────────────────────────────────────────────────────────
+  { path: '**', redirectTo: '' }
 ];

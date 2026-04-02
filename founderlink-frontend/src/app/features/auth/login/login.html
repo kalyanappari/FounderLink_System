@@ -20,7 +20,15 @@
       <div class="feature-list">
         @for (f of features; track f.title) {
           <div class="feature-item">
-            <div class="feature-icon">{{ f.icon }}</div>
+            <div class="feature-icon">
+              @if (f.icon === 'founder') {
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .34 2.02 1.5 3.5.76.76 1.23 1.52 1.41 2.5"/></svg>
+              } @else if (f.icon === 'investor') {
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              } @else {
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              }
+            </div>
             <div>
               <div class="feature-title">{{ f.title }}</div>
               <div class="feature-desc">{{ f.desc }}</div>
@@ -31,12 +39,9 @@
 
       <div class="panel-footer">
         <div class="stat-row">
-          @for (s of stats; track s.label) {
-            <div class="stat">
-              <span class="stat-value">{{ s.value }}</span>
-              <span class="stat-label">{{ s.label }}</span>
-            </div>
-          }
+          <div class="stat"><span class="stat-value">{{ stats().founders }}+</span><span class="stat-label">Founders</span></div>
+          <div class="stat"><span class="stat-value">{{ stats().investors }}+</span><span class="stat-label">Investors</span></div>
+          <div class="stat"><span class="stat-value">{{ stats().cofounders }}+</span><span class="stat-label">Co-Founders</span></div>
         </div>
       </div>
     </div>

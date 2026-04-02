@@ -125,8 +125,12 @@ export class StartupsComponent implements OnInit {
   }
 
   // ── Helpers ───────────────────────────────────────────────────
-  get isInvestor(): boolean { return this.authService.role() === 'ROLE_INVESTOR'; }
-  get isFounder():  boolean { return this.authService.role() === 'ROLE_FOUNDER'; }
+  private roleIs(r: string): boolean {
+    const s = this.authService.role() ?? '';
+    return s === r || s === `ROLE_${r}`;
+  }
+  get isInvestor(): boolean { return this.roleIs('INVESTOR'); }
+  get isFounder():  boolean { return this.roleIs('FOUNDER'); }
 
   stageLabel(stage: string): string {
     return this.stageLabels[stage as StartupStage] ?? stage;

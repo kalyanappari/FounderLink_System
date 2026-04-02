@@ -1,7 +1,20 @@
 .dashboard-layout {
+  /* Inject premium dark theme override variables specifically for Dashboard layout */
+  --bg: #0a0a0f;
+  --white: rgba(255, 255, 255, 0.03);
+  --border: rgba(255, 255, 255, 0.08);
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --shadow-sm: 0 4px 12px rgba(0,0,0,0.5);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.5);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --bg-secondary: rgba(255, 255, 255, 0.02);
+
   display: flex;
   min-height: 100vh;
   background: var(--bg);
+  color: var(--text-primary);
 }
 
 .dashboard-main {

@@ -34,11 +34,12 @@ export class HomeComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const role = this.authService.role();
-    if (role === 'ROLE_FOUNDER')   this.loadFounderData();
-    if (role === 'ROLE_INVESTOR')  this.loadInvestorData();
-    if (role === 'ROLE_COFOUNDER') this.loadCofounderData();
-    if (role === 'ROLE_ADMIN')    { this.loading.set(false); }
+    const raw = this.authService.role() ?? '';
+    const role = raw.replace('ROLE_', '');
+    if (role === 'FOUNDER')   this.loadFounderData();
+    if (role === 'INVESTOR')  this.loadInvestorData();
+    if (role === 'COFOUNDER') this.loadCofounderData();
+    if (role === 'ADMIN')    { this.loading.set(false); }
   }
 
   private loadFounderData(): void {

@@ -1,0 +1,104 @@
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <a class="brand" routerLink="/">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+      <span>FounderLink</span>
+    </a>
+    <div class="nav-actions">
+      <a class="btn-ghost-nav" routerLink="/auth/login">Sign In</a>
+      <a class="btn btn-primary btn-sm" routerLink="/auth/register">Join Free</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Back -->
+<div class="back-bar">
+  <div class="back-inner">
+    <button class="back-btn" (click)="goBack()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      All Startups
+    </button>
+  </div>
+</div>
+
+<!-- Loading -->
+@if (loading()) {
+  <div class="page-loading">
+    <div class="spinner-lg"></div>
+  </div>
+}
+
+<!-- Error -->
+@if (!loading() && error()) {
+  <div class="page-error">
+    <h3>{{ error() }}</h3>
+    <button class="btn btn-primary" (click)="goBack()">Go Back</button>
+  </div>
+}
+
+<!-- Content -->
+@if (!loading() && startup()) {
+  @let s = startup()!;
+  <div class="detail-page">
+    <div class="detail-grid">
+
+      <!-- LEFT: Main Info -->
+      <div class="detail-main">
+        <div class="dm-header">
+          <div class="dm-logo">{{ s.name.slice(0,2).toUpperCase() }}</div>
+          <div>
+            <h1 class="dm-name">{{ s.name }}</h1>
+            @if (s.industry) { <p class="dm-industry">{{ s.industry }}</p> }
+            <span class="stage-badge" [class]="stageClass(s.stage)">{{ stageLabel(s.stage) }}</span>
+          </div>
+        </div>
+
+        @if (s.description) {
+          <div class="dm-section">
+            <h3 class="dm-section-title">About</h3>
+            <p class="dm-desc">{{ s.description }}</p>
+          </div>
+        }
+
+        <!-- Public view does not include action wall / auth wall -->
+      </div>
+
+      <!-- RIGHT: Sidebar -->
+      <aside class="detail-side">
+
+        <!-- Funding Card -->
+        <div class="side-card">
+          <h3 class="side-card-title">Funding Goal</h3>
+          <div class="funding-raised">{{ formatCurrency(s.fundingGoal) }}</div>
+          <div class="funding-goal">Target funding</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+        </div>
+
+        <!-- Details Card -->
+        <div class="side-card">
+          <h3 class="side-card-title">Details</h3>
+          <div class="detail-rows">
+            <div class="dr">
+              <span class="dr-label">Stage</span>
+              <span class="dr-val"><span class="stage-badge" [class]="stageClass(s.stage)">{{ stageLabel(s.stage) }}</span></span>
+            </div>
+            @if (s.industry) {
+              <div class="dr">
+                <span class="dr-label">Industry</span>
+                <span class="dr-val">{{ s.industry }}</span>
+              </div>
+            }
+            <div class="dr">
+              <span class="dr-label">Funding Goal</span>
+              <span class="dr-val highlight">{{ formatCurrency(s.fundingGoal) }}</span>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+    </div>
+  </div>
+}
