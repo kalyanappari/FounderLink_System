@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { TeamService } from '../../../core/services/team.service';
+import { StartupService } from '../../../core/services/startup.service';
 import { InvitationResponse, InvitationStatus } from '../../../models';
 
 @Component({
@@ -16,8 +17,13 @@ export class InvitationsComponent implements OnInit {
   acting      = signal<number | null>(null);
   errorMsg    = signal('');
   successMsg  = signal('');
+  startupNames = signal<Map<number, string>>(new Map());
 
-  constructor(public authService: AuthService, private teamService: TeamService) {}
+  constructor(
+    public authService: AuthService,
+    private teamService: TeamService,
+    private startupService: StartupService
+  ) {}
 
   ngOnInit(): void { this.loadInvitations(); }
 
@@ -26,6 +32,14 @@ export class InvitationsComponent implements OnInit {
     this.teamService.getMyInvitations().subscribe({
       next: env => { this.invitations.set(env.data ?? []); this.loading.set(false); },
       error: env => { this.errorMsg.set(env.error ?? 'Failed to load invitations.'); this.loading.set(false); }
+    });
+
+    this.startupService.getAll().subscribe({
+      next: env => {
+        const map = new Map<number, string>();
+        env.data?.forEach(s => map.set(s.id, s.name));
+        this.startupNames.set(map);
+      }
     });
   }
 

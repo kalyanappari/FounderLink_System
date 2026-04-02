@@ -37,7 +37,7 @@
             <div class="payment-card-header">
               <div>
                 <h4>Investment #{{ item.investment.id }}</h4>
-                <p class="payment-startup">Startup ID: {{ item.investment.startupId }}</p>
+                <p class="payment-startup">{{ startupNames().get(item.investment.startupId) || 'Startup ' + item.investment.startupId }}</p>
               </div>
               <span class="badge" [class]="paymentStatusClass(item.payment?.status)">
                 {{ paymentStatusLabel(item.payment?.status) }}

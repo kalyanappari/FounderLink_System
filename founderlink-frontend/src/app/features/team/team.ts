@@ -39,6 +39,9 @@ export class TeamComponent implements OnInit {
   // ── CoFounder state ───────────────────────────────────────────────────────
   myTeams = signal<TeamMemberResponse[]>([]);
 
+  // Startup Name Map
+  startupNames = signal<Map<number, string>>(new Map());
+
   readonly teamRoles: TeamRole[] = ['CTO', 'CPO', 'MARKETING_HEAD', 'ENGINEERING_LEAD'];
   readonly roleLabels: Record<TeamRole, string> = {
     CTO: 'Chief Technology Officer',
@@ -67,6 +70,15 @@ export class TeamComponent implements OnInit {
   ngOnInit(): void {
     if (this.isFounder())   this.loadFounderData();
     if (this.isCoFounder()) this.loadCoFounderData();
+
+    // Prefetch startup names
+    this.startupService.getAll().subscribe({
+      next: env => {
+        const map = new Map<number, string>();
+        env.data?.forEach(s => map.set(s.id, s.name));
+        this.startupNames.set(map);
+      }
+    });
   }
 
   // ── Founder ───────────────────────────────────────────────────────────────

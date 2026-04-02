@@ -69,22 +69,22 @@
     <div class="section-title">Quick Actions</div>
     <div class="actions-grid">
       <a routerLink="/dashboard/my-startup" class="action-card">
-        <div class="action-icon purple">🚀</div>
+        <div class="action-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg></div>
         <span class="action-label">My Startup</span>
         <span class="action-desc">Manage your startup</span>
       </a>
       <a routerLink="/dashboard/team" class="action-card">
-        <div class="action-icon blue">👥</div>
+        <div class="action-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
         <span class="action-label">Team</span>
         <span class="action-desc">Invite co-founders</span>
       </a>
       <a routerLink="/dashboard/investments" class="action-card">
-        <div class="action-icon green">💰</div>
+        <div class="action-icon green"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
         <span class="action-label">Investments</span>
         <span class="action-desc">Review & approve</span>
       </a>
       <a routerLink="/dashboard/wallet" class="action-card">
-        <div class="action-icon orange">👛</div>
+        <div class="action-icon orange"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg></div>
         <span class="action-label">Wallet</span>
         <span class="action-desc">Check balance</span>
       </a>
@@ -112,7 +112,7 @@
       </div>
     } @else {
       <div class="empty-cta">
-        <span>🚀</span>
+        <span><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg></span>
         <p>You haven't created a startup yet.</p>
         <a routerLink="/dashboard/my-startup" class="btn btn-primary btn-sm">Create Startup</a>
       </div>
@@ -127,7 +127,7 @@
             <div class="lc-left">
               <div class="lc-avatar green">₹</div>
               <div>
-                <div class="lc-title">Investor #{{ inv.investorId }}</div>
+                <div class="lc-title">{{ userNames().get(inv.investorId) || 'Investor ' + inv.investorId }}</div>
                 <div class="lc-sub">{{ inv.createdAt | date:'mediumDate' }}</div>
               </div>
             </div>
@@ -192,22 +192,22 @@
     <div class="section-title">Quick Actions</div>
     <div class="actions-grid">
       <a routerLink="/dashboard/startups" class="action-card">
-        <div class="action-icon purple">🔍</div>
+        <div class="action-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
         <span class="action-label">Browse Startups</span>
         <span class="action-desc">Discover opportunities</span>
       </a>
       <a routerLink="/dashboard/portfolio" class="action-card">
-        <div class="action-icon blue">📊</div>
+        <div class="action-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg></div>
         <span class="action-label">My Portfolio</span>
         <span class="action-desc">Track investments</span>
       </a>
       <a routerLink="/dashboard/payments" class="action-card">
-        <div class="action-icon green">💳</div>
+        <div class="action-icon green"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg></div>
         <span class="action-label">Payments</span>
         <span class="action-desc">Payment history</span>
       </a>
       <a routerLink="/dashboard/messages" class="action-card">
-        <div class="action-icon orange">💬</div>
+        <div class="action-icon orange"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
         <span class="action-label">Messages</span>
         <span class="action-desc">Talk to founders</span>
       </a>
@@ -222,7 +222,7 @@
             <div class="lc-left">
               <div class="lc-avatar blue">₹</div>
               <div>
-                <div class="lc-title">Startup #{{ inv.startupId }}</div>
+                <div class="lc-title">{{ startupNames().get(inv.startupId) || 'Startup ' + inv.startupId }}</div>
                 <div class="lc-sub">{{ inv.createdAt | date:'mediumDate' }}</div>
               </div>
             </div>
@@ -235,7 +235,7 @@
       </div>
     } @else {
       <div class="empty-cta">
-        <span>💼</span>
+        <span><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></span>
         <p>You haven't made any investments yet.</p>
         <a routerLink="/dashboard/startups" class="btn btn-primary btn-sm">Browse Startups</a>
       </div>
@@ -293,22 +293,22 @@
     <div class="section-title">Quick Actions</div>
     <div class="actions-grid">
       <a routerLink="/dashboard/invitations" class="action-card">
-        <div class="action-icon purple">📬</div>
+        <div class="action-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></div>
         <span class="action-label">Invitations</span>
         <span class="action-desc">View & respond</span>
       </a>
       <a routerLink="/dashboard/team" class="action-card">
-        <div class="action-icon blue">👥</div>
+        <div class="action-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
         <span class="action-label">My Teams</span>
         <span class="action-desc">Active memberships</span>
       </a>
       <a routerLink="/dashboard/startups" class="action-card">
-        <div class="action-icon green">🔍</div>
+        <div class="action-icon green"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
         <span class="action-label">Startups</span>
         <span class="action-desc">Explore startups</span>
       </a>
       <a routerLink="/dashboard/messages" class="action-card">
-        <div class="action-icon orange">💬</div>
+        <div class="action-icon orange"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
         <span class="action-label">Messages</span>
         <span class="action-desc">Chat with founders</span>
       </a>
@@ -321,9 +321,9 @@
         @for (inv of pendingInvitations; track inv.id) {
           <div class="list-card">
             <div class="lc-left">
-              <div class="lc-avatar purple">📬</div>
+              <div class="lc-avatar purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></div>
               <div>
-                <div class="lc-title">Startup #{{ inv.startupId }}</div>
+                <div class="lc-title">{{ startupNames().get(inv.startupId) || 'Startup ' + inv.startupId }}</div>
                 <div class="lc-sub">Role: {{ inv.role }}</div>
               </div>
             </div>
@@ -336,7 +336,7 @@
       </div>
     } @else {
       <div class="empty-cta">
-        <span>📬</span>
+        <span><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></span>
         <p>No pending invitations right now.</p>
         <a routerLink="/dashboard/startups" class="btn btn-primary btn-sm">Explore Startups</a>
       </div>

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { InvestmentService } from '../../core/services/investment.service';
 import { StartupService } from '../../core/services/startup.service';
+import { UserService } from '../../core/services/user.service';
 import { InvestmentResponse, InvestmentStatus, StartupResponse } from '../../models';
 
 @Component({
@@ -21,11 +22,13 @@ export class InvestmentsComponent implements OnInit {
   errorMsg          = signal('');
   successMsg        = signal('');
   filterStatus      = '';
+  userNames         = signal<Map<number, string>>(new Map());
 
   constructor(
     public authService: AuthService,
     private investmentService: InvestmentService,
-    private startupService: StartupService
+    private startupService: StartupService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -41,6 +44,14 @@ export class InvestmentsComponent implements OnInit {
         }
       },
       error: () => this.loading.set(false)
+    });
+
+    this.userService.getAllUsers().subscribe({
+      next: env => {
+        const map = new Map<number, string>();
+        env.data?.forEach(u => map.set(u.userId, u.name || `Investor ${u.userId}`));
+        this.userNames.set(map);
+      }
     });
   }
 

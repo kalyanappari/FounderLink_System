@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { InvestmentService } from '../../../core/services/investment.service';
+import { StartupService } from '../../../core/services/startup.service';
 import { InvestmentResponse, InvestmentStatus } from '../../../models';
 
 @Component({
@@ -17,13 +18,26 @@ export class PortfolioComponent implements OnInit {
   loading     = signal(true);
   errorMsg    = signal('');
   filterStatus = '';
+  startupNames = signal<Map<number, string>>(new Map());
 
-  constructor(public authService: AuthService, private investmentService: InvestmentService) {}
+  constructor(
+    public authService: AuthService,
+    private investmentService: InvestmentService,
+    private startupService: StartupService
+  ) {}
 
   ngOnInit(): void {
     this.investmentService.getMyPortfolio().subscribe({
       next: env => { this.investments.set(env.data ?? []); this.loading.set(false); },
       error: env => { this.errorMsg.set(env.error ?? 'Failed to load portfolio.'); this.loading.set(false); }
+    });
+
+    this.startupService.getAll().subscribe({
+      next: env => {
+        const map = new Map<number, string>();
+        env.data?.forEach(s => map.set(s.id, s.name));
+        this.startupNames.set(map);
+      }
     });
   }
 

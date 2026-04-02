@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { PaymentService } from '../../core/services/payment.service';
 import { InvestmentService } from '../../core/services/investment.service';
+import { StartupService } from '../../core/services/startup.service';
 import { environment } from '../../../environments/environment';
 import { InvestmentResponse, InvestmentStatus, PaymentResponse, PaymentStatus, CreateOrderResponse } from '../../models';
 
@@ -27,15 +28,25 @@ export class PaymentsComponent implements OnInit {
   errorMsg = signal('');
   successMsg = signal('');
   processingId: number | null = null;
+  startupNames = signal<Map<number, string>>(new Map());
 
   constructor(
     public authService: AuthService,
     private investmentService: InvestmentService,
-    private paymentService: PaymentService
+    private paymentService: PaymentService,
+    private startupService: StartupService
   ) {}
 
   ngOnInit(): void {
     this.loadPortfolio();
+
+    this.startupService.getAll().subscribe({
+      next: env => {
+        const map = new Map<number, string>();
+        env.data?.forEach(s => map.set(s.id, s.name));
+        this.startupNames.set(map);
+      }
+    });
   }
 
   loadPortfolio(): void {

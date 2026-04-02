@@ -232,9 +232,9 @@
       @for (m of myTeams(); track m.id) {
         <div class="member-card">
           <div class="mc-left">
-            <div class="mc-avatar startup">{{ m.startupId }}</div>
+            <div class="mc-avatar startup">{{ (startupNames().get(m.startupId) || 'S')[0] }}</div>
             <div class="mc-info">
-              <div class="mc-name">Startup #{{ m.startupId }}</div>
+              <div class="mc-name">{{ startupNames().get(m.startupId) || 'Startup ' + m.startupId }}</div>
               <div class="mc-meta">
                 <span class="badge" [class]="roleClass(m.role)">{{ roleShortLabel(m.role) }}</span>
                 <span class="mc-date">Joined {{ m.joinedAt | date:'mediumDate' }}</span>

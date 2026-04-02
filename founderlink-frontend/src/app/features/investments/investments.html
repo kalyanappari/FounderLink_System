@@ -97,8 +97,8 @@
               <td class="td-id">{{ inv.id }}</td>
               <td>
                 <div class="investor-cell">
-                  <div class="investor-avatar">{{ inv.investorId }}</div>
-                  <span>Investor #{{ inv.investorId }}</span>
+                  <div class="investor-avatar">{{ (userNames().get(inv.investorId) || 'I')[0] }}</div>
+                  <span>{{ userNames().get(inv.investorId) || 'Investor ' + inv.investorId }}</span>
                 </div>
               </td>
               <td class="td-amount">{{ formatCurrency(inv.amount) }}</td>

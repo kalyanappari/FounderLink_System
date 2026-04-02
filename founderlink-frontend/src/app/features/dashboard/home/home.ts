@@ -5,6 +5,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { StartupService } from '../../../core/services/startup.service';
 import { InvestmentService } from '../../../core/services/investment.service';
 import { TeamService } from '../../../core/services/team.service';
+import { UserService } from '../../../core/services/user.service';
 import { StartupResponse, InvestmentResponse, InvitationResponse } from '../../../models';
 
 @Component({
@@ -24,13 +25,18 @@ export class HomeComponent implements OnInit {
   // CoFounder
   myInvitations = signal<InvitationResponse[]>([]);
 
+  // Name Maps to prevent showing IDs
+  startupNames = signal<Map<number, string>>(new Map());
+  userNames    = signal<Map<number, string>>(new Map());
+
   loading = signal(true);
 
   constructor(
     public authService: AuthService,
     private startupService: StartupService,
     private investmentService: InvestmentService,
-    private teamService: TeamService
+    private teamService: TeamService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -40,6 +46,23 @@ export class HomeComponent implements OnInit {
     if (role === 'INVESTOR')  this.loadInvestorData();
     if (role === 'COFOUNDER') this.loadCofounderData();
     if (role === 'ADMIN')    { this.loading.set(false); }
+
+    // Pre-fetch names for mapping IDs
+    this.startupService.getAll().subscribe({
+      next: env => {
+        const map = new Map<number, string>();
+        env.data?.forEach(s => map.set(s.id, s.name));
+        this.startupNames.set(map);
+      }
+    });
+
+    this.userService.getAllUsers().subscribe({
+      next: env => {
+        const map = new Map<number, string>();
+        env.data?.forEach(u => map.set(u.userId, u.name || `User ${u.userId}`));
+        this.userNames.set(map);
+      }
+    });
   }
 
   private loadFounderData(): void {

@@ -75,9 +75,9 @@
       @for (inv of filtered; track inv.id) {
         <div class="portfolio-item">
           <div class="pi-left">
-            <div class="pi-avatar">{{ inv.startupId }}</div>
+            <div class="pi-avatar">{{ (startupNames().get(inv.startupId) || 'S')[0] }}</div>
             <div>
-              <div class="pi-title">Startup #{{ inv.startupId }}</div>
+              <div class="pi-title">{{ startupNames().get(inv.startupId) || 'Startup ' + inv.startupId }}</div>
               <div class="pi-date">Invested on {{ inv.createdAt | date:'mediumDate' }}</div>
             </div>
           </div>
