@@ -39,7 +39,13 @@ export class StartupDetailComponent implements OnInit {
     }
   }
 
-  goBack(): void { this.router.navigate(['/']); }
+  goBack(): void { 
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['/dashboard/startups']);
+    } else {
+      this.router.navigate(['/']); 
+    }
+  }
 
   stageLabel(stage: StartupStage): string {
     const map: Record<string, string> = {

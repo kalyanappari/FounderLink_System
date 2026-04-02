@@ -52,13 +52,7 @@
           <button class="btn btn-ghost btn-sm" (click)="closeDiscovery()">✕ Close</button>
         </div>
 
-        <!-- Role Filter Tabs -->
-        <div class="role-filter-tabs">
-          <button class="role-tab" [class.active]="roleFilter() === 'COFOUNDER'" (click)="loadUsersForRole('COFOUNDER')">Co-Founders</button>
-          <button class="role-tab" [class.active]="roleFilter() === 'INVESTOR'"  (click)="loadUsersForRole('INVESTOR')">Investors</button>
-          <button class="role-tab" [class.active]="roleFilter() === 'FOUNDER'"   (click)="loadUsersForRole('FOUNDER')">Founders</button>
-          <button class="role-tab" [class.active]="roleFilter() === ''"          (click)="loadUsersForRole('')">All Users</button>
-        </div>
+        <!-- Role Filter Tabs (REMOVED) -->
 
         <!-- Search -->
         <div class="discovery-search">
@@ -113,9 +107,14 @@
                     @if (u.portfolioLinks) {
                       <a [href]="u.portfolioLinks" target="_blank" class="uc-portfolio" (click)="$event.stopPropagation()">🔗 Portfolio</a>
                     }
-                    <button class="btn btn-outline btn-sm uc-select-btn" (click)="selectUserToInvite(u); $event.stopPropagation()">
-                      @if (selectedUser()?.userId === u.userId) { ✓ Selected } @else { Select }
-                    </button>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                      <button class="btn btn-outline btn-sm uc-select-btn" style="margin-top: 0;" (click)="viewProfile(u); $event.stopPropagation()">
+                        View Profile
+                      </button>
+                      <button class="btn btn-primary btn-sm uc-select-btn" style="margin-top: 0;" (click)="selectUserToInvite(u); $event.stopPropagation()">
+                        @if (selectedUser()?.userId === u.userId) { ✓ Selected } @else { Select }
+                      </button>
+                    </div>
                   </div>
                 }
               </div>
@@ -131,6 +130,24 @@
                   <h4>{{ selectedUser()!.name || selectedUser()!.email }}</h4>
                   <p class="text-muted">{{ selectedUser()!.email }}</p>
                 </div>
+              </div>
+
+              <!-- Full User Details -->
+              <div class="invite-user-details" style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+                @if (selectedUser()!.bio) {
+                  <p style="margin-bottom: 0.5rem;"><strong>Bio:</strong> {{ selectedUser()!.bio }}</p>
+                }
+                @if (selectedUser()!.experience) {
+                  <p style="margin-bottom: 0.5rem;"><strong>Experience:</strong> {{ selectedUser()!.experience }}</p>
+                }
+                @if (selectedUser()!.skills) {
+                  <p style="margin-bottom: 0.5rem;"><strong>Skills:</strong> {{ selectedUser()!.skills }}</p>
+                }
+                @if (selectedUser()!.portfolioLinks) {
+                  <p style="margin-bottom: 0.5rem;"><strong>Portfolio:</strong> 
+                    <a [href]="selectedUser()!.portfolioLinks" target="_blank" style="color: var(--primary);">Link</a>
+                  </p>
+                }
               </div>
 
               <div class="form-group" style="margin-top:1.25rem">
@@ -170,6 +187,52 @@
       </div>
     }
 
+    <!-- View Profile Modal -->
+    @if (viewedUser()) {
+      <div class="modal-backdrop" (click)="closeProfile()">
+        <div class="modal-content" (click)="$event.stopPropagation()" style="max-width: 500px;">
+          <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1rem;">
+            <h3>User Profile</h3>
+            <button class="btn btn-ghost btn-sm" (click)="closeProfile()">✕</button>
+          </div>
+          <div class="modal-body" style="color: var(--text-secondary); line-height: 1.6;">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+              <div class="uc-avatar large">{{ userInitials(viewedUser()!) }}</div>
+              <div>
+                <h4 style="color: var(--text-primary); margin: 0; font-size: 1.1rem;">{{ viewedUser()!.name || viewedUser()!.email }}</h4>
+                <p style="margin: 0; font-size: 0.85rem;">{{ viewedUser()!.email }}</p>
+                <span class="badge badge-purple" style="margin-top: 0.3rem; display: inline-block;">{{ viewedUser()!.role }}</span>
+              </div>
+            </div>
+            
+            @if (viewedUser()!.bio) {
+              <div style="margin-bottom: 1rem;"><strong>Bio:</strong><br/>{{ viewedUser()!.bio }}</div>
+            }
+            @if (viewedUser()!.experience) {
+              <div style="margin-bottom: 1rem;"><strong>Experience:</strong><br/>{{ viewedUser()!.experience }}</div>
+            }
+            @if (viewedUser()!.skills) {
+              <div style="margin-bottom: 1rem;"><strong>Skills:</strong><br/>
+                <div class="uc-skills">
+                  @for (skill of viewedUser()!.skills!.split(','); track skill) {
+                    <span class="skill-chip">{{ skill.trim() }}</span>
+                  }
+                </div>
+              </div>
+            }
+            @if (viewedUser()!.portfolioLinks) {
+              <div style="margin-bottom: 1rem;"><strong>Portfolio:</strong><br/>
+                <a [href]="viewedUser()!.portfolioLinks" target="_blank" style="color: var(--primary);">{{ viewedUser()!.portfolioLinks }}</a>
+              </div>
+            }
+          </div>
+          <div class="modal-footer" style="margin-top: 1.5rem; text-align: right;">
+            <button class="btn btn-primary" (click)="selectUserToInvite(viewedUser()!); closeProfile()">Select to Invite</button>
+          </div>
+        </div>
+      </div>
+    }
+
     <!-- ── TEAM MEMBERS ───────────────────────────────────────── -->
     @if (!showDiscovery()) {
       @if (loading()) {
@@ -188,9 +251,9 @@
           @for (m of teamMembers(); track m.id) {
             <div class="member-card">
               <div class="mc-left">
-                <div class="mc-avatar">{{ m.userId }}</div>
+                <div class="mc-avatar">{{ (userNames().get(m.userId) || 'M')[0] }}</div>
                 <div class="mc-info">
-                  <div class="mc-name">Member #{{ m.userId }}</div>
+                  <div class="mc-name">{{ userNames().get(m.userId) || 'Member #' + m.userId }}</div>
                   <div class="mc-meta">
                     <span class="badge" [class]="roleClass(m.role)">{{ roleShortLabel(m.role) }}</span>
                     <span class="mc-date">Joined {{ m.joinedAt | date:'mediumDate' }}</span>
@@ -200,6 +263,7 @@
               <div class="mc-right">
                 <span class="status-dot active"></span>
                 <span class="status-label">Active</span>
+                <button class="btn btn-primary btn-sm" (click)="messageMember(m.userId)">Message</button>
                 <button class="btn btn-danger btn-sm" (click)="removeMember(m.id)" [disabled]="removing() === m.id">
                   @if (removing() === m.id) { <span class="spinner"></span> } @else { Remove }
                 </button>

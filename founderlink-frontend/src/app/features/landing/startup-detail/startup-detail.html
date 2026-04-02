@@ -8,8 +8,12 @@
       <span>FounderLink</span>
     </a>
     <div class="nav-actions">
-      <a class="btn-ghost-nav" routerLink="/auth/login">Sign In</a>
-      <a class="btn btn-primary btn-sm" routerLink="/auth/register">Join Free</a>
+      @if (authService.isLoggedIn()) {
+        <a class="btn btn-primary btn-sm" routerLink="/dashboard">Return to Dashboard</a>
+      } @else {
+        <a class="btn-ghost-nav" routerLink="/auth/login">Sign In</a>
+        <a class="btn btn-primary btn-sm" routerLink="/auth/register">Join Free</a>
+      }
     </div>
   </div>
 </nav>

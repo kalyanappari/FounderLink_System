@@ -65,7 +65,7 @@
           </div>
 
           <!-- Messages area -->
-          <div class="messages-area">
+          <div class="messages-area" #messagesContainer>
             @if (messages().length === 0) {
               <p class="empty-messages">No messages yet. Start the conversation!</p>
             } @else {

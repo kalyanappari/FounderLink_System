@@ -23,7 +23,7 @@
 
   <select [(ngModel)]="selectedIndustry" class="filter-select">
     <option value="">All Industries</option>
-    @for (ind of industries; track ind) {
+    @for (ind of availableIndustries(); track ind) {
       <option [value]="ind">{{ ind }}</option>
     }
   </select>
@@ -118,8 +118,9 @@
               <span class="funding-value">{{ formatCurrency(s.fundingGoal) }}</span>
             </div>
             <div class="sc-actions">
+              <a [routerLink]="['/startup', s.id]" class="btn btn-primary btn-sm">View Details</a>
               @if (isInvestor) {
-                <button class="btn btn-primary btn-sm" (click)="openInvestModal(s)">Invest</button>
+                <button class="btn btn-outline btn-sm" (click)="openInvestModal(s)">Invest</button>
               }
             </div>
           </div>

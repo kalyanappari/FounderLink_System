@@ -105,8 +105,13 @@
               <td><span class="badge" [class]="statusClass(inv.status)">{{ inv.status }}</span></td>
               <td class="td-date">{{ inv.createdAt | date:'mediumDate' }}</td>
               <td>
-                @if (inv.status === 'PENDING') {
-                  <div class="action-btns">
+                <div class="action-btns">
+                  <button class="btn btn-outline btn-sm action-msg-btn"
+                    (click)="messageInvestor(inv.investorId)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Message
+                  </button>
+                  @if (inv.status === 'PENDING') {
                     <button class="btn btn-sm approve-btn"
                       [disabled]="updating() === inv.id"
                       (click)="updateStatus(inv.id, 'APPROVED')">
@@ -121,10 +126,8 @@
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                       Reject
                     </button>
-                  </div>
-                } @else {
-                  <span class="no-action">—</span>
-                }
+                  }
+                </div>
               </td>
             </tr>
           }

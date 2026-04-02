@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { InvestmentService } from '../../core/services/investment.service';
 import { StartupService } from '../../core/services/startup.service';
@@ -28,7 +29,8 @@ export class InvestmentsComponent implements OnInit {
     public authService: AuthService,
     private investmentService: InvestmentService,
     private startupService: StartupService,
-    private userService: UserService
+    private userService: UserService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -115,5 +117,9 @@ export class InvestmentsComponent implements OnInit {
 
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+  }
+
+  messageInvestor(investorId: number): void {
+    this.router.navigate(['/dashboard/messages'], { queryParams: { user: investorId } });
   }
 }

@@ -1,6 +1,7 @@
-import { Component, OnInit, signal, OnDestroy } from '@angular/core';
+import { Component, OnInit, signal, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { MessagingService } from '../../core/services/messaging.service';
 import { UserService } from '../../core/services/user.service';
@@ -20,7 +21,9 @@ interface ConversationPartner {
   templateUrl: './messages.html',
   styleUrl: './messages.css'
 })
-export class MessagesComponent implements OnInit {
+export class MessagesComponent implements OnInit, OnDestroy, AfterViewChecked {
+  @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
+  
   partners       = signal<ConversationPartner[]>([]);
   selectedPartner = signal<ConversationPartner | null>(null);
   messages       = signal<MessageResponse[]>([]);
@@ -31,23 +34,45 @@ export class MessagesComponent implements OnInit {
   errorMsg       = signal('');
   successMsg     = signal('');
   messageContent = '';
+  private pollInterval: any;
 
   constructor(
     public authService: AuthService,
     private messagingService: MessagingService,
-    private userService: UserService
+    private userService: UserService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
-    this.loadConversations();
+    const targetUserId = this.route.snapshot.queryParamMap.get('user');
+    this.loadConversations(targetUserId ? Number(targetUserId) : undefined);
   }
 
-  loadConversations(): void {
+  ngOnDestroy(): void {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+    }
+  }
+
+  ngAfterViewChecked(): void {
+    this.scrollToBottom();
+  }
+
+  private scrollToBottom(): void {
+    try {
+      if (this.messagesContainer) {
+        this.messagesContainer.nativeElement.scrollTop = this.messagesContainer.nativeElement.scrollHeight;
+      }
+    } catch(err) { }
+  }
+
+  loadConversations(targetUserId?: number): void {
     this.loading.set(true);
     this.messagingService.getPartnerIds().subscribe({
       next: env => {
         const ids = env.data ?? [];
-        if (ids.length === 0) { this.loading.set(false); return; }
+        if (ids.length === 0 && !targetUserId) { this.loading.set(false); return; }
+        
         // Fetch user details for each partner id
         const fetches = ids.map(id =>
           new Promise<UserResponse | null>(resolve => {
@@ -57,15 +82,33 @@ export class MessagesComponent implements OnInit {
             });
           })
         );
+        
         Promise.all(fetches).then(users => {
           const validPartners: ConversationPartner[] = users
             .filter((u): u is UserResponse => u !== null)
             .map(u => ({ userId: u.userId, name: u.name ?? u.email, email: u.email, lastMessage: '', lastMessageTime: '' }));
           this.partners.set(validPartners);
-          if (validPartners.length > 0) {
+          
+          if (targetUserId) {
+            const existing = validPartners.find(p => p.userId === targetUserId);
+            if (existing) {
+              this.selectPartner(existing);
+              this.loading.set(false);
+            } else {
+              this.userService.getUser(targetUserId).subscribe({
+                next: (uenv) => {
+                  if (uenv.data) this.startConversationWith(uenv.data);
+                  this.loading.set(false);
+                },
+                error: () => this.loading.set(false)
+              });
+            }
+          } else if (validPartners.length > 0) {
             this.selectPartner(validPartners[0]);
+            this.loading.set(false);
+          } else {
+            this.loading.set(false);
           }
-          this.loading.set(false);
         });
       },
       error: () => { this.errorMsg.set('Failed to load conversations.'); this.loading.set(false); }
@@ -77,6 +120,14 @@ export class MessagesComponent implements OnInit {
     this.messageContent = '';
     this.showUserSelector.set(false);
     this.loadMessages(partner.userId);
+    
+    // Start live polling for this conversation
+    if (this.pollInterval) clearInterval(this.pollInterval);
+    this.pollInterval = setInterval(() => {
+      if (this.selectedPartner()?.userId === partner.userId) {
+        this.loadMessages(partner.userId);
+      }
+    }, 2000);
   }
 
   loadMessages(partnerId: number): void {

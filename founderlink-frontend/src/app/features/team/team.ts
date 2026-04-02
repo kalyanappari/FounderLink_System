@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { TeamService } from '../../core/services/team.service';
 import { StartupService } from '../../core/services/startup.service';
@@ -38,9 +39,11 @@ export class TeamComponent implements OnInit {
 
   // ── CoFounder state ───────────────────────────────────────────────────────
   myTeams = signal<TeamMemberResponse[]>([]);
+  viewedUser = signal<UserResponse | null>(null);
 
-  // Startup Name Map
+  // Startup Name Map & User Name Map
   startupNames = signal<Map<number, string>>(new Map());
+  userNames = signal<Map<number, string>>(new Map());
 
   readonly teamRoles: TeamRole[] = ['CTO', 'CPO', 'MARKETING_HEAD', 'ENGINEERING_LEAD'];
   readonly roleLabels: Record<TeamRole, string> = {
@@ -64,7 +67,8 @@ export class TeamComponent implements OnInit {
     public authService: AuthService,
     private teamService: TeamService,
     private startupService: StartupService,
-    private userService: UserService
+    private userService: UserService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -77,6 +81,15 @@ export class TeamComponent implements OnInit {
         const map = new Map<number, string>();
         env.data?.forEach(s => map.set(s.id, s.name));
         this.startupNames.set(map);
+      }
+    });
+
+    // Prefetch all users to map names in the team members list
+    this.userService.getAllUsers().subscribe({
+      next: env => {
+        const map = new Map<number, string>();
+        env.data?.forEach(u => map.set(u.userId, u.name || u.email));
+        this.userNames.set(map);
       }
     });
   }
@@ -128,19 +141,33 @@ export class TeamComponent implements OnInit {
     });
   }
 
+  messageMember(userId: number): void {
+    // Navigate safely to the messaging portal for this specific user
+    this.router.navigate(['/dashboard/messages'], { queryParams: { user: userId } });
+  }
+
   // ── User Discovery ────────────────────────────────────────────────────────
   openDiscovery(): void {
     this.showDiscovery.set(true);
     this.selectedUser.set(null);
     this.selectedRole.set('');
     this.searchQuery.set('');
-    this.loadUsersForRole(this.roleFilter());
+    this.loadUsersForRole('COFOUNDER');
   }
 
   closeDiscovery(): void {
     this.showDiscovery.set(false);
     this.selectedUser.set(null);
     this.selectedRole.set('');
+    this.viewedUser.set(null);
+  }
+
+  viewProfile(u: UserResponse): void {
+    this.viewedUser.set(u);
+  }
+
+  closeProfile(): void {
+    this.viewedUser.set(null);
   }
 
   loadUsersForRole(role: string): void {

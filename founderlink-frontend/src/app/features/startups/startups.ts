@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { StartupService } from '../../core/services/startup.service';
 import { InvestmentService } from '../../core/services/investment.service';
@@ -8,7 +9,7 @@ import { StartupResponse, StartupStage } from '../../models';
 
 @Component({
   selector: 'app-startups',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './startups.html',
   styleUrl: './startups.css'
 })
@@ -22,6 +23,7 @@ export class StartupsComponent implements OnInit {
   selectedIndustry = '';
   minFunding       = '';
   maxFunding       = '';
+  availableIndustries = signal<string[]>([]);
 
   // Invest modal
   investModal   = signal<StartupResponse | null>(null);
@@ -49,7 +51,14 @@ export class StartupsComponent implements OnInit {
     this.loading.set(true);
     this.errorMsg.set('');
     this.startupService.getAll().subscribe({
-      next: env => { this.allStartups.set(env.data ?? []); this.loading.set(false); },
+      next: env => { 
+        const startups = env.data ?? [];
+        this.allStartups.set(startups);
+        if (this.availableIndustries().length === 0) {
+          this.availableIndustries.set([...new Set(startups.map(s => s.industry))].sort());
+        }
+        this.loading.set(false); 
+      },
       error: env => { this.errorMsg.set(env.error ?? 'Failed to load startups.'); this.loading.set(false); }
     });
   }
@@ -81,9 +90,6 @@ export class StartupsComponent implements OnInit {
     return !!(this.selectedStage || this.selectedIndustry || this.minFunding || this.maxFunding);
   }
 
-  get industries(): string[] {
-    return [...new Set(this.allStartups().map(s => s.industry))].sort();
-  }
 
   // ── Invest Modal ──────────────────────────────────────────────
   openInvestModal(startup: StartupResponse): void {
