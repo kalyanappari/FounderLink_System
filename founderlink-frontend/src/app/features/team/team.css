@@ -1,0 +1,146 @@
+.page-sub { font-size: .875rem; color: var(--text-secondary); margin-top: .2rem; }
+
+/* ── Startup Tabs ─────────────────────────────────────────────── */
+.startup-tabs {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.startup-tab {
+  padding: .45rem 1rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  font-size: .825rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all .18s;
+}
+.startup-tab:hover  { border-color: var(--primary); color: var(--primary); }
+.startup-tab.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+/* ── Invite Card ──────────────────────────────────────────────── */
+.invite-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.invite-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+.invite-card-header h3 { font-size: 1rem; font-weight: 700; }
+
+.icon-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: .25rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: color .18s, background .18s;
+}
+.icon-close:hover { color: var(--danger); background: #fee2e2; }
+
+.invite-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.invite-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .75rem;
+}
+
+/* ── Member List ──────────────────────────────────────────────── */
+.member-list { display: flex; flex-direction: column; gap: .75rem; }
+
+.member-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  transition: box-shadow .18s;
+}
+.member-card:hover { box-shadow: var(--shadow-sm); }
+
+.mc-left { display: flex; align-items: center; gap: .875rem; }
+
+.mc-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  color: white;
+  font-size: .85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mc-avatar.startup {
+  background: linear-gradient(135deg, #f97316, #fb923c);
+}
+
+.mc-name { font-size: .9rem; font-weight: 600; color: var(--text-primary); margin-bottom: .35rem; }
+
+.mc-meta {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  flex-wrap: wrap;
+}
+
+.mc-date { font-size: .775rem; color: var(--text-muted); }
+
+.mc-right {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  flex-shrink: 0;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-dot.active { background: #22c55e; box-shadow: 0 0 0 2px #dcfce7; }
+
+.status-label { font-size: .8rem; color: var(--text-secondary); font-weight: 500; }
+
+/* ── Skeleton ─────────────────────────────────────────────────── */
+.skeleton-row {
+  height: 72px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  border-radius: var(--radius-lg);
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+@media (max-width: 640px) {
+  .invite-grid { grid-template-columns: 1fr; }
+  .member-card { flex-direction: column; align-items: flex-start; }
+  .mc-right { width: 100%; justify-content: space-between; }
+}

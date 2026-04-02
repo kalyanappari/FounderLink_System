@@ -1,0 +1,345 @@
+@let role = authService.role();
+@let name = (authService.email() ?? '').split('@')[0] || 'there';
+
+<!-- ── Welcome Header ── -->
+<div class="welcome-header">
+  <div>
+    <h2>Good day, {{ name }} 👋</h2>
+    <p>Here's what's happening with your account today.</p>
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="loading-grid">
+    @for (i of [1,2,3,4]; track i) {
+      <div class="skeleton-card"></div>
+    }
+  </div>
+} @else {
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- FOUNDER DASHBOARD                                          -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  @if (role === 'ROLE_FOUNDER') {
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ myStartups().length }}</span>
+          <span class="stat-label">My Startups</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ startupInvestments().length }}</span>
+          <span class="stat-label">Investments Received</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ formatCurrency(totalFundingReceived) }}</span>
+          <span class="stat-label">Total Raised</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon orange">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ startupInvestments().filter(i => i.status === 'PENDING').length }}</span>
+          <span class="stat-label">Pending Reviews</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section-title">Quick Actions</div>
+    <div class="actions-grid">
+      <a routerLink="/dashboard/my-startup" class="action-card">
+        <div class="action-icon purple">🚀</div>
+        <span class="action-label">My Startup</span>
+        <span class="action-desc">Manage your startup</span>
+      </a>
+      <a routerLink="/dashboard/team" class="action-card">
+        <div class="action-icon blue">👥</div>
+        <span class="action-label">Team</span>
+        <span class="action-desc">Invite co-founders</span>
+      </a>
+      <a routerLink="/dashboard/investments" class="action-card">
+        <div class="action-icon green">💰</div>
+        <span class="action-label">Investments</span>
+        <span class="action-desc">Review & approve</span>
+      </a>
+      <a routerLink="/dashboard/wallet" class="action-card">
+        <div class="action-icon orange">👛</div>
+        <span class="action-label">Wallet</span>
+        <span class="action-desc">Check balance</span>
+      </a>
+    </div>
+
+    <!-- My Startups -->
+    @if (myStartups().length > 0) {
+      <div class="section-title">My Startups</div>
+      <div class="list-cards">
+        @for (s of myStartups(); track s.id) {
+          <div class="list-card">
+            <div class="lc-left">
+              <div class="lc-avatar purple">{{ s.name[0] }}</div>
+              <div>
+                <div class="lc-title">{{ s.name }}</div>
+                <div class="lc-sub">{{ s.industry }}</div>
+              </div>
+            </div>
+            <div class="lc-right">
+              <span class="badge badge-purple">{{ s.stage }}</span>
+              <span class="lc-amount">{{ formatCurrency(s.fundingGoal) }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="empty-cta">
+        <span>🚀</span>
+        <p>You haven't created a startup yet.</p>
+        <a routerLink="/dashboard/my-startup" class="btn btn-primary btn-sm">Create Startup</a>
+      </div>
+    }
+
+    <!-- Recent Investments -->
+    @if (startupInvestments().length > 0) {
+      <div class="section-title">Recent Investments</div>
+      <div class="list-cards">
+        @for (inv of startupInvestments().slice(0,5); track inv.id) {
+          <div class="list-card">
+            <div class="lc-left">
+              <div class="lc-avatar green">₹</div>
+              <div>
+                <div class="lc-title">Investor #{{ inv.investorId }}</div>
+                <div class="lc-sub">{{ inv.createdAt | date:'mediumDate' }}</div>
+              </div>
+            </div>
+            <div class="lc-right">
+              <span class="badge" [class]="getStatusClass(inv.status)">{{ inv.status }}</span>
+              <span class="lc-amount">{{ formatCurrency(inv.amount) }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- INVESTOR DASHBOARD                                         -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  @if (role === 'ROLE_INVESTOR') {
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ myInvestments().length }}</span>
+          <span class="stat-label">Total Investments</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ formatCurrency(totalInvested) }}</span>
+          <span class="stat-label">Total Invested</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon orange">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ pendingInvestments }}</span>
+          <span class="stat-label">Pending</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ approvedInvestments }}</span>
+          <span class="stat-label">Approved</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section-title">Quick Actions</div>
+    <div class="actions-grid">
+      <a routerLink="/dashboard/startups" class="action-card">
+        <div class="action-icon purple">🔍</div>
+        <span class="action-label">Browse Startups</span>
+        <span class="action-desc">Discover opportunities</span>
+      </a>
+      <a routerLink="/dashboard/portfolio" class="action-card">
+        <div class="action-icon blue">📊</div>
+        <span class="action-label">My Portfolio</span>
+        <span class="action-desc">Track investments</span>
+      </a>
+      <a routerLink="/dashboard/payments" class="action-card">
+        <div class="action-icon green">💳</div>
+        <span class="action-label">Payments</span>
+        <span class="action-desc">Payment history</span>
+      </a>
+      <a routerLink="/dashboard/messages" class="action-card">
+        <div class="action-icon orange">💬</div>
+        <span class="action-label">Messages</span>
+        <span class="action-desc">Talk to founders</span>
+      </a>
+    </div>
+
+    <!-- Recent Investments -->
+    @if (myInvestments().length > 0) {
+      <div class="section-title">My Investments</div>
+      <div class="list-cards">
+        @for (inv of myInvestments().slice(0,5); track inv.id) {
+          <div class="list-card">
+            <div class="lc-left">
+              <div class="lc-avatar blue">₹</div>
+              <div>
+                <div class="lc-title">Startup #{{ inv.startupId }}</div>
+                <div class="lc-sub">{{ inv.createdAt | date:'mediumDate' }}</div>
+              </div>
+            </div>
+            <div class="lc-right">
+              <span class="badge" [class]="getStatusClass(inv.status)">{{ inv.status }}</span>
+              <span class="lc-amount">{{ formatCurrency(inv.amount) }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="empty-cta">
+        <span>💼</span>
+        <p>You haven't made any investments yet.</p>
+        <a routerLink="/dashboard/startups" class="btn btn-primary btn-sm">Browse Startups</a>
+      </div>
+    }
+  }
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- COFOUNDER DASHBOARD                                        -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  @if (role === 'ROLE_COFOUNDER') {
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ myInvitations().length }}</span>
+          <span class="stat-label">Total Invitations</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon orange">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ pendingInvitations.length }}</span>
+          <span class="stat-label">Pending</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ myInvitations().filter(i => i.status === 'ACCEPTED').length }}</span>
+          <span class="stat-label">Teams Joined</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ myInvitations().filter(i => i.status === 'REJECTED').length }}</span>
+          <span class="stat-label">Declined</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section-title">Quick Actions</div>
+    <div class="actions-grid">
+      <a routerLink="/dashboard/invitations" class="action-card">
+        <div class="action-icon purple">📬</div>
+        <span class="action-label">Invitations</span>
+        <span class="action-desc">View & respond</span>
+      </a>
+      <a routerLink="/dashboard/team" class="action-card">
+        <div class="action-icon blue">👥</div>
+        <span class="action-label">My Teams</span>
+        <span class="action-desc">Active memberships</span>
+      </a>
+      <a routerLink="/dashboard/startups" class="action-card">
+        <div class="action-icon green">🔍</div>
+        <span class="action-label">Startups</span>
+        <span class="action-desc">Explore startups</span>
+      </a>
+      <a routerLink="/dashboard/messages" class="action-card">
+        <div class="action-icon orange">💬</div>
+        <span class="action-label">Messages</span>
+        <span class="action-desc">Chat with founders</span>
+      </a>
+    </div>
+
+    <!-- Pending Invitations -->
+    @if (pendingInvitations.length > 0) {
+      <div class="section-title">Pending Invitations</div>
+      <div class="list-cards">
+        @for (inv of pendingInvitations; track inv.id) {
+          <div class="list-card">
+            <div class="lc-left">
+              <div class="lc-avatar purple">📬</div>
+              <div>
+                <div class="lc-title">Startup #{{ inv.startupId }}</div>
+                <div class="lc-sub">Role: {{ inv.role }}</div>
+              </div>
+            </div>
+            <div class="lc-right">
+              <span class="badge badge-warning">PENDING</span>
+              <a routerLink="/dashboard/invitations" class="btn btn-primary btn-sm">Respond</a>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="empty-cta">
+        <span>📬</span>
+        <p>No pending invitations right now.</p>
+        <a routerLink="/dashboard/startups" class="btn btn-primary btn-sm">Explore Startups</a>
+      </div>
+    }
+  }
+
+}

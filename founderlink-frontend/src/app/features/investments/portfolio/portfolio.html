@@ -1,0 +1,95 @@
+<!-- Header -->
+<div class="page-header">
+  <div>
+    <h2>My Portfolio</h2>
+    <p class="page-sub">Track all your investments across startups</p>
+  </div>
+  <a routerLink="/dashboard/startups" class="btn btn-primary">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    New Investment
+  </a>
+</div>
+
+@if (errorMsg()) {
+  <div class="alert alert-error">{{ errorMsg() }}</div>
+}
+
+@if (loading()) {
+  <div class="stats-grid">
+    @for (i of [1,2,3]; track i) { <div class="skeleton-stat"></div> }
+  </div>
+} @else {
+
+  <!-- Summary Cards -->
+  <div class="stats-grid">
+    <div class="summary-card blue">
+      <div class="sc-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      </div>
+      <div>
+        <div class="sc-value">{{ formatCurrency(totalInvested) }}</div>
+        <div class="sc-label">Total Invested</div>
+      </div>
+    </div>
+    <div class="summary-card green">
+      <div class="sc-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div>
+        <div class="sc-value">{{ formatCurrency(approvedAmount) }}</div>
+        <div class="sc-label">Approved</div>
+      </div>
+    </div>
+    <div class="summary-card orange">
+      <div class="sc-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div>
+        <div class="sc-value">{{ formatCurrency(pendingAmount) }}</div>
+        <div class="sc-label">Pending Review</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="toolbar">
+    <h3 class="section-title" style="margin:0">Investment History</h3>
+    <select [(ngModel)]="filterStatus" class="filter-select">
+      <option value="">All Status</option>
+      <option value="PENDING">Pending</option>
+      <option value="APPROVED">Approved</option>
+      <option value="REJECTED">Rejected</option>
+    </select>
+  </div>
+
+  <!-- List -->
+  @if (filtered.length === 0) {
+    <div class="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      <h3>No investments yet</h3>
+      <p>Browse startups and make your first investment</p>
+      <a routerLink="/dashboard/startups" class="btn btn-primary">Browse Startups</a>
+    </div>
+  } @else {
+    <div class="portfolio-list">
+      @for (inv of filtered; track inv.id) {
+        <div class="portfolio-item">
+          <div class="pi-left">
+            <div class="pi-avatar">{{ inv.startupId }}</div>
+            <div>
+              <div class="pi-title">Startup #{{ inv.startupId }}</div>
+              <div class="pi-date">Invested on {{ inv.createdAt | date:'mediumDate' }}</div>
+            </div>
+          </div>
+          <div class="pi-right">
+            <span class="badge" [class]="statusClass(inv.status)">{{ inv.status }}</span>
+            <span class="pi-amount">{{ formatCurrency(inv.amount) }}</span>
+            @if (inv.status === 'APPROVED') {
+              <a [routerLink]="['/dashboard/payments']" [queryParams]="{ investmentId: inv.id }" class="btn btn-primary btn-sm">Pay Now</a>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+}

@@ -1,0 +1,183 @@
+<!-- Header -->
+<div class="page-header">
+  <div>
+    <h2>Team</h2>
+    <p class="page-sub">
+      @if (isFounder()) { Manage your startup team and send invitations }
+      @if (isCoFounder()) { Your active team memberships }
+    </p>
+  </div>
+  @if (isFounder() && selectedStartupId() && !showInviteForm()) {
+    <button class="btn btn-primary" (click)="showInviteForm.set(true)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Invite Member
+    </button>
+  }
+</div>
+
+@if (successMsg()) {
+  <div class="alert alert-success">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+    {{ successMsg() }}
+  </div>
+}
+@if (errorMsg()) {
+  <div class="alert alert-error">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    {{ errorMsg() }}
+  </div>
+}
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- FOUNDER VIEW                                                   -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+@if (isFounder()) {
+
+  @if (myStartups().length === 0 && !loading()) {
+    <div class="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      <h3>No startups found</h3>
+      <p>Create a startup first to manage your team</p>
+    </div>
+  } @else {
+
+    <!-- Startup Tabs -->
+    <div class="startup-tabs">
+      @for (s of myStartups(); track s.id) {
+        <button class="startup-tab" [class.active]="selectedStartupId() === s.id"
+          (click)="onStartupChange(s.id)">
+          {{ s.name }}
+        </button>
+      }
+    </div>
+
+    <!-- Invite Form -->
+    @if (showInviteForm()) {
+      <div class="invite-card">
+        <div class="invite-card-header">
+          <h3>Send Invitation</h3>
+          <button class="icon-close" (click)="showInviteForm.set(false)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <form [formGroup]="inviteForm" (ngSubmit)="sendInvite()" novalidate>
+          <div class="invite-grid">
+            <div class="form-group">
+              <label>Select Co-Founder *</label>
+              <select formControlName="invitedUserId" class="form-control"
+                [class.error]="inviteForm.get('invitedUserId')!.invalid && inviteForm.get('invitedUserId')!.touched">
+                <option [value]="null">Choose a co-founder</option>
+                @for (u of availableCoFounders(); track u.userId) {
+                  <option [value]="u.userId">{{ u.name }} ({{ u.email }})</option>
+                }
+              </select>
+              @if (inviteForm.get('invitedUserId')!.invalid && inviteForm.get('invitedUserId')!.touched) {
+                <span class="error-msg">Please select a co-founder</span>
+              }
+            </div>
+            <div class="form-group">
+              <label>Role *</label>
+              <select formControlName="role" class="form-control"
+                [class.error]="inviteForm.get('role')!.invalid && inviteForm.get('role')!.touched">
+                <option value="">Select role</option>
+                @for (r of teamRoles; track r) {
+                  <option [value]="r">{{ roleLabel(r) }}</option>
+                }
+              </select>
+              @if (inviteForm.get('role')!.invalid && inviteForm.get('role')!.touched) {
+                <span class="error-msg">Please select a role</span>
+              }
+            </div>
+          </div>
+          <div class="invite-actions">
+            <button type="button" class="btn btn-outline" (click)="showInviteForm.set(false)">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="inviting()">
+              @if (inviting()) { <span class="spinner"></span> }
+              Send Invitation
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- Team Members -->
+    @if (loading()) {
+      <div class="member-list">
+        @for (i of [1,2,3]; track i) { <div class="skeleton-row"></div> }
+      </div>
+    } @else if (teamMembers().length === 0) {
+      <div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <h3>No team members yet</h3>
+        <p>Send invitations to build your team</p>
+        <button class="btn btn-primary" (click)="showInviteForm.set(true)">Invite Member</button>
+      </div>
+    } @else {
+      <div class="member-list">
+        @for (m of teamMembers(); track m.id) {
+          <div class="member-card">
+            <div class="mc-left">
+              <div class="mc-avatar">{{ m.userId }}</div>
+              <div class="mc-info">
+                <div class="mc-name">Member #{{ m.userId }}</div>
+                <div class="mc-meta">
+                  <span class="badge" [class]="roleClass(m.role)">{{ roleLabel(m.role) }}</span>
+                  <span class="mc-date">Joined {{ m.joinedAt | date:'mediumDate' }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="mc-right">
+              <span class="status-dot active"></span>
+              <span class="status-label">Active</span>
+              <button class="btn btn-danger btn-sm" (click)="removeMember(m.id)"
+                [disabled]="removing() === m.id">
+                @if (removing() === m.id) { <span class="spinner"></span> } @else {
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                }
+                Remove
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+}
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- COFOUNDER VIEW                                                 -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+@if (isCoFounder()) {
+  @if (loading()) {
+    <div class="member-list">
+      @for (i of [1,2,3]; track i) { <div class="skeleton-row"></div> }
+    </div>
+  } @else if (myTeams().length === 0) {
+    <div class="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      <h3>Not part of any team yet</h3>
+      <p>Accept an invitation to join a startup team</p>
+    </div>
+  } @else {
+    <div class="member-list">
+      @for (m of myTeams(); track m.id) {
+        <div class="member-card">
+          <div class="mc-left">
+            <div class="mc-avatar startup">{{ m.startupId }}</div>
+            <div class="mc-info">
+              <div class="mc-name">Startup #{{ m.startupId }}</div>
+              <div class="mc-meta">
+                <span class="badge" [class]="roleClass(m.role)">{{ roleLabel(m.role) }}</span>
+                <span class="mc-date">Joined {{ m.joinedAt | date:'mediumDate' }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="mc-right">
+            <span class="status-dot active"></span>
+            <span class="status-label">Active</span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+}

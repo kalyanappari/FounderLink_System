@@ -1,0 +1,130 @@
+<!-- Header -->
+<div class="page-header">
+  <div>
+    <h2>Startups</h2>
+    <p class="page-sub">Discover and explore startups on FounderLink</p>
+  </div>
+  @if (isFounder) {
+    <a routerLink="/dashboard/my-startup" class="btn btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Startup
+    </a>
+  }
+</div>
+
+<!-- Filters -->
+<div class="filters-bar">
+  <select [(ngModel)]="selectedStage" class="filter-select">
+    <option value="">All Stages</option>
+    @for (s of stages; track s) {
+      <option [value]="s">{{ stageLabel(s) }}</option>
+    }
+  </select>
+
+  <select [(ngModel)]="selectedIndustry" class="filter-select">
+    <option value="">All Industries</option>
+    @for (ind of industries; track ind) {
+      <option [value]="ind">{{ ind }}</option>
+    }
+  </select>
+
+  <input type="number" [(ngModel)]="minFunding" placeholder="Min Funding (₹)" class="filter-input" />
+  <input type="number" [(ngModel)]="maxFunding" placeholder="Max Funding (₹)" class="filter-input" />
+
+  <button class="btn btn-primary btn-sm" (click)="applyFilters()">Search</button>
+
+  @if (hasFilters) {
+    <button class="btn btn-ghost btn-sm" (click)="clearFilters()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Clear
+    </button>
+  }
+
+  <span class="results-count">{{ allStartups().length }} startup{{ allStartups().length !== 1 ? 's' : '' }}</span>
+</div>
+
+<!-- Loading -->
+@if (loading()) {
+  <div class="startup-grid">
+    @for (i of [1,2,3,4,5,6]; track i) {
+      <div class="skeleton-card"></div>
+    }
+  </div>
+}
+
+<!-- Error -->
+@if (errorMsg()) {
+  <div class="alert alert-error">{{ errorMsg() }}</div>
+}
+
+<!-- Invest Modal -->
+@if (investModal()) {
+  <div class="modal-overlay" (click)="closeInvestModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Invest in {{ investModal()!.name }}</h3>
+        <button class="btn-icon" (click)="closeInvestModal()">✕</button>
+      </div>
+      <p class="modal-sub">Funding goal: {{ formatCurrency(investModal()!.fundingGoal) }}</p>
+      @if (investError()) {
+        <div class="alert alert-error">{{ investError() }}</div>
+      }
+      @if (investSuccess()) {
+        <div class="alert alert-success">{{ investSuccess() }}</div>
+      }
+      <div class="form-group">
+        <label>Investment Amount (₹)</label>
+        <input type="number" [(ngModel)]="investAmount" [min]="1000" placeholder="Enter amount (min ₹1,000)" class="input" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" (click)="closeInvestModal()" [disabled]="investing()">Cancel</button>
+        <button class="btn btn-primary" (click)="submitInvestment()" [disabled]="investing() || !investAmount">
+          {{ investing() ? 'Submitting...' : 'Submit Investment' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Grid -->
+@if (!loading()) {
+  @if (allStartups().length === 0) {
+    <div class="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <h3>No startups found</h3>
+      <p>Try adjusting your search or filters</p>
+    </div>
+  } @else {
+    <div class="startup-grid">
+      @for (s of allStartups(); track s.id) {
+        <div class="startup-card">
+          <div class="sc-header">
+            <div class="sc-avatar">{{ s.name[0].toUpperCase() }}</div>
+            <span class="badge" [class]="stageClass(s.stage)">{{ stageLabel(s.stage) }}</span>
+          </div>
+
+          <div class="sc-body">
+            <h3 class="sc-name">{{ s.name }}</h3>
+            <span class="sc-industry">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              {{ s.industry }}
+            </span>
+            <p class="sc-desc">{{ s.description }}</p>
+          </div>
+
+          <div class="sc-footer">
+            <div class="sc-funding">
+              <span class="funding-label">Funding Goal</span>
+              <span class="funding-value">{{ formatCurrency(s.fundingGoal) }}</span>
+            </div>
+            <div class="sc-actions">
+              @if (isInvestor) {
+                <button class="btn btn-primary btn-sm" (click)="openInvestModal(s)">Invest</button>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+}

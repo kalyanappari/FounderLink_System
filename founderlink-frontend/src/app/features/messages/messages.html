@@ -1,0 +1,115 @@
+<div class="messages-container">
+  <!-- Loading state -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading conversations...</p>
+    </div>
+  } @else {
+    <div class="messages-layout">
+
+      <!-- Sidebar: Conversation list -->
+      <div class="conversations-sidebar">
+        <div class="sidebar-header">
+          <h2>Messages</h2>
+          <button class="btn btn-ghost btn-sm" (click)="loadAllUsers()" title="Start new conversation">+ New</button>
+        </div>
+
+        <!-- User selector -->
+        @if (showUserSelector()) {
+          <div class="user-selector">
+            @if (allUsers().length === 0) {
+              <p class="empty-small">Loading users...</p>
+            }
+            @for (u of allUsers(); track u.userId) {
+              <div class="user-option" (click)="startConversationWith(u)">
+                <span class="user-avatar">{{ (u.name || u.email).charAt(0).toUpperCase() }}</span>
+                <div class="user-info">
+                  <p class="user-name">{{ u.name || u.email }}</p>
+                  <p class="user-role">{{ u.role }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Partners list -->
+        <div class="conversations-list">
+          @if (partners().length === 0) {
+            <p class="empty-small">No conversations yet. Start a new one!</p>
+          } @else {
+            @for (p of partners(); track p.userId) {
+              <div
+                class="conversation-item"
+                [class.active]="selectedPartner()?.userId === p.userId"
+                (click)="selectPartner(p)"
+              >
+                <div class="conv-avatar">{{ p.name.charAt(0).toUpperCase() }}</div>
+                <div class="conv-content">
+                  <p class="conv-name">{{ p.name }}</p>
+                  <p class="conv-preview">{{ p.lastMessage || p.email }}</p>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Main: Chat window -->
+      @if (selectedPartner()) {
+        <div class="chat-window">
+          <!-- Chat header -->
+          <div class="chat-header">
+            <div class="conv-avatar">{{ selectedPartner()!.name.charAt(0).toUpperCase() }}</div>
+            <h3>{{ selectedPartner()!.name }}</h3>
+          </div>
+
+          <!-- Messages area -->
+          <div class="messages-area">
+            @if (messages().length === 0) {
+              <p class="empty-messages">No messages yet. Start the conversation!</p>
+            } @else {
+              @for (msg of messages(); track msg.id) {
+                <div class="message" [class.sent]="isCurrentUser(msg.senderId)" [class.received]="!isCurrentUser(msg.senderId)">
+                  <div class="message-content">
+                    <p class="message-text">{{ msg.content }}</p>
+                    <span class="message-time">{{ formatTime(msg.createdAt) }}</span>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+
+          <!-- Input area -->
+          <div class="message-input-area">
+            @if (errorMsg()) {
+              <div class="alert alert-error">{{ errorMsg() }}</div>
+            }
+            <div class="input-group">
+              <input
+                type="text"
+                [(ngModel)]="messageContent"
+                placeholder="Type a message..."
+                (keyup.enter)="sendMessage()"
+                class="message-input"
+              />
+              <button
+                (click)="sendMessage()"
+                [disabled]="sendingMessage() || !messageContent.trim()"
+                class="btn btn-primary btn-send"
+              >
+                {{ sendingMessage() ? 'Sending...' : 'Send' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <div class="no-selection">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <p>Select a conversation to start messaging</p>
+        </div>
+      }
+
+    </div>
+  }
+</div>

@@ -1,0 +1,52 @@
+import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
+
+export const routes: Routes = [
+  { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
+
+  // ── Auth (public) ──────────────────────────────────────────────────────────
+  {
+    path: 'auth',
+    children: [
+      { path: 'login',           loadComponent: () => import('./features/auth/login/login').then(m => m.LoginComponent) },
+      { path: 'register',        loadComponent: () => import('./features/auth/register/register').then(m => m.RegisterComponent) },
+      { path: 'forgot-password', loadComponent: () => import('./features/auth/forgot-password/forgot-password').then(m => m.ForgotPasswordComponent) },
+      { path: '', redirectTo: 'login', pathMatch: 'full' }
+    ]
+  },
+
+  // ── Protected (dashboard shell) ────────────────────────────────────────────
+  {
+    path: 'dashboard',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/dashboard/dashboard').then(m => m.DashboardComponent),
+    children: [
+      { path: '', loadComponent: () => import('./features/dashboard/home/home').then(m => m.HomeComponent) },
+
+      // Startups
+      { path: 'startups',    loadComponent: () => import('./features/startups/startups').then(m => m.StartupsComponent) },
+      { path: 'my-startup',  loadComponent: () => import('./features/startups/my-startup/my-startup').then(m => m.MyStartupComponent) },
+
+      // Team
+      { path: 'team',        loadComponent: () => import('./features/team/team').then(m => m.TeamComponent) },
+      { path: 'invitations', loadComponent: () => import('./features/team/invitations/invitations').then(m => m.InvitationsComponent) },
+
+      // Investments
+      { path: 'investments', loadComponent: () => import('./features/investments/investments').then(m => m.InvestmentsComponent) },
+      { path: 'portfolio',   loadComponent: () => import('./features/investments/portfolio/portfolio').then(m => m.PortfolioComponent) },
+
+      // Payments & Wallet
+      { path: 'payments',    loadComponent: () => import('./features/payments/payments').then(m => m.PaymentsComponent) },
+      { path: 'wallet',      loadComponent: () => import('./features/wallet/wallet').then(m => m.WalletComponent) },
+
+      // Messages & Notifications
+      { path: 'messages',       loadComponent: () => import('./features/messages/messages').then(m => m.MessagesComponent) },
+      { path: 'notifications',  loadComponent: () => import('./features/notifications/notifications').then(m => m.NotificationsComponent) },
+
+      // Profile
+      { path: 'profile',     loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent) },
+    ]
+  },
+
+  { path: '**', redirectTo: 'auth/login' }
+];

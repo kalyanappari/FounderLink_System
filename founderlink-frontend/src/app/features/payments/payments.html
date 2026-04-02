@@ -1,0 +1,98 @@
+<div class="payments-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h2>Investment Payments</h2>
+      <p class="page-sub">Track and complete your investment payments</p>
+    </div>
+    <button class="btn btn-ghost btn-sm" (click)="loadPortfolio()">↻ Refresh</button>
+  </div>
+
+  <!-- Alerts -->
+  @if (errorMsg()) {
+    <div class="alert alert-error">{{ errorMsg() }}</div>
+  }
+  @if (successMsg()) {
+    <div class="alert alert-success">{{ successMsg() }}</div>
+  }
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading your investments...</p>
+    </div>
+  } @else {
+
+    @if (items().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">💳</div>
+        <h3>No Approved Investments</h3>
+        <p>Once your investments are approved by the founder, payment options will appear here.</p>
+      </div>
+    } @else {
+      <div class="payments-list">
+        @for (item of items(); track item.investment.id) {
+          <div class="payment-card">
+            <div class="payment-card-header">
+              <div>
+                <h4>Investment #{{ item.investment.id }}</h4>
+                <p class="payment-startup">Startup ID: {{ item.investment.startupId }}</p>
+              </div>
+              <span class="badge" [class]="paymentStatusClass(item.payment?.status)">
+                {{ paymentStatusLabel(item.payment?.status) }}
+              </span>
+            </div>
+
+            <div class="payment-card-body">
+              <div class="payment-stat">
+                <span class="stat-label">Amount</span>
+                <span class="stat-value">{{ formatCurrency(item.investment.amount) }}</span>
+              </div>
+              <div class="payment-stat">
+                <span class="stat-label">Investment Status</span>
+                <span class="stat-value">{{ item.investment.status }}</span>
+              </div>
+              @if (item.payment?.externalPaymentId) {
+                <div class="payment-stat">
+                  <span class="stat-label">Transaction Ref</span>
+                  <span class="stat-value font-mono">{{ item.payment!.externalPaymentId }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Payment loading / polling -->
+            @if (item.paymentLoading) {
+              <div class="payment-loading">
+                <div class="spinner-sm"></div>
+                <span>Setting up payment record…</span>
+              </div>
+            }
+
+            @if (item.paymentError) {
+              <div class="alert alert-warning">{{ item.paymentError }}</div>
+            }
+
+            <!-- Action button -->
+            @if (!item.paymentLoading) {
+              <div class="payment-card-actions">
+                @if (item.payment?.status === 'SUCCESS') {
+                  <div class="success-badge">✓ Payment Successful — finalizing investment</div>
+                } @else if (item.payment?.status === 'FAILED') {
+                  <button class="btn btn-warning" (click)="startPayment(item)" [disabled]="processingId !== null">
+                    Retry Payment
+                  </button>
+                } @else if (canPay(item)) {
+                  <button class="btn btn-primary" (click)="startPayment(item)" [disabled]="processingId !== null">
+                    {{ processingId === item.investment.id ? 'Creating order…' : payButtonLabel(item) }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+  }
+</div>
