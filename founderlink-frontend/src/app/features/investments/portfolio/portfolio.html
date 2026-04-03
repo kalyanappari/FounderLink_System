@@ -84,9 +84,14 @@
           <div class="pi-right">
             <span class="badge" [class]="statusClass(inv.status)">{{ inv.status }}</span>
             <span class="pi-amount">{{ formatCurrency(inv.amount) }}</span>
-            @if (inv.status === 'APPROVED') {
-              <a [routerLink]="['/dashboard/payments']" [queryParams]="{ investmentId: inv.id }" class="btn btn-primary btn-sm">Pay Now</a>
-            }
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              <button class="btn btn-outline btn-sm" (click)="messageFounder(inv.startupId)" title="Message Founder">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </button>
+              @if (inv.status === 'APPROVED') {
+                <a [routerLink]="['/dashboard/payments']" [queryParams]="{ investmentId: inv.id }" class="btn btn-primary btn-sm">Pay Now</a>
+              }
+            </div>
           </div>
         </div>
       }

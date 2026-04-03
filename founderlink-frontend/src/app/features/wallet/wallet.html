@@ -21,7 +21,9 @@
 
     @if (startups().length === 0) {
       <div class="empty-state">
-        <div class="empty-icon">🚀</div>
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        </div>
         <h3>No Startups Yet</h3>
         <p>Create a startup first to see its wallet balance.</p>
       </div>
@@ -83,7 +85,9 @@
       } @else {
         <!-- No wallet yet -->
         <div class="empty-state">
-          <div class="empty-icon">💳</div>
+          <div class="empty-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          </div>
           <h3>No Wallet Yet</h3>
           <p>A wallet is created automatically once your first investment payment is confirmed.</p>
         </div>

@@ -184,6 +184,11 @@ textarea {
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
 
+select option {
+  background: #0f172a; /* Generic dark background for options */
+  color: #ffffff;
+}
+
 select.form-control option {
   background: #1e1e2d;
   color: #ffffff;

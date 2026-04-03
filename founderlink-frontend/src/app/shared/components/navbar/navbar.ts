@@ -1,6 +1,6 @@
 import { Component, input, output, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { NotificationResponse } from '../../../models';
@@ -21,7 +21,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   private pollInterval: ReturnType<typeof setInterval> | null = null;
 
-  constructor(public authService: AuthService, private notificationService: NotificationService) {}
+  constructor(
+    public authService: AuthService, 
+    private notificationService: NotificationService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadUnread();
@@ -61,6 +65,36 @@ export class NavbarComponent implements OnInit, OnDestroy {
         }
       }
     });
+  }
+
+  onNotificationClick(n: NotificationResponse): void {
+    if (!n.read) {
+      this.markRead(n.id);
+    }
+    this.showNotifPanel.set(false);
+    
+    // Check if it's a message type
+    if (n.type.includes('MESSAGE')) {
+      const match = n.message.match(/#(\d+)/);
+      if (match && match[1]) {
+        this.router.navigate(['/dashboard/messages'], { queryParams: { user: match[1] } });
+        return;
+      }
+    }
+
+    // For other notifications, navigate to the notifications page
+    this.router.navigate(['/dashboard/notifications']);
+  }
+
+  getIcon(type: string): string {
+    if (type.includes('INVESTMENT')) return 'investment';
+    if (type.includes('TEAM')) return 'team';
+    if (type.includes('PAYMENT')) return 'payment';
+    if (type.includes('MESSAGE')) return 'message';
+    if (type.includes('STARTUP')) return 'startup';
+    if (type.includes('REGISTERED')) return 'user';
+    if (type.includes('PASSWORD')) return 'lock';
+    return 'info';
   }
 
   getRoleName(): string {

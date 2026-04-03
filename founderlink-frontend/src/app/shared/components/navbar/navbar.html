@@ -41,11 +41,21 @@
               <div class="notif-empty">No notifications yet</div>
             }
             @for (n of notifications(); track n.id) {
-              <div class="notif-item" [class.unread]="!n.read" (click)="markRead(n.id)">
-                <div class="notif-dot" [class.visible]="!n.read"></div>
+              <div class="notif-item" [class.unread]="!n.read" (click)="onNotificationClick(n)">
+                <div class="notif-icon-sm" [class.unread]="!n.read">
+                  @switch (getIcon(n.type)) {
+                    @case ('investment') { <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></svg> }
+                    @case ('team') { <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> }
+                    @case ('payment') { <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/></svg> }
+                    @case ('message') { <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> }
+                    @case ('startup') { <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> }
+                    @case ('user') { <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/></svg> }
+                    @default { <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> }
+                  }
+                </div>
                 <div class="notif-body">
                   <p class="notif-msg">{{ n.message }}</p>
-                  <span class="notif-time">{{ n.type }}</span>
+                  <span class="notif-time">{{ n.type.replace('_', ' ') }}</span>
                 </div>
               </div>
             }

@@ -1,7 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { InvestmentService } from '../../../core/services/investment.service';
 import { StartupService } from '../../../core/services/startup.service';
@@ -19,11 +19,13 @@ export class PortfolioComponent implements OnInit {
   errorMsg    = signal('');
   filterStatus = '';
   startupNames = signal<Map<number, string>>(new Map());
+  founderIds   = signal<Map<number, number>>(new Map());
 
   constructor(
     public authService: AuthService,
     private investmentService: InvestmentService,
-    private startupService: StartupService
+    private startupService: StartupService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -34,11 +36,23 @@ export class PortfolioComponent implements OnInit {
 
     this.startupService.getAll().subscribe({
       next: env => {
-        const map = new Map<number, string>();
-        env.data?.forEach(s => map.set(s.id, s.name));
-        this.startupNames.set(map);
+        const nameMap = new Map<number, string>();
+        const idMap   = new Map<number, number>();
+        env.data?.forEach(s => {
+          nameMap.set(s.id, s.name);
+          idMap.set(s.id, s.founderId);
+        });
+        this.startupNames.set(nameMap);
+        this.founderIds.set(idMap);
       }
     });
+  }
+
+  messageFounder(startupId: number): void {
+    const founderId = this.founderIds().get(startupId);
+    if (founderId) {
+      this.router.navigate(['/dashboard/messages'], { queryParams: { user: founderId } });
+    }
   }
 
   get filtered(): InvestmentResponse[] {

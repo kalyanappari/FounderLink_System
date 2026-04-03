@@ -1,7 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { StartupService } from '../../core/services/startup.service';
 import { InvestmentService } from '../../core/services/investment.service';
@@ -40,7 +40,8 @@ export class StartupsComponent implements OnInit {
   constructor(
     public authService: AuthService,
     private startupService: StartupService,
-    private investmentService: InvestmentService
+    private investmentService: InvestmentService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -128,6 +129,10 @@ export class StartupsComponent implements OnInit {
         this.investError.set(env.error ?? 'Failed to submit investment.');
       }
     });
+  }
+
+  messageFounder(founderId: number): void {
+    this.router.navigate(['/dashboard/messages'], { queryParams: { user: founderId } });
   }
 
   // ── Helpers ───────────────────────────────────────────────────

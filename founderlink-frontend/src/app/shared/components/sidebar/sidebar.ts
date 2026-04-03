@@ -26,7 +26,7 @@ export class SidebarComponent {
     { label: 'My Startup',   route: '/dashboard/my-startup',   icon: 'briefcase',   roles: ['FOUNDER'] },
     { label: 'Team',         route: '/dashboard/team',         icon: 'users',       roles: ['FOUNDER', 'COFOUNDER'] },
     { label: 'Invitations',  route: '/dashboard/invitations',  icon: 'mail',        roles: ['COFOUNDER'] },
-    { label: 'Investments',  route: '/dashboard/investments',  icon: 'trending-up', roles: ['FOUNDER', 'INVESTOR'] },
+    { label: 'Investments',  route: '/dashboard/investments',  icon: 'trending-up', roles: ['FOUNDER'] },
     { label: 'Portfolio',    route: '/dashboard/portfolio',    icon: 'pie-chart',   roles: ['INVESTOR'] },
     { label: 'Payments',     route: '/dashboard/payments',     icon: 'credit-card', roles: ['INVESTOR'] },
     { label: 'Wallet',       route: '/dashboard/wallet',       icon: 'wallet',      roles: ['FOUNDER'] },

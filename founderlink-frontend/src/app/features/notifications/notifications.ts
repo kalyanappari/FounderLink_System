@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { NotificationResponse } from '../../models';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-notifications',
@@ -16,10 +17,15 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   errorMsg      = signal('');
   unreadCount   = signal(0);
   filterType    = signal<'all' | 'unread' | 'read'>('all');
+  selectedNotification = signal<NotificationResponse | null>(null);
 
   private refreshInterval: ReturnType<typeof setInterval> | null = null;
 
-  constructor(public authService: AuthService, private notificationService: NotificationService) {}
+  constructor(
+    public authService: AuthService, 
+    private notificationService: NotificationService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadNotifications();
@@ -59,6 +65,28 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     });
   }
 
+  onNotificationClick(n: NotificationResponse): void {
+    if (!n.read) {
+      this.markAsRead(n.id);
+    }
+    
+    // Check if it's a message type
+    if (n.type.includes('MESSAGE')) {
+      const match = n.message.match(/#(\d+)/);
+      if (match && match[1]) {
+        this.router.navigate(['/dashboard/messages'], { queryParams: { user: match[1] } });
+        return;
+      }
+    }
+
+    // Otherwise open modal for full message
+    this.selectedNotification.set(n);
+  }
+
+  closeModal(): void {
+    this.selectedNotification.set(null);
+  }
+
   markAllAsRead(): void {
     const unread = this.notifications().filter(n => !n.read);
     unread.forEach(n => this.markAsRead(n.id));
@@ -77,13 +105,14 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   }
 
   getIcon(type: string): string {
-    const icons: Record<string, string> = {
-      'INVESTMENT_CREATED': '💰', 'INVESTMENT_APPROVED': '✅', 'INVESTMENT_REJECTED': '❌',
-      'TEAM_INVITE_SENT': '👥', 'TEAM_MEMBER_ACCEPTED': '🤝', 'TEAM_MEMBER_REJECTED': '❌',
-      'PAYMENT_COMPLETED': '💳', 'PAYMENT_FAILED': '❌', 'MESSAGE_SENT': '💬',
-      'STARTUP_CREATED': '🚀', 'USER_REGISTERED': '🎉', 'PASSWORD_RESET': '🔐'
-    };
-    return icons[type] ?? '📢';
+    if (type.includes('INVESTMENT')) return 'investment';
+    if (type.includes('TEAM')) return 'team';
+    if (type.includes('PAYMENT')) return 'payment';
+    if (type.includes('MESSAGE')) return 'message';
+    if (type.includes('STARTUP')) return 'startup';
+    if (type.includes('REGISTERED')) return 'user';
+    if (type.includes('PASSWORD')) return 'lock';
+    return 'info';
   }
 
   formatDate(date: string): string {

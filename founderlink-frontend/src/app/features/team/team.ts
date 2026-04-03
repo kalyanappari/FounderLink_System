@@ -43,7 +43,8 @@ export class TeamComponent implements OnInit {
 
   // Startup Name Map & User Name Map
   startupNames = signal<Map<number, string>>(new Map());
-  userNames = signal<Map<number, string>>(new Map());
+  userNames    = signal<Map<number, string>>(new Map());
+  startupFounders = signal<Map<number, number>>(new Map());
 
   readonly teamRoles: TeamRole[] = ['CTO', 'CPO', 'MARKETING_HEAD', 'ENGINEERING_LEAD'];
   readonly roleLabels: Record<TeamRole, string> = {
@@ -78,9 +79,14 @@ export class TeamComponent implements OnInit {
     // Prefetch startup names
     this.startupService.getAll().subscribe({
       next: env => {
-        const map = new Map<number, string>();
-        env.data?.forEach(s => map.set(s.id, s.name));
-        this.startupNames.set(map);
+        const nameMap = new Map<number, string>();
+        const founderMap = new Map<number, number>();
+        env.data?.forEach(s => {
+          nameMap.set(s.id, s.name);
+          founderMap.set(s.id, s.founderId);
+        });
+        this.startupNames.set(nameMap);
+        this.startupFounders.set(founderMap);
       }
     });
 
@@ -246,6 +252,17 @@ export class TeamComponent implements OnInit {
       next: env => { this.myTeams.set(env.data ?? []); this.loading.set(false); },
       error: env => { this.errorMsg.set(env.error ?? 'Failed to load teams.'); this.loading.set(false); }
     });
+  }
+
+  viewStartup(startupId: number): void {
+    this.router.navigate(['/startup', startupId]);
+  }
+
+  messageFounder(startupId: number): void {
+    const founderId = this.startupFounders().get(startupId);
+    if (founderId) {
+      this.router.navigate(['/dashboard/messages'], { queryParams: { user: founderId } });
+    }
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
