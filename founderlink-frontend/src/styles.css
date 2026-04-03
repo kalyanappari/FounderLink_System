@@ -185,7 +185,8 @@ textarea {
 }
 
 select option {
-  background: #0f172a; /* Generic dark background for options */
+  background: #0f172a;
+  /* Generic dark background for options */
   color: #ffffff;
 }
 

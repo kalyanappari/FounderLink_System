@@ -246,7 +246,11 @@
   box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* Responsive Grid */
 @media (max-width: 900px) {
@@ -254,11 +258,11 @@
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
-  
+
   .payment-actions {
     align-items: flex-start;
   }
-  
+
   .payment-details-row {
     flex-wrap: wrap;
     gap: 1.5rem;

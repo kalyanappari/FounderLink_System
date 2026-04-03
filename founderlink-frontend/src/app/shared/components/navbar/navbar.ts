@@ -13,19 +13,19 @@ import { NotificationResponse } from '../../../models';
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   menuToggle = output<void>();
-  pageTitle  = input('Dashboard');
+  pageTitle = input('Dashboard');
 
-  unreadCount    = signal(0);
+  unreadCount = signal(0);
   showNotifPanel = signal(false);
-  notifications  = signal<NotificationResponse[]>([]);
+  notifications = signal<NotificationResponse[]>([]);
 
   private pollInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(
-    public authService: AuthService, 
+    public authService: AuthService,
     private notificationService: NotificationService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadUnread();
@@ -40,7 +40,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (!this.authService.userId()) return;
     this.notificationService.getMyUnreadNotifications().subscribe({
       next: env => this.unreadCount.set((env.data ?? []).length),
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -52,7 +52,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   loadNotifications(): void {
     this.notificationService.getMyNotifications().subscribe({
       next: env => this.notifications.set((env.data ?? []).slice(0, 10)),
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -72,7 +72,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.markRead(n.id);
     }
     this.showNotifPanel.set(false);
-    
+
     // Check if it's a message type
     if (n.type.includes('MESSAGE')) {
       const match = n.message.match(/#(\d+)/);
