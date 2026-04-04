@@ -60,4 +60,13 @@ public class UserQueryService {
                 .map(u -> modelMapper.map(u, UserResponseDto.class))
                 .collect(Collectors.toList());
     }
+
+    /**
+     * QUERY: Count users by role.
+     */
+    @Cacheable(value = "userCountByRole", key = "#role.name()")
+    public long countByRole(Role role) {
+        log.info("QUERY - countByRole: role={} (cache miss, hitting DB)", role);
+        return repository.countByRole(role);
+    }
 }

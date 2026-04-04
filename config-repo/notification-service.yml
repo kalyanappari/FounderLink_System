@@ -20,6 +20,8 @@ spring:
           starttls:
             enable: true
             required: true
+          ssl:
+            enable: false
 
 resilience4j:
   circuitbreaker:

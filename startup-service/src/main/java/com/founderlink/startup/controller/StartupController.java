@@ -86,14 +86,15 @@ public class StartupController {
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Access denied — insufficient role")
         })
         public ResponseEntity<ApiResponse<?>> getAllStartups(
-                        @RequestHeader("X-User-Role") String userRole) {
+                        @RequestHeader(value = "X-User-Role", required = false) String userRole) {
 
-                if (!userRole.equals("ROLE_INVESTOR") &&
+                // Public path: allow unauthenticated browsing; authenticated users get role-checked
+                if (userRole != null &&
+                                !userRole.equals("ROLE_INVESTOR") &&
                                 !userRole.equals("ROLE_FOUNDER") &&
                                 !userRole.equals("ROLE_COFOUNDER") &&
                                 !userRole.equals("ROLE_ADMIN")) {
-                        throw new ForbiddenAccessException(
-                                        "Access denied");
+                        throw new ForbiddenAccessException("Access denied");
                 }
 
                 log.info("GET /startup - get all the startups");
@@ -144,7 +145,7 @@ public class StartupController {
         public ResponseEntity<ApiResponse<?>> getStartupDetails(
                         @PathVariable Long id) {
 
-                log.info("GET /startup/details/{} - getStartupDetails", id);
+                // Public endpoint — no role check needed
                 StartupResponseDto response = startupService
                                 .getStartupById(id);
 
@@ -268,19 +269,20 @@ public class StartupController {
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Access denied — insufficient role")
         })
         public ResponseEntity<ApiResponse<?>> searchStartups(
-                        @RequestHeader("X-User-Role") String userRole,
+                        @RequestHeader(value = "X-User-Role", required = false) String userRole,
                         @RequestParam(required = false) String industry,
                         @RequestParam(required = false) StartupStage stage,
                         @RequestParam(required = false) BigDecimal minFunding,
                         @RequestParam(required = false) BigDecimal maxFunding) {
 
                 log.info("GET /startup/search - industry: {}, stage: {}, role: {}", industry, stage, userRole);
-                if (!userRole.equals("ROLE_INVESTOR") &&
+                // Public path: skip role check for unauthenticated requests
+                if (userRole != null &&
+                                !userRole.equals("ROLE_INVESTOR") &&
                                 !userRole.equals("ROLE_FOUNDER") &&
                                 !userRole.equals("ROLE_COFOUNDER") &&
                                 !userRole.equals("ROLE_ADMIN")) {
-                        throw new ForbiddenAccessException(
-                                        "Access denied");
+                        throw new ForbiddenAccessException("Access denied");
                 }
 
                 List<StartupResponseDto> response = startupService

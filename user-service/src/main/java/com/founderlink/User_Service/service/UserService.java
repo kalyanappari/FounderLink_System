@@ -44,4 +44,8 @@ public class UserService {
     public List<UserResponseDto> getUsersByRole(Role role) {
         return queryService.getUsersByRole(role);
     }
+
+    public long countByRole(Role role) {
+        return queryService.countByRole(role);
+    }
 }

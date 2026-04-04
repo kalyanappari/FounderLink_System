@@ -19,6 +19,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Slf4j
 @RestController
@@ -116,6 +118,19 @@ public class UserController {
             log.warn("Invalid role provided: {}", role);
             return ResponseEntity.badRequest().body(Collections.emptyList());
         }
+    }
+
+    @Operation(summary = "Get public platform stats", description = "Fetches the public count of founders, investors, and co-founders.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Stats fetched successfully")
+    })
+    @GetMapping("/public/stats")
+    public ResponseEntity<Map<String, Long>> getPublicStats() {
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("founders", service.countByRole(Role.FOUNDER));
+        stats.put("investors", service.countByRole(Role.INVESTOR));
+        stats.put("cofounders", service.countByRole(Role.COFOUNDER));
+        return ResponseEntity.ok(stats);
     }
 
     private boolean isValidInternalAccess(String authSource, String secret) {
