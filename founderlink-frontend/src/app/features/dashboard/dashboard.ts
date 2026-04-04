@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar';
 import { NavbarComponent } from '../../shared/components/navbar/navbar';
 import { AuthService } from '../../core/services/auth.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { filter } from 'rxjs';
 
 @Component({
@@ -31,7 +32,11 @@ export class DashboardComponent {
     '/dashboard/profile':     'Profile',
   };
 
-  constructor(public authService: AuthService, private router: Router) {
+  constructor(
+    public authService: AuthService,
+    public themeService: ThemeService,
+    private router: Router
+  ) {
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {

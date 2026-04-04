@@ -1,9 +1,10 @@
-import { Component, input, output, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, input, output, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { NotificationResponse } from '../../../models';
+import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({
   selector: 'app-navbar',
@@ -19,10 +20,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
   showNotifPanel = signal(false);
   notifications = signal<NotificationResponse[]>([]);
 
+  role = computed(() => this.authService.role()?.replace('ROLE_', '') ?? 'USER');
+
   private pollInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     public authService: AuthService,
+    public themeService: ThemeService,
     private notificationService: NotificationService,
     private router: Router
   ) { }

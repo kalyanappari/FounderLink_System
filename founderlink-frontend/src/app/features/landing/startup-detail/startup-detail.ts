@@ -1,9 +1,10 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { StartupService } from '../../../core/services/startup.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { StartupResponse, StartupStage } from '../../../models';
+import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({
   selector: 'app-startup-detail',
@@ -12,6 +13,9 @@ import { StartupResponse, StartupStage } from '../../../models';
   styleUrl: './startup-detail.css'
 })
 export class StartupDetailComponent implements OnInit {
+  @HostBinding('class.crystal-mode') 
+  get isCrystalMode() { return this.themeService.isCrystal(); }
+
   startup = signal<StartupResponse | null>(null);
   loading = signal(true);
   error   = signal('');
@@ -20,7 +24,8 @@ export class StartupDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private startupService: StartupService,
-    public  authService: AuthService
+    public  authService: AuthService,
+    public  themeService: ThemeService
   ) {}
 
   ngOnInit(): void {

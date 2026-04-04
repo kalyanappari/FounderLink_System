@@ -38,7 +38,12 @@ export class ProfileComponent implements OnInit {
 
   loadProfile(): void {
     this.loading.set(true);
-    const userId = this.authService.userId()!;
+    const userId = this.authService.userId();
+    if (!userId) {
+      this.errorMsg.set('No session found. Please re-login.');
+      this.loading.set(false);
+      return;
+    }
     this.userService.getUser(userId).subscribe({
       next: env => {
         const u = env.data;
@@ -85,7 +90,6 @@ export class ProfileComponent implements OnInit {
       portfolioLinks: this.portfolioLinks || null
     };
 
-    // Always uses session userId — never a route param
     this.userService.updateMyProfile(req).subscribe({
       next: env => {
         this.user.set(env.data);
@@ -105,21 +109,18 @@ export class ProfileComponent implements OnInit {
     this.authService.logout();
   }
 
-  getRoleDisplay(): { label: string; icon: string; color: string } {
-    const role = this.authService.role() ?? '';
-    const clean = role.replace('ROLE_', '');
-    const map: Record<string, { label: string; icon: string; color: string }> = {
-      FOUNDER:   { label: 'Founder',    icon: '🚀', color: '#6366f1' },
-      INVESTOR:  { label: 'Investor',   icon: '💰', color: '#22c55e' },
-      COFOUNDER: { label: 'Co-Founder', icon: '👥', color: '#06b6d4' },
-      ADMIN:     { label: 'Admin',      icon: '⚙️', color: '#ef4444' }
+  getRoleDisplay(): { label: string; icon: string; color: string; aura: string } {
+    const role = (this.authService.role() ?? '').replace('ROLE_', '');
+    const map: Record<string, { label: string; icon: string; color: string; aura: string }> = {
+      FOUNDER:   { label: 'Founder',    icon: '🚀', color: '#6366f1', aura: 'aura-blue' },
+      INVESTOR:  { label: 'Investor',   icon: '💰', color: '#10b981', aura: 'aura-green' },
+      COFOUNDER: { label: 'Co-Founder', icon: '👥', color: '#06b6d4', aura: 'aura-cyan' },
+      ADMIN:     { label: 'Admin',      icon: '⚙️', color: '#f43f5e', aura: 'aura-rose' }
     };
-    return map[clean] ?? { label: clean, icon: '👤', color: '#64748b' };
+    return map[role] ?? { label: role, icon: '👤', color: '#94a3b8', aura: 'aura-gray' };
   }
 
-  formatDate(date: string): string {
-    return new Date(date).toLocaleDateString('en-IN', {
-      year: 'numeric', month: 'long', day: 'numeric'
-    });
+  get skillArray(): string[] {
+    return this.skills ? this.skills.split(',').map(s => s.trim()).filter(s => !!s) : [];
   }
 }

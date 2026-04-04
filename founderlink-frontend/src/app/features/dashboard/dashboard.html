@@ -6,7 +6,7 @@
   <!-- Main -->
   <div class="dashboard-main" [class.expanded]="!sidebarOpen()">
     <app-navbar (menuToggle)="toggleSidebar()" [pageTitle]="pageTitle()" />
-    <main class="dashboard-content">
+    <main class="dashboard-content" [class.crystal-mode]="themeService.isCrystal()">
       <router-outlet />
     </main>
   </div>

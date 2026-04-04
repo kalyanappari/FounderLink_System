@@ -12,8 +12,63 @@
     <h1 class="page-title">{{ pageTitle() }}</h1>
   </div>
 
-  <!-- Right -->
   <div class="navbar-right">
+
+    <!-- Command Center (Quick Actions) -->
+    <div class="nav-command-center">
+      @if (role() === 'FOUNDER') {
+        <a routerLink="/dashboard/my-startup" class="nav-action-anchor" title="My Startup">
+          <span class="nav-label">STARTUP</span>
+        </a>
+        <a routerLink="/dashboard/team" class="nav-action-anchor" title="Team Nexus">
+          <span class="nav-label">TEAM</span>
+        </a>
+        <a routerLink="/dashboard/investments" class="nav-action-anchor" title="Finance">
+          <span class="nav-label">FINANCE</span>
+        </a>
+      }
+      @if (role() === 'INVESTOR') {
+        <a routerLink="/dashboard/startups" class="nav-action-anchor" title="Discovery">
+          <span class="nav-label">DISCOVERY</span>
+        </a>
+        <a routerLink="/dashboard/portfolio" class="nav-action-anchor" title="Portfolio">
+          <span class="nav-label">PORTFOLIO</span>
+        </a>
+      }
+      @if (role() === 'COFOUNDER') {
+        <a routerLink="/dashboard/invitations" class="nav-action-anchor" title="Invitations">
+          <span class="nav-label">INVITATIONS</span>
+        </a>
+        <a routerLink="/dashboard/team" class="nav-action-anchor" title="My Teams">
+          <span class="nav-label">TEAMS</span>
+        </a>
+      }
+      <a routerLink="/dashboard/messages" class="nav-action-anchor" title="Messages">
+        <span class="nav-label">MESSAGES</span>
+      </a>
+      <div class="nav-divider"></div>
+    </div>
+
+    <!-- Theme Toggle -->
+    <button class="icon-btn theme-toggle" (click)="themeService.toggleTheme()" [title]="themeService.isCrystal() ? 'Switch to Dark' : 'Switch to Light'">
+      @if (themeService.isCrystal()) {
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      } @else {
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5" />
+          <line x1="12" y1="1" x2="12" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="23" />
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+          <line x1="1" y1="12" x2="3" y2="12" />
+          <line x1="21" y2="12" x2="23" y2="12" />
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+        </svg>
+      }
+    </button>
 
     <!-- Notification Bell -->
     <div class="notif-wrap">
@@ -29,7 +84,7 @@
 
       <!-- Notification Panel -->
       @if (showNotifPanel()) {
-      <div class="notif-panel">
+      <div class="notif-panel" [class.crystal-mode]="themeService.isCrystal()">
         <div class="notif-header">
           <span>Notifications</span>
           @if (unreadCount() > 0) {
@@ -98,12 +153,12 @@
     </div>
 
     <!-- User Chip -->
-    <div class="user-chip">
+    <a routerLink="/dashboard/profile" class="user-chip" title="View Profile">
       <div class="chip-avatar">{{ (authService.email() ?? 'U')[0].toUpperCase() }}</div>
       <div class="chip-info">
         <span class="chip-role">{{ getRoleName() }}</span>
       </div>
-    </div>
+    </a>
 
   </div>
 </header>

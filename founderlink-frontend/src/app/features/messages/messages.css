@@ -292,3 +292,101 @@
   .conversations-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: 250px; }
   .message-content { max-width: 85%; }
 }
+
+/* ── Crystal Mode Overrides ─────────────────────────── */
+:host.crystal-mode .messages-container {
+  --bg: #ffffff;
+  --bg-secondary: #f8fafc;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border: #e2e8f0;
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+  background: var(--bg);
+}
+
+:host.crystal-mode .conversations-sidebar {
+  background: #f8fafc;
+  border-right-color: #e2e8f0;
+}
+
+:host.crystal-mode .sidebar-header {
+  border-bottom-color: #e2e8f0;
+}
+
+:host.crystal-mode .conversation-item:hover {
+  background: #f1f5f9;
+}
+
+:host.crystal-mode .conversation-item.active {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+:host.crystal-mode .conv-avatar {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #475569;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+
+:host.crystal-mode .conversation-item.active .conv-avatar {
+  background: linear-gradient(135deg, var(--primary), #a855f7);
+  color: white;
+  border: none;
+}
+
+:host.crystal-mode .chat-window {
+  background: #ffffff;
+}
+
+:host.crystal-mode .chat-header {
+  background: #ffffff;
+  border-bottom-color: #f1f5f9;
+}
+
+:host.crystal-mode .message.received .message-content {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #1e293b;
+}
+
+:host.crystal-mode .message-time {
+  opacity: 0.5;
+  color: inherit;
+}
+
+:host.crystal-mode .message.sent .message-content {
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.15);
+}
+
+:host.crystal-mode .message-input-area {
+  background: #ffffff;
+  border-top-color: #f1f5f9;
+}
+
+:host.crystal-mode .message-input {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+:host.crystal-mode .message-input:focus {
+  background: #ffffff;
+  border-color: var(--primary);
+}
+
+:host.crystal-mode .user-selector {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+:host.crystal-mode .user-option:hover {
+  background: #f1f5f9;
+}
+
+:host.crystal-mode .user-option {
+  border-bottom-color: #f1f5f9;
+}

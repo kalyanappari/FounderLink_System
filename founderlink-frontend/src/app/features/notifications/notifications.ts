@@ -4,6 +4,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { NotificationResponse } from '../../models';
 import { Router } from '@angular/router';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-notifications',
@@ -23,6 +24,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
 
   constructor(
     public authService: AuthService, 
+    public themeService: ThemeService,
     private notificationService: NotificationService,
     private router: Router
   ) {}

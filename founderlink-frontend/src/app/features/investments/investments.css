@@ -148,7 +148,7 @@
 .skeleton-table { display: flex; flex-direction: column; gap: .5rem; }
 .skeleton-row {
   height: 52px;
-  background: linear-gradient(90deg, #1e1e2d 25%, #2a2a3c 50%, #1e1e2d 75%);
+  background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--border) 50%, var(--bg-secondary) 75%);
   background-size: 200% 100%;
   border-radius: var(--radius);
   animation: shimmer 1.4s infinite;

@@ -1,4 +1,4 @@
-<div class="notifications-container">
+<div class="notifications-container" [class.crystal-mode]="themeService.isCrystal()">
   <!-- Header -->
   <div class="notifications-header">
     <div class="header-top">
@@ -42,7 +42,7 @@
       </div>
     } @else if (getFiltered().length === 0) {
       <div class="empty-state">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom: 1.5rem; opacity: 0.5;">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
         </svg>
         <h3>No notifications found</h3>
@@ -50,8 +50,8 @@
     } @else {
       <div class="notifications-list">
         @for (n of getFiltered(); track n.id) {
-          <div class="notification-item" [class.unread]="!n.read" (click)="onNotificationClick(n)" style="display:flex; align-items:flex-start; gap:1.25rem; padding:1.5rem;">
-            <div class="notification-icon" style="flex-shrink:0;">
+          <div class="notification-item" [class.unread]="!n.read" (click)="onNotificationClick(n)">
+            <div class="notification-icon">
               @switch (getIcon(n.type)) {
                 @case ('investment') { <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></svg> }
                 @case ('team') { <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> }
@@ -64,12 +64,12 @@
               }
             </div>
             
-            <div class="notification-content" style="flex:1; display:flex; flex-direction:column; gap:0.5rem; min-width:0;">
-              <div class="notification-header" style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="notification-title" style="margin:0; font-size:1rem; font-weight:700; color:white;">{{ n.type.replace('_', ' ') }}</span>
-                <span class="notification-time" style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">{{ formatDate(n.createdAt) }}</span>
+            <div class="notification-content">
+              <div class="notification-header">
+                <span class="notification-title">{{ n.type.replace('_', ' ') }}</span>
+                <span class="notification-time">{{ formatDate(n.createdAt) }}</span>
               </div>
-              <p class="notification-message" style="margin:0; padding:0; display:block; visibility:visible; opacity:1;">{{ n.message }}</p>
+              <p class="notification-message">{{ n.message }}</p>
             </div>
           </div>
         }
@@ -83,7 +83,7 @@
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>
-            <div class="notification-icon" style="background:rgba(139, 92, 246, 0.15); width:36px; height:36px; border-radius:8px; margin-right:4px;">
+            <div class="modal-notif-icon">
               @switch (getIcon(selectedNotification()!.type)) {
                 @case ('investment') { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></svg> }
                 @case ('team') { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> }
@@ -97,16 +97,16 @@
             </div>
             Notification Details
           </h3>
-          <button class="btn-ghost" (click)="closeModal()" style="font-size:1.4rem">✕</button>
+          <button class="btn-close-modal" (click)="closeModal()">✕</button>
         </div>
-        <div class="modal-body" style="padding:2rem;">
-          <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1.25rem; text-transform:uppercase; letter-spacing:0.1em; font-weight:700;">
+        <div class="modal-body">
+          <div class="modal-notif-meta">
             {{ selectedNotification()!.type.replace('_', ' ') }} • {{ formatDate(selectedNotification()!.createdAt) }}
           </div>
-          <p style="white-space: pre-wrap; margin: 0; font-size:1.05rem; line-height:1.7; color:var(--text-primary);">{{ selectedNotification()!.message }}</p>
+          <p class="modal-notif-msg">{{ selectedNotification()!.message }}</p>
         </div>
-        <div class="modal-footer" style="padding:1.5rem 2rem;">
-          <button class="btn-action" style="padding:0.75rem 2.5rem; background:var(--primary); color:white; border:none;" (click)="closeModal()">Close</button>
+        <div class="modal-footer">
+          <button class="btn btn-primary modal-close-btn" (click)="closeModal()">Close</button>
         </div>
       </div>
     </div>

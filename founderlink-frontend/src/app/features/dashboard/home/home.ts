@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -16,18 +16,24 @@ import { StartupResponse, InvestmentResponse, InvitationResponse } from '../../.
 })
 export class HomeComponent implements OnInit {
   // Founder
-  myStartups         = signal<StartupResponse[]>([]);
+  myStartups = signal<StartupResponse[]>([]);
   startupInvestments = signal<InvestmentResponse[]>([]);
+  teamCounts = signal<Map<number, number>>(new Map());
 
   // Investor
   myInvestments = signal<InvestmentResponse[]>([]);
+  allStartups = signal<StartupResponse[]>([]);
 
   // CoFounder
   myInvitations = signal<InvitationResponse[]>([]);
 
   // Name Maps to prevent showing IDs
   startupNames = signal<Map<number, string>>(new Map());
-  userNames    = signal<Map<number, string>>(new Map());
+  userNames = signal<Map<number, string>>(new Map());
+
+  // Consolidated Tactical Data
+  allTeamMembers = signal<any[]>([]);
+  allProjectInvestments = signal<InvestmentResponse[]>([]);
 
   loading = signal(true);
 
@@ -37,21 +43,26 @@ export class HomeComponent implements OnInit {
     private investmentService: InvestmentService,
     private teamService: TeamService,
     private userService: UserService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const raw = this.authService.role() ?? '';
     const role = raw.replace('ROLE_', '');
-    if (role === 'FOUNDER')   this.loadFounderData();
-    if (role === 'INVESTOR')  this.loadInvestorData();
+    if (role === 'FOUNDER') this.loadFounderData();
+    if (role === 'INVESTOR') this.loadInvestorData();
     if (role === 'COFOUNDER') this.loadCofounderData();
-    if (role === 'ADMIN')    { this.loading.set(false); }
+    if (role === 'ADMIN') { this.loading.set(false); }
 
-    // Pre-fetch names for mapping IDs
+    // Global Tactical Data Fetching
+    this.loadTacticalContext();
+
+    // Pre-fetch all startups for discovery and mapping
     this.startupService.getAll().subscribe({
       next: env => {
+        const startups = env.data ?? [];
+        this.allStartups.set(startups);
         const map = new Map<number, string>();
-        env.data?.forEach(s => map.set(s.id, s.name));
+        startups.forEach(s => map.set(s.id, s.name));
         this.startupNames.set(map);
       }
     });
@@ -65,14 +76,65 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  private loadTacticalContext(): void {
+    const role = this.role;
+    
+    // Fetch Team Context
+    if (role === 'FOUNDER') {
+      this.startupService.getMyStartups().subscribe(env => {
+        env.data?.forEach(s => {
+          this.teamService.getTeamMembers(s.id).subscribe(teamEnv => {
+            const current = this.allTeamMembers();
+            this.allTeamMembers.set([...current, ...(teamEnv.data ?? [])]);
+          });
+        });
+      });
+    } else if (role === 'COFOUNDER') {
+      this.teamService.getMyActiveRoles().subscribe(env => {
+        this.allTeamMembers.set(env.data ?? []);
+      });
+    }
+
+    // Fetch Investment Context
+    if (role === 'FOUNDER') {
+      this.startupService.getMyStartups().subscribe(env => {
+        env.data?.forEach(s => {
+          this.investmentService.getStartupInvestments(s.id).subscribe(invEnv => {
+            const current = this.allProjectInvestments();
+            this.allProjectInvestments.set([...current, ...(invEnv.data ?? [])]);
+          });
+        });
+      });
+    } else if (role === 'INVESTOR') {
+      this.investmentService.getMyPortfolio().subscribe(env => {
+        this.allProjectInvestments.set(env.data ?? []);
+      });
+    }
+  }
+
   private loadFounderData(): void {
     this.startupService.getMyStartups().subscribe({
       next: env => {
-        this.myStartups.set(env.data ?? []);
+        const startups = env.data ?? [];
+        this.myStartups.set(startups);
         this.loading.set(false);
-        if (env.data?.length) this.loadStartupInvestments(env.data[0].id);
+        if (startups.length) {
+          this.loadStartupInvestments(startups[0].id);
+          // Fetch actual team counts for precision
+          startups.forEach(s => this.loadTeamCount(s.id));
+        }
       },
       error: () => { this.myStartups.set([]); this.loading.set(false); }
+    });
+  }
+
+  private loadTeamCount(startupId: number): void {
+    this.teamService.getTeamMembers(startupId).subscribe({
+      next: env => {
+        const current = new Map(this.teamCounts());
+        current.set(startupId, env.data?.length ?? 0);
+        this.teamCounts.set(current);
+      }
     });
   }
 
@@ -97,6 +159,66 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  // ── Computed Helpers ───────────────────────────────────────────
+  get role(): string {
+    return (this.authService.role() ?? '').replace('ROLE_', '');
+  }
+
+  get name(): string {
+    return (this.authService.email() ?? '').split('@')[0] || 'there';
+  }
+
+  get insights(): { title: string, content: string }[] {
+    const roleMap: Record<string, { title: string, content: string }[]> = {
+      FOUNDER: [
+        { title: 'Investor Relations', content: 'Being transparent with your finances makes your startup much more attractive to long-term investors.' },
+        { title: 'Ownership Structure', content: 'Raising capital usually means giving up 10-20% of your company in each funding round.' },
+        { title: 'Scale Strategy', content: 'Investors currently value startups that can grow efficiently while keeping their spending under control.' }
+      ],
+      INVESTOR: [
+        { title: 'Portfolio Management', content: 'To lower your risk, try to spread your investments across 5-10 different startups in various industries.' },
+        { title: 'Due Diligence Checklist', content: 'Always double-check a startup’s legal ownership and insurance before making a major investment.' },
+        { title: 'Return on Investment', content: 'In today’s tech market, investors typically look for a 3-5x return over a 5 to 7 year period.' }
+      ],
+      COFOUNDER: [
+        { title: 'Team Agreements', content: 'Having a clear "vesting" schedule is the best way to ensure every co-founder stays committed.' },
+        { title: 'Defining Your Role', content: 'Clearly dividing tasks between the CEO and CTO helps avoid confusion and speeds up decision-making.' }
+      ]
+    };
+    return roleMap[this.role] ?? [];
+  }
+
+  get milestones(): string[] {
+    const roleMap: Record<string, string[]> = {
+      FOUNDER: ['Set up Equity & Ownership', 'Find a Lead Investor', 'Legalize Product Ownership'],
+      INVESTOR: ['Invest in 3+ Areas', 'Review Startup Profits', 'Check Legal Certificates'],
+      COFOUNDER: ['Define Daily Tasks', 'Sign Ownership Agreement', 'Quarterly Sync Meeting']
+    };
+    return roleMap[this.role] ?? [];
+  }
+
+  get guidance(): string {
+    const roleMap: Record<string, string> = {
+      FOUNDER: 'Your next strategic move should focus on managing your spending to ensure you have enough runway before the next funding round.',
+      INVESTOR: 'Current market indicators suggest a switch toward profitable growth. Review your startups for sustainable business models.',
+      COFOUNDER: 'Clear communication with the core team is the best way to reduce confusion while your startup is growing quickly.'
+    };
+    return roleMap[this.role] ?? '';
+  }
+
+  // ── Discovery Logic ────────────────────────────────────────────
+  discoveryStartups = computed(() => {
+    const myInvIds = new Set(this.myInvestments().map(inv => inv.startupId));
+    // Filter out startups already in portfolio
+    return this.allStartups()
+      .filter(s => !myInvIds.has(s.id))
+      .slice(0, 5); // Multi-metric list for dashboard
+  });
+
+  // ── Partnership Logic ──────────────────────────────────────────
+  acceptedInvitations = computed(() => this.myInvitations().filter(i => i.status === 'ACCEPTED'));
+  pendingInvitations = computed(() => this.myInvitations().filter(i => i.status === 'PENDING'));
+
   // ── Computed stats ─────────────────────────────────────────────
   get totalInvested(): number {
     return this.myInvestments().reduce((s, i) => s + i.amount, 0);
@@ -110,30 +232,57 @@ export class HomeComponent implements OnInit {
   get completedInvestments(): number {
     return this.myInvestments().filter(i => i.status === 'COMPLETED').length;
   }
-  get pendingInvitations(): InvitationResponse[] {
-    return this.myInvitations().filter(i => i.status === 'PENDING');
-  }
   get totalFundingReceived(): number {
     return this.startupInvestments()
       .filter(i => i.status === 'COMPLETED' || i.status === 'APPROVED')
       .reduce((s, i) => s + i.amount, 0);
   }
+
+  get totalStartupsCount(): number {
+    return this.myStartups().length;
+  }
+
+  get totalTeamCount(): number {
+    let count = 0;
+    this.teamCounts().forEach(c => count += c);
+    return count;
+  }
+
+  get totalPortfolioSize(): number {
+    return this.myInvestments().length;
+  }
+
+  get totalPartnershipsCount(): number {
+    return this.acceptedInvitations().length;
+  }
+
+  get totalInvitationsCount(): number {
+    return this.pendingInvitations().length;
+  }
+
+  get averageCheckSize(): number {
+    const total = this.totalInvested;
+    const count = this.totalPortfolioSize;
+    return count > 0 ? Math.floor(total / count) : 0;
+  }
+
   get pendingStartupInvestments(): number {
     return this.startupInvestments().filter(i => i.status === 'PENDING').length;
   }
 
   getStatusClass(status: string): string {
-    return status === 'APPROVED'  ? 'badge-success'
-         : status === 'COMPLETED' ? 'badge-info'
-         : status === 'PENDING'   ? 'badge-warning'
-         : status === 'REJECTED'  ? 'badge-danger'
-         : 'badge-gray';
+    return status === 'APPROVED' || status === 'ACCEPTED' ? 'badge-success'
+      : status === 'COMPLETED' ? 'badge-info'
+        : status === 'PENDING' ? 'badge-warning'
+          : status === 'REJECTED' ? 'badge-danger'
+            : 'badge-gray';
   }
 
   statusLabel(status: string): string {
     const labels: Record<string, string> = {
       PENDING: 'Pending', APPROVED: 'Approved', REJECTED: 'Rejected',
-      COMPLETED: 'Completed', PAYMENT_FAILED: 'Failed', STARTUP_CLOSED: 'Closed'
+      COMPLETED: 'Completed', PAYMENT_FAILED: 'Failed', STARTUP_CLOSED: 'Closed',
+      ACCEPTED: 'Active'
     };
     return labels[status] ?? status;
   }

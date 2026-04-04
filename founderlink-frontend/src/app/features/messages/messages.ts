@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, signal, OnDestroy, ViewChild, ElementRef, AfterViewChecked, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -6,6 +6,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { MessagingService } from '../../core/services/messaging.service';
 import { UserService } from '../../core/services/user.service';
 import { MessageResponse, UserResponse } from '../../models';
+import { ThemeService } from '../../core/services/theme.service';
 
 interface ConversationPartner {
   userId: number;
@@ -24,6 +25,9 @@ interface ConversationPartner {
 export class MessagesComponent implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
   
+  @HostBinding('class.crystal-mode')
+  get isCrystalMode() { return this.themeService.isCrystal(); }
+
   partners       = signal<ConversationPartner[]>([]);
   selectedPartner = signal<ConversationPartner | null>(null);
   messages       = signal<MessageResponse[]>([]);
@@ -38,6 +42,7 @@ export class MessagesComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   constructor(
     public authService: AuthService,
+    public themeService: ThemeService,
     private messagingService: MessagingService,
     private userService: UserService,
     private route: ActivatedRoute

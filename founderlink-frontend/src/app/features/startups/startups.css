@@ -1,6 +1,6 @@
 .page-sub {
   font-size: .95rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-secondary);
   margin-top: .25rem;
 }
 
@@ -11,10 +11,10 @@
   gap: 1rem;
   margin-bottom: 2.5rem;
   flex-wrap: wrap;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-secondary);
   padding: 1rem;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
 }
 
 .search-wrap {
@@ -35,12 +35,12 @@
 .search-input,
 .filter-select,
 .filter-input {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--white);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: .75rem 1rem;
-  color: white;
+  color: var(--text-primary) !important;
   font-size: .875rem;
   transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -54,24 +54,24 @@
 .filter-input:focus {
   outline: none;
   border-color: var(--primary);
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+  background: var(--white);
+  box-shadow: 0 0 0 4px var(--primary-glow);
 }
 
 .filter-select {
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text-primary);
   padding-right: 2.5rem;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: var(--select-arrow);
   background-repeat: no-repeat;
   background-position: right 0.875rem center;
   background-size: 1rem;
 }
 
 .filter-select option {
-  background: #0a0a0f;
-  color: white;
+  background: var(--white);
+  color: var(--text-primary);
 }
 
 .filter-input {
@@ -80,10 +80,19 @@
 
 .results-count {
   font-size: .85rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
   font-weight: 600;
   margin-left: auto;
   letter-spacing: 0.02em;
+}
+
+.reset-filters-btn {
+  color: var(--text-muted) !important;
+  font-weight: 600;
+}
+
+.reset-filters-btn:hover {
+  color: var(--primary) !important;
 }
 
 /* ── Grid ─────────────────────────────────────────────────────── */
@@ -110,9 +119,9 @@
 
 .startup-card:hover {
   transform: translateY(-8px) scale(1.02);
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.6), 0 0 20px rgba(99, 102, 241, 0.1);
+  background: var(--white);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-lg);
 }
 
 .sc-header {
@@ -144,7 +153,7 @@
 .sc-name {
   font-size: 1.25rem;
   font-weight: 800;
-  color: white;
+  color: var(--text-primary);
   margin-bottom: .25rem;
   letter-spacing: -0.02em;
 }
@@ -154,13 +163,13 @@
   align-items: center;
   gap: .4rem;
   font-size: .85rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-secondary);
   margin-bottom: .75rem;
 }
 
 .sc-desc {
   font-size: .925rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -174,8 +183,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
-  background: rgba(255, 255, 255, 0.015);
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
 }
 
 .sc-funding {
@@ -186,7 +195,7 @@
 
 .funding-label {
   font-size: .7rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: .1em;
   font-weight: 700;
@@ -213,10 +222,9 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
 }
 
 .stage-badge.badge-gray {
@@ -263,11 +271,11 @@
 .modal-card {
   width: 100%;
   max-width: 480px;
-  background: rgba(10, 10, 15, 0.85);
+  background: var(--white);
   backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
   border-radius: 28px;
-  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.7), 0 0 40px rgba(99, 102, 241, 0.15);
+  box-shadow: var(--shadow-xl);
   padding: 2.5rem;
   animation: modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -294,7 +302,7 @@
 .modal-header h3 {
   font-size: 1.75rem;
   font-weight: 800;
-  color: white;
+  color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.02em;
 }
@@ -316,7 +324,7 @@
 }
 
 .modal-sub {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
   font-size: 0.95rem;
   margin-top: -1.5rem;
   margin-bottom: 2.5rem;
@@ -331,7 +339,7 @@
   display: block;
   font-size: 0.75rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 1rem;
@@ -339,11 +347,11 @@
 
 .input {
   width: 100%;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--white);
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 1rem 1.25rem;
-  color: white;
+  color: var(--text-primary);
   font-size: 1.1rem;
   font-weight: 600;
   transition: all 0.2s;
@@ -360,6 +368,78 @@
   gap: 1rem;
   justify-content: flex-end;
   margin-top: 2.5rem;
+}
+
+@media (max-width: 600px) {
+  .modal-card {
+    padding: 1.5rem;
+  }
+
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .results-count {
+    margin-left: 0;
+    margin-top: .5rem;
+  }
+
+  .startup-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8rem 2rem;
+  border: 1px dashed var(--border);
+  border-radius: 32px;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+}
+
+.empty-state svg {
+  opacity: 0.3;
+  margin-bottom: 1.5rem;
+}
+
+.empty-state h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: var(--text-secondary);
+}
+
+.modal-input-wrap {
+  position: relative;
+}
+
+.currency-label {
+  position: absolute;
+  left: 1rem;
+  top: 52%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.modal-input-wrap .input {
+  padding-left: 2.5rem;
+}
+
+.modal-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
 }
 
 @media (max-width: 600px) {
