@@ -1,0 +1,622 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lato:ital,wght@1,700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+/* ── Celestial Clarity Tokens ──────────────────────── */
+:host {
+  --font-main: 'Inter', sans-serif;
+  --font-accent: 'Lato', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  --radius-celestial: 40px;
+  --glass-bg: rgba(var(--bg-secondary-rgb), 0.4);
+  --glass-border: rgba(var(--text-primary-rgb), 0.08);
+  --aura-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.2);
+  
+  /* Aura Colors basis */
+  --aura-founder: radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.15) 0%, transparent 50%);
+  --aura-investor: radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 50%);
+}
+
+.celestial-workspace {
+  font-family: var(--font-main);
+  min-height: 100%;
+  padding: 1rem;
+  position: relative;
+  overflow: hidden;
+  background: var(--aura-founder), var(--aura-investor);
+  animation: celestial-entry 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes celestial-entry {
+  from { opacity: 0; transform: scale(0.95); filter: blur(20px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+/* ── Interaction Header ───────────────────────────── */
+.aura-header {
+  position: relative;
+  padding: 4rem 2rem 2.5rem;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.aura-header-left {
+  flex: 1;
+}
+
+.aura-header-right {
+  display: flex;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.tactical-action-hub {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-action-glow {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  padding: 0.6rem 1.2rem;
+  font-weight: 700;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-action-glow:hover {
+  background: rgba(99, 102, 241, 0.25);
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+  transform: translateY(-2px);
+  color: #ffffff;
+}
+
+.btn-action-outline {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-action-outline:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+}
+
+/* ── Light Mode (Crystal) Adaptations for Action Hub ── */
+:host-context(.crystal-mode) .btn-action-glow {
+  background: var(--primary);
+  color: white;
+  border: 1px solid transparent;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+
+:host-context(.crystal-mode) .btn-action-glow:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+  transform: translateY(-2px);
+}
+
+:host-context(.crystal-mode) .btn-action-outline {
+  background: white;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+:host-context(.crystal-mode) .btn-action-outline:hover {
+  background: #f1f5f9;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.welcome-heading {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  margin-bottom: 1rem;
+}
+
+.greeting-prefix {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 3.25rem;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.username-accent {
+  font-family: var(--font-accent);
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.5rem;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.aura-header p {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  max-width: 700px;
+  line-height: 1.6;
+  margin-top: 1.5rem;
+}
+
+.role-pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1.25rem;
+  background: var(--primary);
+  color: white;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Mosaic Data Cells ────────────────────────────── */
+.mosaic-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-rows: minmax(180px, auto);
+  gap: 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.cell-8  { grid-column: span 8; }
+.cell-4  { grid-column: span 4; }
+.cell-12 { grid-column: span 12; }
+
+/* ── Team Pulse List ──────────────────────────────── */
+.pulse-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.pulse-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(var(--text-primary-rgb), 0.03);
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  transition: all 0.3s ease;
+}
+
+.pi-avatar {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--primary), #818cf8);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 800;
+  font-size: 0.75rem;
+}
+
+.pi-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.pi-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pi-role {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.pi-status {
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(var(--text-primary-rgb), 0.05);
+  color: var(--text-muted);
+}
+
+.pi-status.active {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+/* ── Investment Nexus List ─────────────────────────── */
+.nexus-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.nexus-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: rgba(var(--text-primary-rgb), 0.03);
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+}
+
+.ni-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ni-startup {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.panel-divider {
+  height: 1px;
+  background: var(--glass-border);
+  margin: 2rem 0;
+  width: 100%;
+}
+
+.milestone-integration {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.milestone-integration .milestone-row {
+  padding-bottom: 0.5rem;
+  gap: 1rem;
+}
+
+.milestone-integration .m-card {
+  flex: 0 0 180px; /* Slightly more compact for the Cell-8 space */
+  padding: 1rem;
+  background: rgba(var(--text-primary-rgb), 0.02);
+}
+
+/* ── Data-Board Layout (THE FILL) ───────────────────── */
+.data-board-tile {
+  position: relative;
+  overflow: hidden;
+}
+
+.data-board-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 2rem;
+}
+
+.db-pillar {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+}
+
+.db-pillar:not(:last-child) {
+  border-right: 1px solid var(--glass-border);
+}
+
+.db-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.db-value-sub {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0.5rem 0;
+}
+
+.db-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.db-progress-box {
+  margin-top: 1rem;
+  padding-right: 1rem;
+}
+
+.db-progress-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.db-progress-bar {
+  height: 4px;
+  background: rgba(var(--text-primary-rgb), 0.05);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.db-progress-fill {
+  height: 100%;
+  background: var(--primary);
+  box-shadow: 0 0 10px var(--primary);
+}
+
+/* ── Base Cells ───────────────────────────────────── */
+.celestial-cell {
+  background: var(--glass-bg);
+  backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-celestial);
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.4s;
+}
+
+.celestial-cell:hover {
+  border-color: var(--primary);
+  transform: translateY(-5px);
+}
+
+.cell-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+}
+
+/* ── Celestial Data Table (UNIFIED LISTS) ──────────── */
+.celestial-data-table {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1rem;
+}
+
+.data-table-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid var(--glass-border);
+  transition: all 0.3s;
+}
+
+.data-table-row:hover {
+  background: rgba(var(--primary-rgb), 0.05);
+  border-radius: 15px;
+  border-bottom-color: transparent;
+}
+
+.dt-col-brand {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.dt-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dt-tag-match, .dt-tag-active {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #10b981;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dt-col-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.dt-label {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.dt-val {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.dt-val-primary {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.dt-col-action {
+  flex: 1.5;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-action-outline {
+  display: inline-block;
+  padding: 0.6rem 1.25rem;
+  border: 1.5px solid var(--primary);
+  color: var(--primary);
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-decoration: none;
+  text-transform: uppercase;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.btn-action-outline:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.pulse-indicator {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #10b981;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pulse-indicator::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #10b981;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.5; }
+  100% { transform: scale(0.95); opacity: 1; }
+}
+
+/* ── Milestone Horizontal Conveyor (SINGLE LINE) ── */
+.milestone-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 1.25rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  -ms-overflow-style: none; /* Hide scrollbar IE */
+  scrollbar-width: none; /* Hide scrollbar Firefox */
+}
+
+.milestone-row::-webkit-scrollbar {
+  display: none; /* Hide scrollbar Chrome/Safari */
+}
+
+.m-card {
+  flex: 0 0 220px; /* Force consistent width, no shrinking */
+  background: rgba(var(--text-primary-rgb), 0.03);
+  padding: 1.25rem;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid var(--glass-border);
+}
+
+.m-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.m-text {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+/* ── Industry Pulse Structure (v2) ───────────────────── */
+.pulse-module-v2 {
+  padding: 1.25rem;
+  background: rgba(var(--text-primary-rgb), 0.03);
+  border-radius: 16px;
+  border: 1px solid var(--glass-border);
+  margin-bottom: 1rem;
+}
+
+.pm-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.pm-tag {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: 0.05em;
+}
+
+.pm-title-v2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pm-content-v2 {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  opacity: 0.9;
+  margin-bottom: 0.75rem;
+}
+
+.pm-footer {
+  border-top: 1px solid var(--glass-border);
+  padding-top: 0.5rem;
+}
+
+.pm-meta {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* ── Responsive ───────────────────────────────────── */
+@media (max-width: 1024px) {
+  .cell-8, .cell-4 { grid-column: span 12; }
+  .data-board-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .aura-header { padding: 2rem 1rem; }
+  .aura-header h1 { font-size: 1.8rem; }
+  .celestial-cell { padding: 1.5rem; }
+  .data-table-row { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .dt-col-action { width: 100%; justify-content: flex-start; }
+}

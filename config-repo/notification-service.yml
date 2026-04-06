@@ -20,6 +20,8 @@ spring:
           starttls:
             enable: true
             required: true
+          ssl:
+            enable: false
 
 resilience4j:
   circuitbreaker:
@@ -46,8 +48,16 @@ logging:
 
 # RabbitMQ queues
 rabbitmq:
+  exchange: founderlink.exchange
   queue:
-    startup: startup.queue
-    investment: investment.queue
-    team: team.queue
-    messaging: messaging.queue
+    startup: notification.startup.queue
+    investment: notification.investment.queue
+    team: notification.team.queue
+    messaging: notification.messaging.queue
+    team-accepted: notification.team.accepted.queue
+    team-rejected: notification.team.rejected.queue
+    payment-completed: notification.payment.completed.queue
+    payment-failed: notification.payment.failed.queue
+    investment-approved: notification.investment.approved.queue
+    investment-rejected: notification.investment.rejected.queue
+    user-registered: user-registered-queue

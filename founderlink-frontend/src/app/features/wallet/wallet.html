@@ -1,0 +1,98 @@
+<div class="wallet-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h2>Wallet</h2>
+      <p class="page-sub">Your startup's funding balance</p>
+    </div>
+  </div>
+
+  @if (errorMsg()) {
+    <div class="alert alert-error">{{ errorMsg() }}</div>
+  }
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading startups...</p>
+    </div>
+  } @else {
+
+    @if (startups().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        </div>
+        <h3>No Startups Yet</h3>
+        <p>Create a startup first to see its wallet balance.</p>
+      </div>
+    } @else {
+
+      <!-- Startup Tabs -->
+      <div class="startup-selector">
+        @for (startup of startups(); track startup.id) {
+          <button
+            class="startup-tab"
+            [class.active]="selectedStartupId() === startup.id"
+            (click)="onStartupChange(startup.id)"
+          >
+            {{ startup.name }}
+          </button>
+        }
+      </div>
+
+      <!-- Wallet Loading -->
+      @if (walletLoading()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Fetching wallet...</p>
+        </div>
+      } @else if (wallet()) {
+        <!-- Balance Card -->
+        <div class="balance-section">
+          <div class="balance-card">
+            <span class="balance-label">Current Balance</span>
+            <span class="balance-amount">{{ formatCurrency(wallet()!.balance) }}</span>
+            <span class="balance-subtitle">for {{ selectedStartup()?.name }}</span>
+          </div>
+        </div>
+
+        <!-- Info Row -->
+        <div class="wallet-info">
+          <div class="info-card">
+            <span class="info-label">Wallet ID</span>
+            <span class="info-value font-mono">#{{ wallet()!.id }}</span>
+          </div>
+          <div class="info-card">
+            <span class="info-label">Startup</span>
+            <span class="info-value">{{ selectedStartup()?.name }}</span>
+          </div>
+          <div class="info-card">
+            <span class="info-label">Created On</span>
+            <span class="info-value">{{ formatDate(wallet()!.createdAt) }}</span>
+          </div>
+          <div class="info-card">
+            <span class="info-label">Last Updated</span>
+            <span class="info-value">{{ formatDate(wallet()!.updatedAt) }}</span>
+          </div>
+        </div>
+
+        <div class="alert alert-info" style="margin-top:1.5rem">
+          💡 Your wallet balance grows automatically when investors complete payments for approved investments.
+        </div>
+
+      } @else {
+        <!-- No wallet yet -->
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          </div>
+          <h3>No Wallet Yet</h3>
+          <p>A wallet is created automatically once your first investment payment is confirmed.</p>
+        </div>
+      }
+
+    }
+  }
+</div>

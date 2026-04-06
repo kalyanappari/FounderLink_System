@@ -1,0 +1,13 @@
+{
+  "/api": {
+    "target": "http://api.founderlink.tech",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api": ""
+    },
+    "cookiePathRewrite": {
+      "/auth": "/api/auth"
+    }
+  }
+}

@@ -20,10 +20,31 @@ public class RouteValidator {
 
     public boolean isSecured(ServerHttpRequest request) {
         String requestPath = normalizePath(request.getPath().value());
-        return gatewaySecurityProperties.getPublicPaths().stream()
+        String method = request.getMethod() != null ? request.getMethod().name() : "";
+
+        // 1. Check universally public paths
+        boolean isPublicPath = gatewaySecurityProperties.getPublicPaths().stream()
                 .filter(StringUtils::hasText)
                 .map(this::normalizePath)
-                .noneMatch(publicPath -> pathMatcher.match(publicPath, requestPath));
+                .anyMatch(publicPath -> pathMatcher.match(publicPath, requestPath));
+
+        if (isPublicPath) {
+            return false;
+        }
+
+        // 2. Check public GET paths
+        if ("GET".equalsIgnoreCase(method)) {
+            boolean isPublicGetPath = gatewaySecurityProperties.getPublicGetPaths().stream()
+                    .filter(StringUtils::hasText)
+                    .map(this::normalizePath)
+                    .anyMatch(publicGetPath -> pathMatcher.match(publicGetPath, requestPath));
+            
+            if (isPublicGetPath) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private String normalizePath(String path) {

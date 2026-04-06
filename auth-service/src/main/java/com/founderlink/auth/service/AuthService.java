@@ -39,6 +39,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final SyncService syncService;
     private final PasswordResetEventPublisher passwordResetEventPublisher;
+    private final com.founderlink.auth.publisher.UserRegisteredEventPublisher userRegisteredEventPublisher;
 
     private static final Set<Role> ALLOWED_SELF_ROLES = Set.of(
             Role.FOUNDER,
@@ -66,6 +67,14 @@ public class AuthService {
         log.debug("User persisted in auth-service");
 
         syncService.syncUser(savedUser);
+
+        UserRegisteredEvent event = UserRegisteredEvent.builder()
+                .userId(savedUser.getId())
+                .email(savedUser.getEmail())
+                .name(savedUser.getName())
+                .role(savedUser.getRole().name())
+                .build();
+        userRegisteredEventPublisher.publishUserRegisteredEvent(event);
 
         return RegisterResponse.builder()
                 .email(savedUser.getEmail())

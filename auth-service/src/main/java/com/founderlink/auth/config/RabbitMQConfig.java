@@ -17,14 +17,29 @@ public class RabbitMQConfig {
     public static final String FOUNDERLINK_EXCHANGE = "founderlink.exchange";
     public static final String PASSWORD_RESET_ROUTING_KEY = "password.reset";
 
+    public static final String USER_REGISTERED_ROUTING_KEY = "user.registered";
+    public static final String USER_REGISTERED_QUEUE = "user-registered-queue";
+
     @Bean
     public Queue passwordResetQueue() {
         return new Queue(PASSWORD_RESET_QUEUE, true);
     }
 
     @Bean
+    public Queue userRegisteredQueue() {
+        return new Queue(USER_REGISTERED_QUEUE, true);
+    }
+
+    @Bean
     public DirectExchange founderLinkExchange() {
         return new DirectExchange(FOUNDERLINK_EXCHANGE);
+    }
+
+    @Bean
+    public Binding userRegisteredBinding(Queue userRegisteredQueue, DirectExchange founderLinkExchange) {
+        return BindingBuilder.bind(userRegisteredQueue)
+            .to(founderLinkExchange)
+            .with(USER_REGISTERED_ROUTING_KEY);
     }
 
     @Bean

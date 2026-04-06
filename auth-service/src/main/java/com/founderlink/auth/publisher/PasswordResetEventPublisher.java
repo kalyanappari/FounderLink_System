@@ -24,6 +24,7 @@ public class PasswordResetEventPublisher {
             log.info("Published password reset event for email: {}", event.getEmail());
         } catch (Exception e) {
             log.error("Failed to publish password reset event for email: {}", event.getEmail(), e);
+            throw new IllegalStateException("Failed to publish password reset event", e);
         }
     }
 }

@@ -1,0 +1,19 @@
+<div class="dashboard-layout">
+
+  <!-- Sidebar -->
+  <app-sidebar [collapsed]="!sidebarOpen()" (closeMenu)="sidebarOpen.set(false)" />
+
+  <!-- Main -->
+  <div class="dashboard-main" [class.expanded]="!sidebarOpen()">
+    <app-navbar (menuToggle)="toggleSidebar()" [pageTitle]="pageTitle()" />
+    <main class="dashboard-content" [class.crystal-mode]="themeService.isCrystal()">
+      <router-outlet />
+    </main>
+  </div>
+
+  <!-- Mobile overlay -->
+  @if (sidebarOpen()) {
+    <div class="mobile-overlay" (click)="sidebarOpen.set(false)"></div>
+  }
+
+</div>

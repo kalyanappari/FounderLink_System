@@ -1,0 +1,152 @@
+version: "3.9"
+
+networks:
+  founderlink-internal:
+  proxy-net:
+    external: true
+
+volumes:
+  service-logs:
+
+services:
+
+  auth-service:
+    image: kalyan3003/auth-service:${TAG}
+    container_name: auth-service
+    env_file: [.env]
+    environment:
+      LOGGING_FILE_NAME: /var/log/founderlink/auth-service.log
+    volumes:
+      - service-logs:/var/log/founderlink
+    networks: [founderlink-internal]
+    expose:
+      - "8080"
+    restart: unless-stopped
+
+  user-service:
+    image: kalyan3003/user-service:${TAG}
+    container_name: user-service
+    env_file: [.env]
+    environment:
+      LOGGING_FILE_NAME: /var/log/founderlink/user-service.log
+    volumes:
+      - service-logs:/var/log/founderlink
+    networks: [founderlink-internal]
+    expose:
+      - "8081"
+    restart: unless-stopped
+
+  startup-service:
+    image: kalyan3003/startup-service:${TAG}
+    container_name: startup-service
+    env_file: [.env]
+    environment:
+      LOGGING_FILE_NAME: /var/log/founderlink/startup-service.log
+    volumes:
+      - service-logs:/var/log/founderlink
+    networks: [founderlink-internal]
+    expose:
+      - "8082"
+    restart: unless-stopped
+
+  investment-service:
+    image: kalyan3003/investment-service:${TAG}
+    container_name: investment-service
+    env_file: [.env]
+    environment:
+      LOGGING_FILE_NAME: /var/log/founderlink/investment-service.log
+    volumes:
+      - service-logs:/var/log/founderlink
+    networks: [founderlink-internal]
+    expose:
+      - "8083"
+    restart: unless-stopped
+
+  team-service:
+    image: kalyan3003/team-service:${TAG}
+    container_name: team-service
+    env_file: [.env]
+    environment:
+      LOGGING_FILE_NAME: /var/log/founderlink/team-service.log
+    volumes:
+      - service-logs:/var/log/founderlink
+    networks: [founderlink-internal]
+    expose:
+      - "8084"
+    restart: unless-stopped
+
+  messaging-service:
+    image: kalyan3003/messaging-service:${TAG}
+    container_name: messaging-service
+    env_file: [.env]
+    environment:
+      LOGGING_FILE_NAME: /var/log/founderlink/messaging-service.log
+    volumes:
+      - service-logs:/var/log/founderlink
+    networks: [founderlink-internal]
+    expose:
+      - "8085"
+    restart: unless-stopped
+
+  notification-service:
+    image: kalyan3003/notification-service:${TAG}
+    container_name: notification-service
+    env_file: [.env]
+    environment:
+      LOGGING_FILE_NAME: /var/log/founderlink/notification-service.log
+    volumes:
+      - service-logs:/var/log/founderlink
+    networks: [founderlink-internal]
+    expose:
+      - "8086"
+    restart: unless-stopped
+
+  payment-service:
+    image: kalyan3003/payment-service:${TAG}
+    container_name: payment-service
+    env_file: [.env]
+    environment:
+      LOGGING_FILE_NAME: /var/log/founderlink/payment-service.log
+    volumes:
+      - service-logs:/var/log/founderlink
+    networks: [founderlink-internal]
+    expose:
+      - "8087"
+    restart: unless-stopped
+
+  wallet-service:
+    image: kalyan3003/wallet-service:${TAG}
+    container_name: wallet-service
+    env_file: [.env]
+    environment:
+      LOGGING_FILE_NAME: /var/log/founderlink/wallet-service.log
+    volumes:
+      - service-logs:/var/log/founderlink
+    networks: [founderlink-internal]
+    expose:
+      - "8088"
+    restart: unless-stopped
+
+  founderlink-frontend:
+    image: kalyan3003/founderlink-frontend:${TAG}
+    container_name: founderlink-frontend
+    networks:
+      - proxy-net
+    expose:
+      - "80"
+    restart: unless-stopped
+
+  api-gateway:
+    image: kalyan3003/api-gateway:${TAG}
+    container_name: api-gateway
+    env_file: [.env]
+    environment:
+      LOGGING_FILE_NAME: /var/log/founderlink/api-gateway.log
+    volumes:
+      - service-logs:/var/log/founderlink
+    networks:
+      - founderlink-internal
+      - proxy-net
+    expose:
+      - "8090"
+    restart: unless-stopped

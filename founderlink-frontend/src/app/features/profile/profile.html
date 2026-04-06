@@ -1,0 +1,145 @@
+<div [ngClass]="['celestial-workspace', getRoleDisplay().aura]">
+
+  @if (loading()) {
+    <div class="loading-overlay">
+      <div class="shimmer-pulse"></div>
+      <p>Synchronizing Profile Nexus...</p>
+    </div>
+  } @else {
+    <div class="zenith-bento-grid">
+
+      <!-- ── Identity Hero (FULL WIDTH - CELL 12) ── -->
+      <section class="celestial-cell cell-12 identity-hero">
+        <div class="hero-layout">
+          <div class="hero-avatar">
+            <div class="hero-orb-aura"></div>
+            <div class="hero-initials">
+              {{ user()?.name?.charAt(0)?.toUpperCase() || authService.email()?.charAt(0)?.toUpperCase() || 'U' }}
+            </div>
+          </div>
+          <div class="hero-intel">
+            <div class="role-pulse-badge" [style.backgroundColor]="getRoleDisplay().color">
+              {{ getRoleDisplay().icon }} {{ getRoleDisplay().label }}
+            </div>
+            <h1 class="hero-name">{{ user()?.name || 'Identity Not Synchronized' }}</h1>
+            <p class="hero-email">{{ user()?.email }}</p>
+          </div>
+          
+          <div class="hero-stats-actions">
+            <!-- Stats Module -->
+            <div class="hero-identity-stats">
+              <div class="stat-module">
+                <span class="sm-label">Account ID</span>
+                <span class="sm-value">#{{ user()?.userId }}</span>
+              </div>
+              <div class="stat-module">
+                <span class="sm-label">Node Status</span>
+                <span class="sm-value success">Active</span>
+              </div>
+            </div>
+
+            <!-- Utility Cluster (Redesigned) -->
+            <div class="hero-utility-cluster">
+              @if (!editing()) {
+                <button class="utility-anchor" (click)="toggleEdit()" title="Edit Profile">
+                  <svg class="anchor-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path></svg>
+                  <span class="anchor-text">Edit</span>
+                </button>
+                <div class="cluster-divider"></div>
+                <button class="utility-anchor danger" (click)="logout()" title="Sign Out">
+                  <svg class="anchor-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>
+                  <span class="anchor-text">Sign Out</span>
+                </button>
+              } @else {
+                <button class="utility-anchor success" (click)="saveProfile()" [disabled]="saving()">
+                  <svg class="anchor-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span class="anchor-text">{{ saving() ? 'Saving...' : 'Confirm' }}</span>
+                </button>
+                <div class="cluster-divider"></div>
+                <button class="utility-anchor ghost" (click)="toggleEdit()" [disabled]="saving()">
+                  <svg class="anchor-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  <span class="anchor-text">Abort</span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Professional Summary (CELL 12) ── -->
+      <section class="celestial-cell cell-12 core-content">
+        <div class="cell-label">Professional Summary</div>
+        @if (editing()) {
+          <div class="form-matrix">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" [(ngModel)]="name" class="zenith-input" placeholder="e.g. John Doe" />
+            </div>
+            <div class="form-group">
+              <label>About Me / Bio</label>
+              <textarea [(ngModel)]="bio" class="zenith-textarea" placeholder="Describe your professional journey..." rows="4"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Career Milestones / Experience</label>
+              <textarea [(ngModel)]="experience" class="zenith-textarea" placeholder="Describe your track record..." rows="4"></textarea>
+            </div>
+          </div>
+        } @else {
+          <div class="intel-summary">
+            <div class="intel-item">
+              <p class="intel-text">{{ user()?.bio || 'You haven\'t synchronized your biography with the network yet.' }}</p>
+            </div>
+            <div class="intel-divider"></div>
+            <div class="intel-item">
+              <span class="im-label">Experience Intel</span>
+              <p class="intel-text">{{ user()?.experience || 'Professional track record is currently being verified.' }}</p>
+            </div>
+          </div>
+        }
+      </section>
+
+      <!-- ── Capabilities & Skills (CELL 6) ── -->
+      <section class="celestial-cell cell-6 auxiliary-content">
+        <div class="cell-label">Capabilities & Skills</div>
+        @if (editing()) {
+          <div class="form-group">
+            <label>Expertise Tags (comma-separated)</label>
+            <input type="text" [(ngModel)]="skills" class="zenith-input" placeholder="e.g. Leadership, Angular, Finance" />
+          </div>
+        } @else {
+          <div class="capabilities-grid">
+            @for (skill of skillArray; track skill) {
+              <span class="capability-tag">{{ skill }}</span>
+            } @empty {
+              <p class="muted-intel">No capabilities discovered.</p>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- ── Dynamic Assets (CELL 6 - LINKS) ── -->
+      <section class="celestial-cell cell-6 auxiliary-content">
+        <div class="cell-label">Professional Assets</div>
+        @if (editing()) {
+          <div class="form-group">
+            <label>External Portfolio / LinkedIn URL</label>
+            <input type="text" [(ngModel)]="portfolioLinks" class="zenith-input" placeholder="https://linkedin.com/in/identity" />
+          </div>
+        } @else {
+          <div class="asset-list">
+            <div class="asset-item">
+              <span class="im-label">Primary Portfolio</span>
+              @if (user()?.portfolioLinks) {
+                <a [href]="user()?.portfolioLinks" target="_blank" class="asset-link">{{ user()?.portfolioLinks }}</a>
+              } @else {
+                <span class="muted-intel">No external assets linked.</span>
+              }
+            </div>
+          </div>
+        }
+      </section>
+
+    </div>
+  }
+
+</div>

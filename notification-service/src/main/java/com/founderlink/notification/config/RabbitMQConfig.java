@@ -28,6 +28,27 @@ public class RabbitMQConfig {
     @Value("${rabbitmq.queue.messaging}")
     private String messagingQueue;
 
+    @Value("${rabbitmq.queue.team-accepted}")
+    private String teamAcceptedQueue;
+
+    @Value("${rabbitmq.queue.team-rejected}")
+    private String teamRejectedQueue;
+
+    @Value("${rabbitmq.queue.payment-completed}")
+    private String paymentCompletedQueue;
+
+    @Value("${rabbitmq.queue.payment-failed}")
+    private String paymentFailedQueue;
+
+    @Value("${rabbitmq.queue.investment-approved}")
+    private String investmentApprovedQueue;
+
+    @Value("${rabbitmq.queue.investment-rejected}")
+    private String investmentRejectedQueue;
+
+    @Value("${rabbitmq.queue.user-registered}")
+    private String userRegisteredQueue;
+
     @Bean
     public DirectExchange exchange() {
         return new DirectExchange(exchange);
@@ -59,6 +80,41 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue teamAcceptedQueue() {
+        return new Queue(teamAcceptedQueue, true);
+    }
+
+    @Bean
+    public Queue teamRejectedQueue() {
+        return new Queue(teamRejectedQueue, true);
+    }
+
+    @Bean
+    public Queue paymentCompletedQueue() {
+        return new Queue(paymentCompletedQueue, true);
+    }
+
+    @Bean
+    public Queue paymentFailedQueue() {
+        return new Queue(paymentFailedQueue, true);
+    }
+
+    @Bean
+    public Queue investmentApprovedQueue() {
+        return new Queue(investmentApprovedQueue, true);
+    }
+
+    @Bean
+    public Queue investmentRejectedQueue() {
+        return new Queue(investmentRejectedQueue, true);
+    }
+
+    @Bean
+    public Queue userRegisteredQueue() {
+        return new Queue(userRegisteredQueue, true);
+    }
+
+    @Bean
     public Binding startupBinding(Queue startupQueue, DirectExchange exchange) {
         return BindingBuilder.bind(startupQueue).to(exchange).with("startup.created");
     }
@@ -81,6 +137,41 @@ public class RabbitMQConfig {
     @Bean
     public Binding passwordResetBinding(Queue passwordResetQueue, DirectExchange exchange) {
         return BindingBuilder.bind(passwordResetQueue()).to(exchange).with("password.reset");
+    }
+
+    @Bean
+    public Binding teamAcceptedBinding(Queue teamAcceptedQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(teamAcceptedQueue()).to(exchange).with("team.member.accepted");
+    }
+
+    @Bean
+    public Binding teamRejectedBinding(Queue teamRejectedQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(teamRejectedQueue()).to(exchange).with("team.member.rejected");
+    }
+
+    @Bean
+    public Binding paymentCompletedBinding(Queue paymentCompletedQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(paymentCompletedQueue()).to(exchange).with("payment.completed");
+    }
+
+    @Bean
+    public Binding paymentFailedBinding(Queue paymentFailedQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(paymentFailedQueue()).to(exchange).with("payment.failed");
+    }
+
+    @Bean
+    public Binding investmentApprovedBinding(Queue investmentApprovedQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(investmentApprovedQueue()).to(exchange).with("investment.approved");
+    }
+
+    @Bean
+    public Binding investmentRejectedBinding(Queue investmentRejectedQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(investmentRejectedQueue()).to(exchange).with("investment.rejected");
+    }
+
+    @Bean
+    public Binding userRegisteredBinding(Queue userRegisteredQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(userRegisteredQueue()).to(exchange).with("user.registered");
     }
 
     @Bean
