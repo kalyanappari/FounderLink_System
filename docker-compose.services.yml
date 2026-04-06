@@ -21,10 +21,6 @@ services:
     networks: [founderlink-internal]
     expose:
       - "8080"
-    depends_on:
-      - auth-db
-      - eureka-server
-      - config-server
     restart: unless-stopped
 
   user-service:
@@ -38,10 +34,6 @@ services:
     networks: [founderlink-internal]
     expose:
       - "8081"
-    depends_on:
-      - user-db
-      - eureka-server
-      - config-server
     restart: unless-stopped
 
   startup-service:
@@ -55,10 +47,6 @@ services:
     networks: [founderlink-internal]
     expose:
       - "8082"
-    depends_on:
-      - startup-db
-      - eureka-server
-      - config-server
     restart: unless-stopped
 
   investment-service:
@@ -72,10 +60,6 @@ services:
     networks: [founderlink-internal]
     expose:
       - "8083"
-    depends_on:
-      - investment-db
-      - eureka-server
-      - config-server
     restart: unless-stopped
 
   team-service:
@@ -89,10 +73,6 @@ services:
     networks: [founderlink-internal]
     expose:
       - "8084"
-    depends_on:
-      - team-db
-      - eureka-server
-      - config-server
     restart: unless-stopped
 
   messaging-service:
@@ -106,10 +86,6 @@ services:
     networks: [founderlink-internal]
     expose:
       - "8085"
-    depends_on:
-      - messaging-db
-      - rabbitmq
-      - eureka-server
     restart: unless-stopped
 
   notification-service:
@@ -123,10 +99,6 @@ services:
     networks: [founderlink-internal]
     expose:
       - "8086"
-    depends_on:
-      - notification-db
-      - rabbitmq
-      - eureka-server
     restart: unless-stopped
 
   payment-service:
@@ -140,9 +112,6 @@ services:
     networks: [founderlink-internal]
     expose:
       - "8087"
-    depends_on:
-      - payment-db
-      - eureka-server
     restart: unless-stopped
 
   wallet-service:
@@ -156,9 +125,15 @@ services:
     networks: [founderlink-internal]
     expose:
       - "8088"
-    depends_on:
-      - wallet-db
-      - eureka-server
+    restart: unless-stopped
+
+  founderlink-frontend:
+    image: kalyan3003/founderlink-frontend:${TAG}
+    container_name: founderlink-frontend
+    networks:
+      - proxy-net
+    expose:
+      - "80"
     restart: unless-stopped
 
   api-gateway:
@@ -174,6 +149,4 @@ services:
       - proxy-net
     expose:
       - "8090"
-    depends_on:
-      - eureka-server
-    restart: unless-stopped
+    restart: unless-stopped
