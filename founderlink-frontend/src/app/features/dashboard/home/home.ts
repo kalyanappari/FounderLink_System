@@ -6,7 +6,7 @@ import { StartupService } from '../../../core/services/startup.service';
 import { InvestmentService } from '../../../core/services/investment.service';
 import { TeamService } from '../../../core/services/team.service';
 import { UserService } from '../../../core/services/user.service';
-import { StartupResponse, InvestmentResponse, InvitationResponse } from '../../../models';
+import { StartupResponse, InvestmentResponse, InvitationResponse, TeamMemberResponse, UserResponse } from '../../../models';
 
 @Component({
   selector: 'app-home',
@@ -51,7 +51,7 @@ export class HomeComponent implements OnInit {
     if (role === 'FOUNDER') this.loadFounderData();
     if (role === 'INVESTOR') this.loadInvestorData();
     if (role === 'COFOUNDER') this.loadCofounderData();
-    if (role === 'ADMIN') { this.loading.set(false); }
+    if (role === 'ADMIN') this.loadAdminData();
 
     // Global Tactical Data Fetching
     this.loadTacticalContext();
@@ -78,7 +78,7 @@ export class HomeComponent implements OnInit {
 
   private loadTacticalContext(): void {
     const role = this.role;
-    
+
     // Fetch Team Context
     if (role === 'FOUNDER') {
       this.startupService.getMyStartups().subscribe(env => {
@@ -158,6 +158,116 @@ export class HomeComponent implements OnInit {
       error: () => { this.myInvitations.set([]); this.loading.set(false); }
     });
   }
+
+  private loadAdminData(): void {
+    const statusMap: Record<string, boolean> = {
+      auth: true,
+      user: true,
+      startup: true,
+      investment: true,
+      team: true,
+      payment: true,
+      wallet: true,
+      notification: true
+    };
+
+    // 1. User & Skill Density
+    this.userService.getAllUsers().subscribe({
+      next: env => {
+        const users = env.data ?? [];
+        this.totalPlatformUsers.set(users.length);
+        this.foundersCount.set(users.filter(u => u.role === 'FOUNDER').length);
+        this.investorsCount.set(users.filter(u => u.role === 'INVESTOR').length);
+        this.cofoundersCount.set(users.filter(u => u.role === 'COFOUNDER').length);
+
+        // Skill Density Map
+        const skillCounters: Record<string, number> = {};
+        users.forEach(u => {
+          if (u.skills) {
+            u.skills.split(',').forEach(s => {
+              const skill = s.trim();
+              if (skill) skillCounters[skill] = (skillCounters[skill] || 0) + 1;
+            });
+          }
+        });
+        const top5Skills = Object.entries(skillCounters)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([name, count]) => ({ name, count }));
+        this.topSkills.set(top5Skills);
+
+        // Engagement Velocity (by updatedAt)
+        const activeUsers = [...users]
+          .filter(u => u.updatedAt)
+          .sort((a, b) => new Date(b.updatedAt!).getTime() - new Date(a.updatedAt!).getTime())
+          .slice(0, 5);
+        this.recentUserUpdates.set(activeUsers);
+      },
+      error: () => (statusMap['user'] = false)
+    });
+
+    // 2. Startup & Market Segments
+    this.startupService.getAll().subscribe({
+      next: env => {
+        const startups = env.data ?? [];
+        this.allStartupsCount.set(startups.length);
+        this.totalPlatformCapitalTarget.set(startups.reduce((acc, s) => acc + (s.fundingGoal || 0), 0));
+
+        // Market Segments
+        const segments = { micro: 0, growth: 0, unicorn: 0 };
+        startups.forEach(s => {
+          if (s.fundingGoal < 100000) segments.micro++;
+          else if (s.fundingGoal < 1000000) segments.growth++;
+          else segments.unicorn++;
+        });
+        this.marketSegments.set(segments);
+
+        this.ideaStageCount.set(startups.filter(s => s.stage === 'IDEA').length);
+        this.mvpStageCount.set(startups.filter(s => s.stage === 'MVP').length);
+        this.tractionStageCount.set(startups.filter(s => s.stage === 'EARLY_TRACTION').length);
+        this.scalingStageCount.set(startups.filter(s => s.stage === 'SCALING').length);
+
+        const indMap = new Map<string, number>();
+        startups.forEach(s => {
+          const ind = s.industry || 'Other';
+          indMap.set(ind, (indMap.get(ind) || 0) + 1);
+        });
+        const sortedInds = Array.from(indMap.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 3)
+          .map(([name, count]) => ({ name, count }));
+        this.topIndustries.set(sortedInds);
+
+        this.recentStartups.set(startups.slice(-5).reverse());
+        this.loading.set(false);
+      },
+      error: () => {
+        statusMap['startup'] = false;
+        this.loading.set(false);
+      }
+    });
+
+    // Update Service Pulse
+    this.servicePulse.set(statusMap);
+  }
+
+  // ── Intelligence Signals ───────────────────────────────────────
+  totalPlatformUsers = signal<number>(0);
+  allStartupsCount = signal<number>(0);
+  foundersCount = signal<number>(0);
+  investorsCount = signal<number>(0);
+  cofoundersCount = signal<number>(0);
+  totalPlatformCapitalTarget = signal<number>(0);
+  ideaStageCount = signal<number>(0);
+  mvpStageCount = signal<number>(0);
+  tractionStageCount = signal<number>(0);
+  scalingStageCount = signal<number>(0);
+  topIndustries = signal<{ name: string, count: number }[]>([]);
+  recentStartups = signal<StartupResponse[]>([]);
+  servicePulse = signal<Record<string, boolean>>({});
+  topSkills = signal<{ name: string, count: number }[]>([]);
+  marketSegments = signal<{ micro: number, growth: number, unicorn: number }>({ micro: 0, growth: 0, unicorn: 0 });
+  recentUserUpdates = signal<UserResponse[]>([]);
 
   // ── Computed Helpers ───────────────────────────────────────────
   get role(): string {

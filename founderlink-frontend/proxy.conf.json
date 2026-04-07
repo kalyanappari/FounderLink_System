@@ -1,6 +1,6 @@
 {
   "/api": {
-    "target": "http://api.founderlink.tech",
+    "target": "https://api.founderlink.tech",
     "secure": false,
     "changeOrigin": true,
     "pathRewrite": {

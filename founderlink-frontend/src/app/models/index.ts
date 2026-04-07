@@ -69,6 +69,7 @@ export interface UserResponse {
   experience: string | null;
   bio: string | null;
   portfolioLinks: string | null;
+  updatedAt?: string;
 }
 
 export interface UserUpdateRequest {

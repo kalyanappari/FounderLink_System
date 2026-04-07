@@ -56,6 +56,10 @@ export const routes: Routes = [
 
       // Profile
       { path: 'profile',     loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent) },
+
+      // Admin Observability (Discovery)
+      { path: 'admin/users',    loadComponent: () => import('./features/admin/user-explorer/user-explorer').then(m => m.UserExplorerComponent) },
+      { path: 'admin/startups', loadComponent: () => import('./features/admin/startup-explorer/startup-explorer').then(m => m.StartupExplorerComponent) },
     ]
   },
 

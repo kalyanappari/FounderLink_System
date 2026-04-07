@@ -469,3 +469,99 @@
     font-size: 1.75rem;
   }
 }
+
+/* ── Admin Observability Hub ─────────────────────────── */
+.admin-observability-hub {
+  margin-top: 4rem;
+  animation: fadeIn 0.8s ease-out;
+}
+
+.panel-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  margin-bottom: 3rem;
+}
+
+.admin-panel {
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(244, 63, 94, 0.1);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(12px);
+}
+
+.panel-header {
+  margin-bottom: 1.5rem;
+}
+
+.panel-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.admin-data-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.data-item {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  font-size: 0.9rem;
+}
+
+.item-id, .item-role {
+  font-family: monospace;
+  font-weight: 700;
+  color: #94a3b8;
+  min-width: 60px;
+}
+
+.item-main {
+  font-weight: 700;
+  color: #f43f5e;
+  font-size: 1rem;
+}
+
+.item-meta {
+  color: #64748b;
+  flex-grow: 1;
+}
+
+.item-status {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.25rem 0.75rem;
+  border-radius: 2rem;
+  text-transform: uppercase;
+}
+
+.item-status.active, .item-status.completed, .item-status.approved {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.item-status.pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.empty-panel {
+  color: #64748b;
+  text-align: center;
+  padding: 2rem;
+  font-style: italic;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
