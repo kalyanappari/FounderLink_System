@@ -11,7 +11,7 @@ volumes:
 services:
 
   auth-service:
-    image: kalyan3003/auth-service:${TAG}
+    image: ${ACR_LOGIN_SERVER}/auth-service:${TAG}
     container_name: auth-service
     env_file: [.env]
     environment:
@@ -24,7 +24,7 @@ services:
     restart: unless-stopped
 
   user-service:
-    image: kalyan3003/user-service:${TAG}
+    image: ${ACR_LOGIN_SERVER}/user-service:${TAG}
     container_name: user-service
     env_file: [.env]
     environment:
@@ -37,7 +37,7 @@ services:
     restart: unless-stopped
 
   startup-service:
-    image: kalyan3003/startup-service:${TAG}
+    image: ${ACR_LOGIN_SERVER}/startup-service:${TAG}
     container_name: startup-service
     env_file: [.env]
     environment:
@@ -50,7 +50,7 @@ services:
     restart: unless-stopped
 
   investment-service:
-    image: kalyan3003/investment-service:${TAG}
+    image: ${ACR_LOGIN_SERVER}/investment-service:${TAG}
     container_name: investment-service
     env_file: [.env]
     environment:
@@ -63,7 +63,7 @@ services:
     restart: unless-stopped
 
   team-service:
-    image: kalyan3003/team-service:${TAG}
+    image: ${ACR_LOGIN_SERVER}/team-service:${TAG}
     container_name: team-service
     env_file: [.env]
     environment:
@@ -76,7 +76,7 @@ services:
     restart: unless-stopped
 
   messaging-service:
-    image: kalyan3003/messaging-service:${TAG}
+    image: ${ACR_LOGIN_SERVER}/messaging-service:${TAG}
     container_name: messaging-service
     env_file: [.env]
     environment:
@@ -89,7 +89,7 @@ services:
     restart: unless-stopped
 
   notification-service:
-    image: kalyan3003/notification-service:${TAG}
+    image: ${ACR_LOGIN_SERVER}/notification-service:${TAG}
     container_name: notification-service
     env_file: [.env]
     environment:
@@ -102,7 +102,7 @@ services:
     restart: unless-stopped
 
   payment-service:
-    image: kalyan3003/payment-service:${TAG}
+    image: ${ACR_LOGIN_SERVER}/payment-service:${TAG}
     container_name: payment-service
     env_file: [.env]
     environment:
@@ -115,7 +115,7 @@ services:
     restart: unless-stopped
 
   wallet-service:
-    image: kalyan3003/wallet-service:${TAG}
+    image: ${ACR_LOGIN_SERVER}/wallet-service:${TAG}
     container_name: wallet-service
     env_file: [.env]
     environment:
@@ -128,7 +128,7 @@ services:
     restart: unless-stopped
 
   founderlink-frontend:
-    image: kalyan3003/founderlink-frontend:${TAG}
+    image: ${ACR_LOGIN_SERVER}/founderlink-frontend:${TAG}
     container_name: founderlink-frontend
     networks:
       - proxy-net
@@ -137,7 +137,7 @@ services:
     restart: unless-stopped
 
   api-gateway:
-    image: kalyan3003/api-gateway:${TAG}
+    image: ${ACR_LOGIN_SERVER}/api-gateway:${TAG}
     container_name: api-gateway
     env_file: [.env]
     environment:
