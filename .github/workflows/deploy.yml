@@ -95,40 +95,13 @@ jobs:
             # 2. Login to ACR on VM
             echo "${{ secrets.ACR_PASSWORD }}" | docker login $ACR_LOGIN_SERVER -u ${{ secrets.ACR_USERNAME }} --password-stdin
             
-            # 3. Detect Docker Compose version
-            if docker compose version > /dev/null 2>&1; then
-              DOCKER_COMPOSE="docker compose"
-            else
-              DOCKER_COMPOSE="docker-compose"
-            fi
+            # 3. Pull and Up services one-by-one to avoid cross-file lookup issues
+            SERVICES=$(echo '${{ needs.detect-changes.outputs.services }}' | jq -r '.[]')
             
-            # 4. Helper to separate services by file
-            INFRA_SERVICES="config-server eureka-server"
-            
-            # Convert JSON array to space separated string
-            ALL_SERVICES=$(echo '${{ needs.detect-changes.outputs.services }}' | jq -r '.[]')
-            
-            SERVICES_TO_UP_INFRA=""
-            SERVICES_TO_UP_APP=""
-            
-            for s in $ALL_SERVICES; do
-              if [[ "$INFRA_SERVICES" =~ "$s" ]]; then
-                SERVICES_TO_UP_INFRA="$SERVICES_TO_UP_INFRA $s"
-              else
-                SERVICES_TO_UP_APP="$SERVICES_TO_UP_APP $s"
-              fi
+            for s in $SERVICES; do
+              echo "Updating service: $s"
+              docker-compose -f docker-compose.infra.yml -f docker-compose.services.yml pull $s
+              docker-compose -f docker-compose.infra.yml -f docker-compose.services.yml up -d --no-deps $s
             done
-            
-            # 5. Pull and Up Infrastructure if needed
-            if [ ! -z "$SERVICES_TO_UP_INFRA" ]; then
-              $DOCKER_COMPOSE -f docker-compose.infra.yml pull $SERVICES_TO_UP_INFRA
-              $DOCKER_COMPOSE -f docker-compose.infra.yml up -d --no-deps $SERVICES_TO_UP_INFRA
-            fi
-            
-            # 6. Pull and Up Application Services if needed
-            if [ ! -z "$SERVICES_TO_UP_APP" ]; then
-              $DOCKER_COMPOSE -f docker-compose.services.yml pull $SERVICES_TO_UP_APP
-              $DOCKER_COMPOSE -f docker-compose.services.yml up -d --no-deps $SERVICES_TO_UP_APP
-            fi
             
             docker system prune -f
