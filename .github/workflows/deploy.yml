@@ -82,21 +82,30 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ~/FounderLink_System
+            
+            # 1. Force sync with GitHub (clears local "dirty" files)
             git fetch origin
+            git reset --hard origin/${{ github.ref_name }}
             git checkout ${{ github.ref_name }}
             git pull origin ${{ github.ref_name }}
             
             export TAG=$(echo ${{ github.sha }} | cut -c1-7)
             export ACR_LOGIN_SERVER=${{ secrets.ACR_LOGIN_SERVER }}
             
-            # Login to ACR on VM
+            # 2. Login to ACR on VM
             echo "${{ secrets.ACR_PASSWORD }}" | docker login $ACR_LOGIN_SERVER -u ${{ secrets.ACR_USERNAME }} --password-stdin
             
-            # Update specific services
-            # Convert JSON array to space separated string for docker compose
+            # 3. Detect Docker Compose version (v1 vs v2)
+            if docker compose version > /dev/null 2>&1; then
+              DOCKER_COMPOSE="docker compose"
+            else
+              DOCKER_COMPOSE="docker-compose"
+            fi
+            
+            # 4. Update specific services
             SERVICES=$(echo '${{ needs.detect-changes.outputs.services }}' | jq -r '.[]' | tr '\n' ' ')
             
-            docker compose -f docker-compose.infra.yml -f docker-compose.services.yml pull $SERVICES
-            docker compose -f docker-compose.infra.yml -f docker-compose.services.yml up -d --no-deps $SERVICES
+            $DOCKER_COMPOSE -f docker-compose.infra.yml -f docker-compose.services.yml pull $SERVICES
+            $DOCKER_COMPOSE -f docker-compose.infra.yml -f docker-compose.services.yml up -d --no-deps $SERVICES
             
             docker system prune -f
