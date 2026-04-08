@@ -1,0 +1,97 @@
+<div class="explorer-container">
+  <header class="explorer-header highlight-rose">
+    <div class="header-content">
+      <div class="role-tag">PLATFORM CORE</div>
+      <h1 class="title">User Network Explorer</h1>
+      <p class="description">Global observability of all registered members across the FounderLink ecosystem.</p>
+    </div>
+    <div class="header-actions">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          placeholder="Filter by name or email..." 
+          (input)="searchQuery.set($any($event.target).value)"
+        >
+      </div>
+
+      <div class="filter-box">
+        <select (change)="roleFilter.set($any($event.target).value)">
+          <option value="ALL">All Network</option>
+          <option value="FOUNDER">Founders</option>
+          <option value="INVESTOR">Investors</option>
+          <option value="COFOUNDER">Co-Founders</option>
+        </select>
+      </div>
+
+      <button class="btn-refresh" (click)="loadUsers()" [class.spinning]="loading()">
+        <span class="icon">🔄</span> Refresh
+      </button>
+    </div>
+  </header>
+
+  <section class="explorer-content">
+    @if (loading()) {
+      <div class="skeleton-loader">
+        <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5]"></div>
+      </div>
+    } @else if (error()) {
+      <div class="error-state">
+        <div class="error-icon">⚠️</div>
+        <p>{{ error() }}</p>
+        <button class="btn-retry" (click)="loadUsers()">Retry Sync</button>
+      </div>
+    } @else {
+      <div class="celestial-table-wrapper">
+        <table class="celestial-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Member Identity</th>
+              <th>Registry Email</th>
+              <th>System Role</th>
+              <th>Strategic Skills</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of filteredUsers(); track user.userId) {
+              <tr class="table-row-hover">
+                <td class="col-id">#{{ user.userId }}</td>
+                <td class="col-identity">
+                  <div class="identity-box">
+                    <div class="avatar-mini">{{ user.name?.charAt(0) || 'U' }}</div>
+                    <span class="name-text">{{ user.name || 'Anonymous User' }}</span>
+                  </div>
+                </td>
+                <td class="col-email">{{ user.email }}</td>
+                <td class="col-role">
+                  <span class="badge-role" [ngClass]="getRoleClass(user.role)">
+                    {{ user.role }}
+                  </span>
+                </td>
+                <td class="col-skills">
+                  <div class="skills-stack">
+                    {{ user.skills || 'Profile incomplete' }}
+                  </div>
+                </td>
+                <td class="col-actions">
+                  <a class="btn-msg" 
+                     [routerLink]="['/dashboard/messages']" 
+                     [queryParams]="{ user: user.userId }"
+                     title="Signal Member">
+                    <span>💬</span>
+                  </a>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="empty-state">No users found in the platform registry.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>

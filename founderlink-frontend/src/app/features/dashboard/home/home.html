@@ -35,349 +35,521 @@
             <span>Review Invites</span>
           </a>
         }
+        @if (role === 'ADMIN') {
+          <a routerLink="/dashboard/admin/users" class="btn btn-action-glow">
+            <span>User Network</span>
+          </a>
+          <a routerLink="/dashboard/messages" class="btn btn-action-outline">
+            <span>💬 Messages</span>
+          </a>
+          <a routerLink="/dashboard/admin/startups" class="btn btn-action-outline">
+            <span>Market Observation</span>
+          </a>
+        }
       </div>
     </div>
   </header>
 
   <div class="mosaic-grid">
 
-    <!-- ── Celestial Data-Board (Cell 8 - EXPERT OVERVIEW) ── -->
-    <section class="celestial-cell cell-8 data-board-tile">
-      <div class="tile-grid-texture"></div>
-      @if (loading()) {
-      <div class="cell-skeleton"></div>
-      } @else {
-      <div class="data-board-layout">
-        
-        <!-- Pillar 1: Primary Asset -->
-        <div class="db-pillar p-main">
-          @if (role === 'FOUNDER') {
-          <div class="cell-label">Total Capital Raised</div>
-          <div class="db-value">{{ formatCurrency(totalFundingReceived) }}</div>
-          }
-          @if (role === 'INVESTOR') {
-          <div class="cell-label">Portfolio Commitment</div>
-          <div class="db-value">{{ formatCurrency(totalInvested) }}</div>
-          }
-          @if (role === 'COFOUNDER') {
-          <div class="cell-label">Active Collaborations</div>
-          <div class="db-value">{{ totalPartnershipsCount }}</div>
-          }
-          <div class="sparkline-mini">
-            <svg width="80" height="20" viewBox="0 0 80 20" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M0 15 Q20 5, 40 10 T80 5" stroke="var(--primary)" stroke-linecap="round" />
-            </svg>
-          </div>
-        </div>
-
-        <!-- Pillar 2: Secondary Asset -->
-        <div class="db-pillar">
-          @if (role === 'FOUNDER') {
-          <div class="cell-label">Active Startups</div>
-          <div class="db-value-sub">{{ totalStartupsCount }}</div>
-          }
-          @if (role === 'INVESTOR') {
-          <div class="cell-label">Portfolio Size</div>
-          <div class="db-value-sub">{{ totalPortfolioSize }}</div>
-          }
-          @if (role === 'COFOUNDER') {
-          <div class="cell-label">Pending Invites</div>
-          <div class="db-value-sub">{{ totalInvitationsCount }}</div>
-          }
-          <div class="db-meta">Live Directory</div>
-        </div>
-
-        <!-- Pillar 3: Pulse / Performance -->
-        <div class="db-pillar">
-          @if (role === 'FOUNDER') {
-          <div class="cell-label">Active Teams</div>
-          <div class="db-value-sub">{{ totalTeamCount }}</div>
-          }
-          @if (role === 'INVESTOR') {
-          <div class="cell-label">Average Ticket</div>
-          <div class="db-value-sub">{{ formatCurrency(averageCheckSize) }}</div>
-          }
-          @if (role === 'COFOUNDER') {
-          <div class="cell-label">Team Pulse</div>
-          <div class="db-value-sub">High Impact</div>
-          }
-          <div class="db-progress-box">
-            <div class="db-progress-label">
-              @if (role === 'INVESTOR') { Investment Scale }
-              @else if (role === 'FOUNDER') { Team Growth }
-              @else { Collaboration Scale }
-            </div>
-            <div class="db-progress-bar"><div class="db-progress-fill" style="width: 75%;"></div></div>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="panel-divider"></div>
-
-      <!-- Combined Milestones Segment -->
-      <div class="milestone-integration">
-        <div class="cell-label">Startup Growth Milestones</div>
-        <div class="milestone-row">
-          @for (item of milestones; track item) {
-          <div class="m-card">
-            <div class="m-dot"></div>
-            <span class="m-text">{{ item }}</span>
-          </div>
-          }
-        </div>
-      </div>
-      }
-    </section>
-
-    <!-- ── Industry Pulse (Cell 4) ── -->
-    <section class="celestial-cell cell-4">
-      <div class="cell-label">Industry Pulse</div>
-      <div class="insight-pulse-stack">
-        @for (tip of insights.slice(0,2); track tip.title) {
-        <div class="pulse-module-v2">
-          <div class="pm-header">
-            <span class="pm-tag">TACTICAL INSIGHT</span>
-            <span class="pm-title-v2">{{ tip.title }}</span>
-          </div>
-          <p class="pm-content-v2">{{ tip.content }}</p>
-          <div class="pm-footer">
-            <span class="pm-meta">Impact Level: High</span>
-          </div>
-        </div>
-        }
-      </div>
-    </section>
-
-
-    <!-- ── Investment Payments (INVESTOR ONLY - NEW) ── -->
-    @if (role === 'INVESTOR') {
-    <section class="celestial-cell cell-12">
-      <header class="section-top">
-        <div class="cell-label">Investment Payments</div>
-        <span class="pulse-indicator">Financing Active</span>
-      </header>
-      <div class="celestial-data-table">
-        @for (inv of myInvestments().slice(0, 10); track inv.id) {
-          @if (inv.status === 'APPROVED' || inv.status === 'COMPLETED' || inv.status === 'PAYMENT_FAILED') {
-          <div class="data-table-row">
-            <div class="dt-col-brand">
-              <span class="dt-name">{{ startupNames().get(inv.startupId) || 'Startup ' + inv.startupId }}</span>
-              <span class="dt-tag-active">Capital Transfer</span>
-            </div>
-            <div class="dt-col-info">
-              <span class="dt-label">Transaction Date</span>
-              <span class="dt-val">{{ inv.createdAt | date:'mediumDate' }}</span>
-            </div>
-            <div class="dt-col-info">
-              <span class="dt-label">Reference ID</span>
-              <span class="dt-val">#PAY-{{ inv.id }}</span>
-            </div>
-            <div class="dt-col-info">
-              <span class="dt-label">Amount Transferred</span>
-              <span class="dt-val-primary">{{ formatCurrency(inv.amount) }}</span>
-            </div>
-            <div class="dt-col-info">
-              <span class="dt-label">Terminal Status</span>
-              <span class="dt-val" [class.text-danger]="inv.status === 'PAYMENT_FAILED'">{{ statusLabel(inv.status) }}</span>
-            </div>
-            <div class="dt-col-action">
-              <a routerLink="/dashboard/payments" class="btn-action-outline">Receipt</a>
-            </div>
-          </div>
-          }
-        } @empty {
-          <div class="empty-pulse">No tactical financial transfers recorded.</div>
-        }
-      </div>
-    </section>
-    }
-
-    <!-- ── Central Data Table (Directory / Portfolio / Partnership Mosaic) ── -->
-    <section class="celestial-cell cell-12">
-      <header class="section-top">
-        @if (role === 'FOUNDER') { <div class="cell-label">Startup Directory</div> }
-        @if (role === 'INVESTOR') { <div class="cell-label">Portfolio Analysis</div> }
-        @if (role === 'COFOUNDER') { <div class="cell-label">Partnership Terminal</div> }
-      </header>
-
-      <div class="celestial-data-table">
+    <!-- ── ADMIN ROLE VIEW ── -->
+    @if (role === 'ADMIN') {
+      <section class="celestial-cell cell-12 data-board-tile">
+        <div class="tile-grid-texture"></div>
         @if (loading()) {
-        <div class="list-skeleton"></div>
+          <div class="cell-skeleton"></div>
         } @else {
-        
-        <!-- Founder Directory View -->
-        @if (role === 'FOUNDER') {
-        @for (s of myStartups(); track s.id) {
-        <div class="data-table-row">
-          <div class="dt-col-brand">
-            <span class="dt-name">{{ s.name }}</span>
-            <span class="dt-tag-active">Live Startup</span>
+          <div class="admin-console-header">
+            <div class="console-title">
+              <span class="pulse-icon"></span>
+              Ecosystem Command Console
+            </div>
+            <div class="console-sub">Real-time oversight of FounderLink Multi-Service Architecture</div>
           </div>
-          <div class="dt-col-info">
-            <span class="dt-label">Industry</span>
-            <span class="dt-val">{{ s.industry }}</span>
-          </div>
-          <div class="dt-col-info">
-            <span class="dt-label">Stage</span>
-            <span class="dt-val">{{ s.stage }}</span>
-          </div>
-          <div class="dt-col-info">
-            <span class="dt-label">Cap Target</span>
-            <span class="dt-val-primary">{{ formatCurrency(s.fundingGoal) }}</span>
-          </div>
-          <div class="dt-col-action">
-            <a routerLink="/dashboard/my-startup" class="btn-action-outline">Manage Assets</a>
-          </div>
-        </div>
-        }
-        }
 
-        <!-- Investor Portfolio View -->
-        @if (role === 'INVESTOR') {
-        @for (inv of myInvestments().slice(0,6); track inv.id) {
-        <div class="data-table-row">
-          <div class="dt-col-brand">
-            <span class="dt-name">{{ startupNames().get(inv.startupId) || 'Startup ' + inv.startupId }}</span>
-            <span class="dt-tag-active">{{ statusLabel(inv.status) }}</span>
-          </div>
-          <div class="dt-col-info">
-            <span class="dt-label">Assigned</span>
-            <span class="dt-val">{{ inv.createdAt | date:'shortDate' }}</span>
-          </div>
-          <div class="dt-col-info">
-            <span class="dt-label">Ticket ID</span>
-            <span class="dt-val">#{{ inv.id }}</span>
-          </div>
-          <div class="dt-col-info">
-            <span class="dt-label">Committed</span>
-            <span class="dt-val-primary">{{ formatCurrency(inv.amount) }}</span>
-          </div>
-          <div class="dt-col-action">
-            <a routerLink="/dashboard/portfolio" class="btn-action-outline">View Assets</a>
-          </div>
-        </div>
-        }
-        }
+          <div class="admin-grid">
+            <!-- Panel 1: Identity & Registry -->
+            <section class="admin-panel identity-panel">
+              <div class="panel-header">
+                <span class="panel-icon">👥</span>
+                <div class="panel-label">Identity Registry</div>
+              </div>
+              <div class="panel-body">
+                <div class="stat-main">{{ totalPlatformUsers() }}</div>
+                <div class="stat-desc">Total Platform Members</div>
+                <div class="registry-breakdown">
+                  <div class="role-bar">
+                    <div class="bar-fill founder" [style.width.%]="(foundersCount() / totalPlatformUsers()) * 100"></div>
+                    <div class="bar-fill investor" [style.width.%]="(investorsCount() / totalPlatformUsers()) * 100"></div>
+                    <div class="bar-fill cofounder" [style.width.%]="(cofoundersCount() / totalPlatformUsers()) * 100"></div>
+                  </div>
+                  <div class="role-legend">
+                    <span>F: {{ foundersCount() }}</span>
+                    <span>I: {{ investorsCount() }}</span>
+                    <span>CF: {{ cofoundersCount() }}</span>
+                  </div>
+                </div>
+              </div>
+            </section>
 
-        <!-- Co-Founder Partnership View -->
-        @if (role === 'COFOUNDER') {
-        @for (inv of myInvitations(); track inv.id) {
-        <div class="data-table-row">
-          <div class="dt-col-brand">
-            <span class="dt-name">{{ startupNames().get(inv.startupId) || 'Startup ' + inv.startupId }}</span>
-            <span class="dt-tag-active">{{ statusLabel(inv.status) }}</span>
+            <!-- Panel 2: Venture Operations -->
+            <section class="admin-panel venture-panel">
+              <div class="panel-header">
+                <span class="panel-icon">🚀</span>
+                <div class="panel-label">Venture Lifecycle</div>
+              </div>
+              <div class="panel-body">
+                <div class="stat-main text-purple">{{ allStartupsCount() }}</div>
+                <div class="stat-desc">Global Venture Directory</div>
+                <div class="stage-grid">
+                  <div class="stage-item">
+                    <div class="stage-val">{{ ideaStageCount() }}</div>
+                    <div class="stage-key">Idea</div>
+                  </div>
+                  <div class="stage-item">
+                    <div class="stage-val">{{ mvpStageCount() }}</div>
+                    <div class="stage-key">MVP</div>
+                  </div>
+                  <div class="stage-item">
+                    <div class="stage-val">{{ tractionStageCount() }}</div>
+                    <div class="stage-key">Traction</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Panel 3: Capital Market Intelligence -->
+            <section class="admin-panel capital-panel">
+              <div class="panel-header">
+                <span class="panel-icon">💰</span>
+                <div class="panel-label">Capital Intelligence</div>
+              </div>
+              <div class="panel-body">
+                <div class="stat-main text-emerald">{{ formatCurrency(totalPlatformCapitalTarget()) }}</div>
+                <div class="stat-desc">Strategic Platform Funding Target</div>
+                <div class="industry-mix">
+                  @for (ind of topIndustries(); track ind.name) {
+                    <div class="ind-row">
+                      <span class="ind-name">{{ ind.name }}</span>
+                      <span class="ind-count">{{ ind.count }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            </section>
+
+            <!-- Panel 4: Operational Stream -->
+            <section class="admin-panel stream-panel">
+              <div class="panel-header">
+                <span class="panel-icon">📡</span>
+                <div class="panel-label">Operational Stream</div>
+              </div>
+              <div class="stream-body">
+                @for (s of recentStartups(); track s.id) {
+                  <div class="stream-item">
+                    <div class="item-dot"></div>
+                    <div class="item-content">
+                      <div class="item-title">{{ s.name }}</div>
+                      <div class="item-meta">{{ s.industry }} • {{ s.stage }}</div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
           </div>
-          <div class="dt-col-info">
-            <span class="dt-label">Requested Role</span>
-            <span class="dt-val">{{ inv.role }}</span>
+
+          <!-- Intelligence Hub -->
+          <div class="admin-console-header mt-4">
+            <div class="console-title">
+              <span class="pulse-icon blue"></span>
+              Ecosystem Intelligence Hub
+            </div>
+            <div class="console-sub">Advanced cross-service analytics and system readiness</div>
           </div>
-          <div class="dt-col-info">
-            <span class="dt-label">Recruit Date</span>
-            <span class="dt-val">{{ inv.createdAt | date:'shortDate' }}</span>
+
+          <div class="admin-grid intelligence-grid">
+            <section class="admin-panel pulse-panel">
+              <div class="panel-header">
+                <span class="panel-icon">🔋</span>
+                <div class="panel-label">Infrastructure Readiness</div>
+              </div>
+              <div class="service-pulse-grid">
+                @for (entry of servicePulse() | keyvalue; track entry.key) {
+                  <div class="pulse-unit" [title]="entry.key">
+                    <div class="unit-dot" [class.online]="entry.value"></div>
+                    <div class="unit-label">{{ entry.key }}</div>
+                  </div>
+                }
+              </div>
+              <div class="stat-desc">Real-time Service Health</div>
+            </section>
+
+            <section class="admin-panel skill-panel">
+              <div class="panel-header">
+                <span class="panel-icon">🧬</span>
+                <div class="panel-label">Talent Density Map</div>
+              </div>
+              <div class="skill-stack">
+                @for (s of topSkills(); track s.name) {
+                  <div class="skill-pill">
+                    <span class="pill-name">{{ s.name }}</span>
+                    <span class="pill-count">{{ s.count }}</span>
+                  </div>
+                }
+              </div>
+              <div class="stat-desc">Platform Human Capital</div>
+            </section>
+
+            <section class="admin-panel segment-panel">
+              <div class="panel-header">
+                <span class="panel-icon">📊</span>
+                <div class="panel-label">Market Segments</div>
+              </div>
+              <div class="segment-bar-container">
+                <div class="segment-bar">
+                  <div class="seg-fill micro" [style.width.%]="(marketSegments().micro / allStartupsCount()) * 100"></div>
+                  <div class="seg-fill growth" [style.width.%]="(marketSegments().growth / allStartupsCount()) * 100"></div>
+                  <div class="seg-fill unicorn" [style.width.%]="(marketSegments().unicorn / allStartupsCount()) * 100"></div>
+                </div>
+                <div class="segment-legend">
+                  <span class="leg-item"><i class="dot micro"></i> M</span>
+                  <span class="leg-item"><i class="dot growth"></i> G</span>
+                  <span class="leg-item"><i class="dot unicorn"></i> U</span>
+                </div>
+              </div>
+              <div class="stat-desc">Venture Distribution Tier</div>
+            </section>
+
+            <section class="admin-panel engagement-panel">
+              <div class="panel-header">
+                <span class="panel-icon">⚡</span>
+                <div class="panel-label">Engagement Velocity</div>
+              </div>
+              <div class="engagement-stream">
+                @for (u of recentUserUpdates(); track u.userId) {
+                  <div class="update-item">
+                    <div class="u-avatar">{{ u.name?.substring(0,1) }}</div>
+                    <div class="u-info">
+                      <div class="u-name">{{ u.name }}</div>
+                      <div class="u-meta">Profile Refined</div>
+                    </div>
+                  </div>
+                }
+              </div>
+              <div class="stat-desc">Recently Active Profiles</div>
+            </section>
           </div>
-          <div class="dt-col-info">
-            <span class="dt-label">Partnership ID</span>
-            <span class="dt-val">#{{ inv.id }}</span>
+        }
+      </section>
+    } @else {
+      <!-- ── STANDARD USER VIEW (PREVIOUS DESIGN) ── -->
+      <section class="celestial-cell cell-8 data-board-tile">
+        <div class="tile-grid-texture"></div>
+        @if (loading()) {
+          <div class="cell-skeleton"></div>
+        } @else {
+          <div class="data-board-layout">
+            <div class="db-pillar p-main">
+              @if (role === 'FOUNDER') {
+                <div class="cell-label">Total Capital Raised</div>
+                <div class="db-value">{{ formatCurrency(totalFundingReceived) }}</div>
+              }
+              @if (role === 'INVESTOR') {
+                <div class="cell-label">Portfolio Commitment</div>
+                <div class="db-value">{{ formatCurrency(totalInvested) }}</div>
+              }
+              @if (role === 'COFOUNDER') {
+                <div class="cell-label">Active Collaborations</div>
+                <div class="db-value">{{ totalPartnershipsCount }}</div>
+              }
+              <div class="sparkline-mini">
+                <svg width="80" height="20" viewBox="0 0 80 20" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M0 15 Q20 5, 40 10 T80 5" stroke="var(--primary)" stroke-linecap="round" />
+                </svg>
+              </div>
+            </div>
+
+            <div class="db-pillar">
+              @if (role === 'FOUNDER') {
+                <div class="cell-label">Active Startups</div>
+                <div class="db-value-sub">{{ totalStartupsCount }}</div>
+              }
+              @if (role === 'INVESTOR') {
+                <div class="cell-label">Portfolio Size</div>
+                <div class="db-value-sub">{{ totalPortfolioSize }}</div>
+              }
+              @if (role === 'COFOUNDER') {
+                <div class="cell-label">Pending Invites</div>
+                <div class="db-value-sub">{{ totalInvitationsCount }}</div>
+              }
+              <div class="db-meta">Live Directory</div>
+            </div>
+
+            <div class="db-pillar">
+              @if (role === 'FOUNDER') {
+                <div class="cell-label">Active Teams</div>
+                <div class="db-value-sub">{{ totalTeamCount }}</div>
+              }
+              @if (role === 'INVESTOR') {
+                <div class="cell-label">Average Ticket</div>
+                <div class="db-value-sub">{{ formatCurrency(averageCheckSize) }}</div>
+              }
+              @if (role === 'COFOUNDER') {
+                <div class="cell-label">Team Pulse</div>
+                <div class="db-value-sub">High Impact</div>
+              }
+              <div class="db-progress-box">
+                <div class="db-progress-label">
+                  @if (role === 'INVESTOR') { Investment Scale }
+                  @else if (role === 'FOUNDER') { Team Growth }
+                  @else { Collaboration Scale }
+                </div>
+                <div class="db-progress-bar"><div class="db-progress-fill" style="width: 75%;"></div></div>
+              </div>
+            </div>
           </div>
-          <div class="dt-col-action">
-            @if (inv.status === 'PENDING') {
-              <a routerLink="/dashboard/invitations" class="btn-action-outline">Respond to Invitation</a>
-            } @else {
-              <a routerLink="/dashboard/team" class="btn-action-outline">Review Collaboration</a>
+
+          <div class="panel-divider"></div>
+
+          <div class="milestone-integration">
+            <div class="cell-label">Startup Growth Milestones</div>
+            <div class="milestone-row">
+              @for (item of milestones; track item) {
+                <div class="m-card">
+                  <div class="m-dot"></div>
+                  <span class="m-text">{{ item }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </section>
+
+      <section class="celestial-cell cell-4">
+        <div class="cell-label">Industry Pulse</div>
+        <div class="insight-pulse-stack">
+          @for (tip of insights.slice(0,2); track tip.title) {
+            <div class="pulse-module-v2">
+              <div class="pm-header">
+                <span class="pm-tag">TACTICAL INSIGHT</span>
+                <span class="pm-title-v2">{{ tip.title }}</span>
+              </div>
+              <p class="pm-content-v2">{{ tip.content }}</p>
+              <div class="pm-footer">
+                <span class="pm-meta">Impact Level: High</span>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      @if (role === 'INVESTOR') {
+        <section class="celestial-cell cell-12">
+          <header class="section-top">
+            <div class="cell-label">Investment Payments</div>
+            <span class="pulse-indicator">Financing Active</span>
+          </header>
+          <div class="celestial-data-table">
+            @for (inv of myInvestments().slice(0, 10); track inv.id) {
+              @if (inv.status === 'APPROVED' || inv.status === 'COMPLETED' || inv.status === 'PAYMENT_FAILED') {
+                <div class="data-table-row">
+                  <div class="dt-col-brand">
+                    <span class="dt-name">{{ startupNames().get(inv.startupId) || 'Startup ' + inv.startupId }}</span>
+                    <span class="dt-tag-active">Capital Transfer</span>
+                  </div>
+                  <div class="dt-col-info">
+                    <span class="dt-label">Transaction Date</span>
+                    <span class="dt-val">{{ inv.createdAt | date:'mediumDate' }}</span>
+                  </div>
+                  <div class="dt-col-info">
+                    <span class="dt-label">Reference ID</span>
+                    <span class="dt-val">#PAY-{{ inv.id }}</span>
+                  </div>
+                  <div class="dt-col-info">
+                    <span class="dt-label">Amount Transferred</span>
+                    <span class="dt-val-primary">{{ formatCurrency(inv.amount) }}</span>
+                  </div>
+                  <div class="dt-col-info">
+                    <span class="dt-label">Terminal Status</span>
+                    <span class="dt-val" [class.text-danger]="inv.status === 'PAYMENT_FAILED'">{{ statusLabel(inv.status) }}</span>
+                  </div>
+                  <div class="dt-col-action">
+                    <a routerLink="/dashboard/payments" class="btn-action-outline">Receipt</a>
+                  </div>
+                </div>
+              }
+            } @empty {
+              <div class="empty-pulse">No tactical financial transfers recorded.</div>
             }
           </div>
-        </div>
-        }
-        }
-        }
-      </div>
-    </section>
-
-    <!-- ── Team Strategic Directory (Cell 12 - NEW) ── -->
-    @if (role !== 'INVESTOR') {
-    <section class="celestial-cell cell-12">
-      <header class="section-top">
-        <div class="cell-label">Team Strategic Directory</div>
-        <span class="pulse-indicator">Collaboration Live</span>
-      </header>
-      <div class="celestial-data-table">
-        @for (member of allTeamMembers().slice(0, 10); track member.id) {
-          <div class="data-table-row">
-            <div class="dt-col-brand">
-              <span class="dt-name">{{ userNames().get(member.userId) }}</span>
-              <span class="dt-tag-active">Active Engagement</span>
-            </div>
-            <div class="dt-col-info">
-              <span class="dt-label">Functional Role</span>
-              <span class="dt-val">{{ member.role }}</span>
-            </div>
-            <div class="dt-col-info">
-              <span class="dt-label">Startup Node</span>
-              <span class="dt-val">{{ startupNames().get(member.startupId) || 'Foundational' }}</span>
-            </div>
-            <div class="dt-col-info">
-              <span class="dt-label">Sync Date</span>
-              <span class="dt-val">{{ member.createdAt | date:'shortDate' }}</span>
-            </div>
-            <div class="dt-col-action">
-              <a routerLink="/dashboard/team" class="btn-action-outline">Manage engagement</a>
-            </div>
-          </div>
-        } @empty {
-          <div class="empty-pulse">No active tactical team data.</div>
-        }
-      </div>
-      @if (allTeamMembers().length > 10) {
-        <div class="table-footer">
-          <a routerLink="/dashboard/team" class="btn-more">View Full Directory</a>
-        </div>
+        </section>
       }
-    </section>
-    }
 
-    <!-- ── Investment Portfolio Pulse (Cell 12 - NEW) ── -->
-    @if (role === 'FOUNDER') {
-    <section class="celestial-cell cell-12">
-      <header class="section-top">
-        <div class="cell-label">Investment Portfolio Pulse</div>
-        <span class="pulse-indicator">Capital Sync</span>
-      </header>
-      <div class="celestial-data-table">
-        @for (inv of allProjectInvestments().slice(0, 10); track inv.id) {
-          <div class="data-table-row">
-            <div class="dt-col-brand">
-              <span class="dt-name">{{ startupNames().get(inv.startupId) }}</span>
-              <span class="dt-tag-active">Equity Ticket</span>
-            </div>
-            <div class="dt-col-info">
-              <span class="dt-label">Committed Asset</span>
-              <span class="dt-val-primary">{{ formatCurrency(inv.amount) }}</span>
-            </div>
-            <div class="dt-col-info">
-              <span class="dt-label">Transaction ID</span>
-              <span class="dt-val">#{{ inv.id }}</span>
-            </div>
-            <div class="dt-col-info">
-              <span class="dt-label">Round Status</span>
-              <span class="dt-val">{{ statusLabel(inv.status) }}</span>
-            </div>
-            <div class="dt-col-action">
-              <a [routerLink]="[role === 'FOUNDER' ? '/dashboard/investments' : '/dashboard/portfolio']" class="btn-action-outline">Details</a>
-            </div>
-          </div>
-        } @empty {
-          <div class="empty-pulse">No tactical investment rounds.</div>
-        }
-      </div>
-      @if (allProjectInvestments().length > 10) {
-        <div class="table-footer">
-          <a [routerLink]="[role === 'FOUNDER' ? '/dashboard/investments' : '/dashboard/portfolio']" class="btn-more">View Full Portfolio</a>
+      <section class="celestial-cell cell-12">
+        <header class="section-top">
+          @if (role === 'FOUNDER') { <div class="cell-label">Startup Directory</div> }
+          @if (role === 'INVESTOR') { <div class="cell-label">Portfolio Analysis</div> }
+          @if (role === 'COFOUNDER') { <div class="cell-label">Partnership Terminal</div> }
+        </header>
+        <div class="celestial-data-table">
+          @if (loading()) {
+            <div class="list-skeleton"></div>
+          } @else {
+            @if (role === 'FOUNDER') {
+              @for (s of myStartups(); track s.id) {
+                <div class="data-table-row">
+                  <div class="dt-col-brand">
+                    <span class="dt-name">{{ s.name }}</span>
+                    <span class="dt-tag-active">Live Startup</span>
+                  </div>
+                  <div class="dt-col-info">
+                    <span class="dt-label">Industry</span>
+                    <span class="dt-val">{{ s.industry }}</span>
+                  </div>
+                  <div class="dt-col-info">
+                    <span class="dt-label">Stage</span>
+                    <span class="dt-val">{{ s.stage }}</span>
+                  </div>
+                  <div class="dt-col-info">
+                    <span class="dt-label">Cap Target</span>
+                    <span class="dt-val-primary">{{ formatCurrency(s.fundingGoal) }}</span>
+                  </div>
+                  <div class="dt-col-action">
+                    <a routerLink="/dashboard/my-startup" class="btn-action-outline">Manage Assets</a>
+                  </div>
+                </div>
+              }
+            }
+            @if (role === 'INVESTOR') {
+              @for (inv of myInvestments().slice(0,6); track inv.id) {
+                <div class="data-table-row">
+                  <div class="dt-col-brand">
+                    <span class="dt-name">{{ startupNames().get(inv.startupId) || 'Startup ' + inv.startupId }}</span>
+                    <span class="dt-tag-active">{{ statusLabel(inv.status) }}</span>
+                  </div>
+                  <div class="dt-col-info">
+                    <span class="dt-label">Assigned</span>
+                    <span class="dt-val">{{ inv.createdAt | date:'shortDate' }}</span>
+                  </div>
+                  <div class="dt-col-info">
+                    <span class="dt-label">Ticket ID</span>
+                    <span class="dt-val">#{{ inv.id }}</span>
+                  </div>
+                  <div class="dt-col-info">
+                    <span class="dt-label">Committed</span>
+                    <span class="dt-val-primary">{{ formatCurrency(inv.amount) }}</span>
+                  </div>
+                  <div class="dt-col-action">
+                    <a routerLink="/dashboard/portfolio" class="btn-action-outline">View Assets</a>
+                  </div>
+                </div>
+              }
+            }
+            @if (role === 'COFOUNDER') {
+              @for (inv of myInvitations().slice(0, 10); track inv.id) {
+                <div class="data-table-row">
+                  <div class="dt-col-brand">
+                    <span class="dt-name">{{ startupNames().get(inv.startupId) || 'Startup ' + inv.startupId }}</span>
+                    <span class="dt-tag-active">{{ statusLabel(inv.status) }}</span>
+                  </div>
+                  <div class="dt-col-info">
+                    <span class="dt-label">Requested Role</span>
+                    <span class="dt-val">{{ inv.role }}</span>
+                  </div>
+                  <div class="dt-col-info">
+                    <span class="dt-label">Recruit Date</span>
+                    <span class="dt-val">{{ inv.createdAt | date:'shortDate' }}</span>
+                  </div>
+                  <div class="dt-col-info">
+                    <span class="dt-label">Partnership ID</span>
+                    <span class="dt-val">#{{ inv.id }}</span>
+                  </div>
+                  <div class="dt-col-action">
+                    @if (inv.status === 'PENDING') {
+                      <a routerLink="/dashboard/invitations" class="btn-action-outline">Respond to Invitation</a>
+                    } @else {
+                      <a routerLink="/dashboard/team" class="btn-action-outline">Review Collaboration</a>
+                    }
+                  </div>
+                </div>
+              }
+            }
+          }
         </div>
+      </section>
+
+      @if (role !== 'INVESTOR') {
+        <section class="celestial-cell cell-12">
+          <header class="section-top">
+            <div class="cell-label">Team Strategic Directory</div>
+            <span class="pulse-indicator">Collaboration Live</span>
+          </header>
+          <div class="celestial-data-table">
+            @for (member of allTeamMembers().slice(0, 10); track member.id) {
+              <div class="data-table-row">
+                <div class="dt-col-brand">
+                  <span class="dt-name">{{ userNames().get(member.userId) }}</span>
+                  <span class="dt-tag-active">Active Engagement</span>
+                </div>
+                <div class="dt-col-info">
+                  <span class="dt-label">Functional Role</span>
+                  <span class="dt-val">{{ member.role }}</span>
+                </div>
+                <div class="dt-col-info">
+                  <span class="dt-label">Startup Node</span>
+                  <span class="dt-val">{{ startupNames().get(member.startupId) || 'Foundational' }}</span>
+                </div>
+                <div class="dt-col-info">
+                  <span class="dt-label">Sync Date</span>
+                  <span class="dt-val">{{ member.createdAt | date:'shortDate' }}</span>
+                </div>
+                <div class="dt-col-action">
+                  <a routerLink="/dashboard/team" class="btn-action-outline">Manage engagement</a>
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-pulse">No active tactical team data.</div>
+            }
+          </div>
+        </section>
       }
-    </section>
+
+      @if (role === 'FOUNDER') {
+        <section class="celestial-cell cell-12">
+          <header class="section-top">
+            <div class="cell-label">Investment Portfolio Pulse</div>
+            <span class="pulse-indicator">Capital Sync</span>
+          </header>
+          <div class="celestial-data-table">
+            @for (inv of allProjectInvestments().slice(0, 10); track inv.id) {
+              <div class="data-table-row">
+                <div class="dt-col-brand">
+                  <span class="dt-name">{{ startupNames().get(inv.startupId) }}</span>
+                  <span class="dt-tag-active">Equity Ticket</span>
+                </div>
+                <div class="dt-col-info">
+                  <span class="dt-label">Committed Asset</span>
+                  <span class="dt-val-primary">{{ formatCurrency(inv.amount) }}</span>
+                </div>
+                <div class="dt-col-info">
+                  <span class="dt-label">Transaction ID</span>
+                  <span class="dt-val">#{{ inv.id }}</span>
+                </div>
+                <div class="dt-col-info">
+                  <span class="dt-label">Round Status</span>
+                  <span class="dt-val">{{ statusLabel(inv.status) }}</span>
+                </div>
+                <div class="dt-col-action">
+                  <a [routerLink]="[role === 'FOUNDER' ? '/dashboard/investments' : '/dashboard/portfolio']" class="btn-action-outline">Details</a>
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-pulse">No tactical investment rounds.</div>
+            }
+          </div>
+        </section>
+      }
     }
 
   </div>
-
 </div>

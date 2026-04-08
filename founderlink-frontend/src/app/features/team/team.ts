@@ -7,7 +7,7 @@ import { TeamService } from '../../core/services/team.service';
 import { StartupService } from '../../core/services/startup.service';
 import { UserService } from '../../core/services/user.service';
 import {
-  TeamMemberResponse, StartupResponse, UserResponse, TeamRole, InvitationRequest
+  TeamMemberResponse, StartupResponse, UserResponse, TeamRole, InvitationRequest, InvitationResponse
 } from '../../models';
 
 @Component({
@@ -17,25 +17,27 @@ import {
   styleUrl: './team.css'
 })
 export class TeamComponent implements OnInit {
-  loading       = signal(true);
-  errorMsg      = signal('');
-  successMsg    = signal('');
+  loading = signal(true);
+  errorMsg = signal('');
+  successMsg = signal('');
 
   // ── Founder state ─────────────────────────────────────────────────────────
-  myStartups        = signal<StartupResponse[]>([]);
+  myStartups = signal<StartupResponse[]>([]);
   selectedStartupId = signal<number | null>(null);
-  teamMembers       = signal<TeamMemberResponse[]>([]);
-  removing          = signal<number | null>(null);
+  teamMembers = signal<TeamMemberResponse[]>([]);
+  pendingInvitations = signal<InvitationResponse[]>([]);
+  removing = signal<number | null>(null);
+  cancellingInvId = signal<number | null>(null);
 
   // User discovery panel
-  showDiscovery    = signal(false);
-  allUsers         = signal<UserResponse[]>([]);
-  usersLoading     = signal(false);
-  roleFilter       = signal<string>('COFOUNDER');
-  searchQuery      = signal('');
-  selectedUser     = signal<UserResponse | null>(null);
-  selectedRole     = signal<TeamRole | ''>('');
-  inviting         = signal(false);
+  showDiscovery = signal(false);
+  allUsers = signal<UserResponse[]>([]);
+  usersLoading = signal(false);
+  roleFilter = signal<string>('COFOUNDER');
+  searchQuery = signal('');
+  selectedUser = signal<UserResponse | null>(null);
+  selectedRole = signal<TeamRole | ''>('');
+  inviting = signal(false);
 
   // ── CoFounder state ───────────────────────────────────────────────────────
   myTeams = signal<TeamMemberResponse[]>([]);
@@ -43,7 +45,7 @@ export class TeamComponent implements OnInit {
 
   // Startup Name Map & User Name Map
   startupNames = signal<Map<number, string>>(new Map());
-  userNames    = signal<Map<number, string>>(new Map());
+  userNames = signal<Map<number, string>>(new Map());
   startupFounders = signal<Map<number, number>>(new Map());
 
   readonly teamRoles: TeamRole[] = ['CTO', 'CPO', 'MARKETING_HEAD', 'ENGINEERING_LEAD'];
@@ -57,11 +59,19 @@ export class TeamComponent implements OnInit {
     CTO: 'CTO', CPO: 'CPO', MARKETING_HEAD: 'Mktg Head', ENGINEERING_LEAD: 'Eng Lead'
   };
 
+  isRoleActive(role: string): boolean {
+    return this.teamMembers().some(m => m.role === role);
+  }
+
+  isRolePending(role: string): boolean {
+    return this.pendingInvitations().some(i => i.role === role);
+  }
+
   private hasRole(r: string): boolean {
     const stored = this.authService.role() ?? '';
     return stored === r || stored === `ROLE_${r}`;
   }
-  isFounder():   boolean { return this.hasRole('FOUNDER'); }
+  isFounder(): boolean { return this.hasRole('FOUNDER'); }
   isCoFounder(): boolean { return this.hasRole('COFOUNDER'); }
 
   constructor(
@@ -70,10 +80,10 @@ export class TeamComponent implements OnInit {
     private startupService: StartupService,
     private userService: UserService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    if (this.isFounder())   this.loadFounderData();
+    if (this.isFounder()) this.loadFounderData();
     if (this.isCoFounder()) this.loadCoFounderData();
 
     // Prefetch startup names
@@ -118,9 +128,35 @@ export class TeamComponent implements OnInit {
 
   loadTeam(startupId: number): void {
     this.loading.set(true);
+    // Fetch active members
     this.teamService.getTeamMembers(startupId).subscribe({
       next: env => { this.teamMembers.set(env.data ?? []); this.loading.set(false); },
       error: env => { this.errorMsg.set(env.error ?? 'Failed to load team.'); this.loading.set(false); }
+    });
+
+    // Fetch pending invitations
+    this.teamService.getStartupInvitations(startupId).subscribe({
+      next: env => {
+        const invs = (env.data ?? []).filter(i => i.status === 'PENDING');
+        this.pendingInvitations.set(invs);
+
+        // Ensure we have names for these invited users
+        invs.forEach(inv => {
+          if (!this.userNames().has(inv.invitedUserId)) {
+            this.userService.getUser(inv.invitedUserId).subscribe({
+              next: uenv => {
+                if (uenv.data) {
+                  this.userNames.update(map => {
+                    const newMap = new Map(map);
+                    newMap.set(uenv.data!.userId, uenv.data!.name || uenv.data!.email);
+                    return newMap;
+                  });
+                }
+              }
+            });
+          }
+        });
+      }
     });
   }
 
@@ -143,6 +179,23 @@ export class TeamComponent implements OnInit {
       error: env => {
         this.removing.set(null);
         this.errorMsg.set(env.error ?? 'Failed to remove member.');
+      }
+    });
+  }
+
+  cancelInvite(invitationId: number): void {
+    if (!confirm('Cancel this pending invitation?')) return;
+    this.cancellingInvId.set(invitationId);
+    this.teamService.cancelInvitation(invitationId).subscribe({
+      next: () => {
+        this.cancellingInvId.set(null);
+        this.pendingInvitations.update(list => list.filter(i => i.id !== invitationId));
+        this.successMsg.set('Invitation cancelled.');
+        setTimeout(() => this.successMsg.set(''), 3000);
+      },
+      error: env => {
+        this.cancellingInvId.set(null);
+        this.errorMsg.set(env.error ?? 'Failed to cancel invitation.');
       }
     });
   }
@@ -203,8 +256,8 @@ export class TeamComponent implements OnInit {
       u.userId !== myId &&
       !memberIds.has(u.userId) &&
       (!q || (u.name ?? '').toLowerCase().includes(q) ||
-              u.email.toLowerCase().includes(q) ||
-              (u.skills ?? '').toLowerCase().includes(q))
+        u.email.toLowerCase().includes(q) ||
+        (u.skills ?? '').toLowerCase().includes(q))
     );
   });
 
@@ -220,6 +273,11 @@ export class TeamComponent implements OnInit {
 
     if (!user || !role || !startupId) {
       this.errorMsg.set('Please select a user and a role.');
+      return;
+    }
+
+    if (this.isRoleActive(role)) {
+      this.errorMsg.set(`The ${this.roleLabel(role)} role is already filled by an active member.`);
       return;
     }
 
@@ -275,10 +333,10 @@ export class TeamComponent implements OnInit {
   }
 
   roleClass(role: string): string {
-    return role === 'CTO'              ? 'badge-purple'
-         : role === 'CPO'              ? 'badge-info'
-         : role === 'MARKETING_HEAD'   ? 'badge-warning'
-         : 'badge-success';
+    return role === 'CTO' ? 'badge-purple'
+      : role === 'CPO' ? 'badge-info'
+        : role === 'MARKETING_HEAD' ? 'badge-warning'
+          : 'badge-success';
   }
 
   userInitials(user: UserResponse): string {

@@ -8,18 +8,21 @@
     </p>
   </div>
   @if (isFounder() && selectedStartupId() && !showDiscovery()) {
-    <button class="btn btn-primary" (click)="openDiscovery()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Invite Member
-    </button>
+  <button class="btn btn-primary" (click)="openDiscovery()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+    Invite Member
+  </button>
   }
 </div>
 
 @if (successMsg()) {
-  <div class="alert alert-success">✓ {{ successMsg() }}</div>
+<div class="alert alert-success">✓ {{ successMsg() }}</div>
 }
 @if (errorMsg()) {
-  <div class="alert alert-error">{{ errorMsg() }}</div>
+<div class="alert alert-error">{{ errorMsg() }}</div>
 }
 
 <!-- ══════════════════════════════════════════════════════════════ -->
@@ -29,7 +32,10 @@
 
   @if (myStartups().length === 0 && !loading()) {
     <div class="empty-state">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+      </svg>
       <h3>No startups found</h3>
       <p>Create a startup first to manage your team</p>
     </div>
@@ -44,76 +50,78 @@
       }
     </div>
 
+    <!-- ── STRATEGIC INTELLIGENCE RIBBON ───────────────────────── -->
+    <div class="team-intelligence-ribbon">
+      <div class="stat-card">
+        <div class="stat-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ teamMembers().length }}</span>
+          <span class="stat-label">Active Squad</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ pendingInvitations().length }}</span>
+          <span class="stat-label">Outreach Pipeline</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ teamMembers().length + pendingInvitations().length }}</span>
+          <span class="stat-label">Potential Capital</span>
+        </div>
+      </div>
+    </div>
+
     <!-- ── USER DISCOVERY PANEL ───────────────────────────────── -->
     @if (showDiscovery()) {
       <div class="discovery-panel">
         <div class="discovery-header">
-          <h3>Find &amp; Invite Members</h3>
+          <h3>Find &amp; Invite Co-founders</h3>
           <button class="btn btn-ghost btn-sm" (click)="closeDiscovery()">✕ Close</button>
         </div>
 
-        <!-- Role Filter Tabs (REMOVED) -->
-
-        <!-- Search -->
         <div class="discovery-search">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input
-            type="text"
-            [ngModel]="searchQuery()"
-            (ngModelChange)="searchQuery.set($event)"
-            placeholder="Search by name, email, or skills..."
-            class="discovery-search-input"
-          />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+            placeholder="Search by name, email, or skills..." class="discovery-search-input" />
         </div>
 
         <div class="discovery-body">
-          <!-- User Cards -->
           <div class="user-cards-panel">
             @if (usersLoading()) {
               <div class="loading-state"><div class="spinner"></div><p>Loading profiles...</p></div>
             } @else if (filteredUsers().length === 0) {
-              <div class="empty-state-sm">
-                <p>No available users found for this filter.</p>
-              </div>
+              <div class="empty-state-sm"><p>No available users found.</p></div>
             } @else {
               <div class="user-cards-grid">
                 @for (u of filteredUsers(); track u.userId) {
-                  <div
-                    class="user-card"
-                    [class.selected]="selectedUser()?.userId === u.userId"
-                    (click)="selectUserToInvite(u)"
-                  >
+                  <div class="user-card" [class.selected]="selectedUser()?.userId === u.userId" (click)="selectUserToInvite(u)">
                     <div class="uc-header">
                       <div class="uc-avatar">{{ userInitials(u) }}</div>
                       <div class="uc-info">
-                        <div class="uc-name">{{ u.name || 'Unnamed User' }}</div>
-                        <div class="uc-email">{{ u.email }}</div>
+                        <div class="uc-name">{{ u.name || 'Unnamed' }}</div>
                         <span class="badge badge-role badge-purple">{{ u.role }}</span>
                       </div>
                     </div>
-                    @if (u.bio) {
-                      <p class="uc-bio">{{ u.bio }}</p>
-                    }
-                    @if (u.skills) {
-                      <div class="uc-skills">
-                        @for (skill of u.skills.split(',').slice(0, 4); track skill) {
-                          <span class="skill-chip">{{ skill.trim() }}</span>
-                        }
-                      </div>
-                    }
-                    @if (u.experience) {
-                      <p class="uc-exp">🏢 {{ u.experience }}</p>
-                    }
-                    @if (u.portfolioLinks) {
-                      <a [href]="u.portfolioLinks" target="_blank" class="uc-portfolio" (click)="$event.stopPropagation()">🔗 Portfolio</a>
-                    }
                     <div class="card-actions">
                       <button class="btn btn-outline btn-sm uc-btn" (click)="viewProfile(u); $event.stopPropagation()">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px; vertical-align:middle; display:inline-block;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Profile
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                        </svg> Profile
                       </button>
-                      <button class="btn btn-primary btn-sm uc-btn" (click)="selectUserToInvite(u); $event.stopPropagation()">
-                        @if (selectedUser()?.userId === u.userId) { ✓ Selected } @else { + Select }
-                      </button>
+                      <button class="btn btn-primary btn-sm uc-btn" (click)="selectUserToInvite(u); $event.stopPropagation()">+ Select</button>
                     </div>
                   </div>
                 }
@@ -121,7 +129,7 @@
             }
           </div>
 
-          <!-- Invite Form (shown when user is selected) -->
+          <!-- Invite Form -->
           @if (selectedUser()) {
             <div class="invite-form-panel">
               <div class="invite-form-header">
@@ -132,55 +140,116 @@
                 </div>
               </div>
 
-              <!-- Full User Details -->
-              <div class="invite-user-details" style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
-                @if (selectedUser()!.bio) {
-                  <p style="margin-bottom: 0.5rem;"><strong>Bio:</strong> {{ selectedUser()!.bio }}</p>
-                }
-                @if (selectedUser()!.experience) {
-                  <p style="margin-bottom: 0.5rem;"><strong>Experience:</strong> {{ selectedUser()!.experience }}</p>
-                }
-                @if (selectedUser()!.skills) {
-                  <p style="margin-bottom: 0.5rem;"><strong>Skills:</strong> {{ selectedUser()!.skills }}</p>
-                }
-                @if (selectedUser()!.portfolioLinks) {
-                  <p style="margin-bottom: 0.5rem;"><strong>Portfolio:</strong> 
-                    <a [href]="selectedUser()!.portfolioLinks" target="_blank" style="color: var(--primary);">Link</a>
-                  </p>
-                }
-              </div>
-
-              <div class="form-group" style="margin-top:1.25rem">
-                <label>Assign Role *</label>
-                <div class="role-cards">
+              <div class="form-group" style="margin-top:1.5rem">
+                <label>Strategic Role *</label>
+                <div class="role-grid">
                   @for (r of teamRoles; track r) {
-                    <button
-                      type="button"
-                      class="role-card-btn"
+                    <button type="button" class="role-card-select" 
                       [class.selected]="selectedRole() === r"
+                      [class.occupied]="isRoleActive(r)"
+                      [disabled]="isRoleActive(r)"
                       (click)="selectedRole.set(r)"
                     >
-                      <span class="role-card-title">{{ roleShortLabel(r) }}</span>
-                      <span class="role-card-desc">{{ roleLabel(r) }}</span>
+                      <div class="role-select-info">
+                        <span class="role-title">{{ roleShortLabel(r) }}</span>
+                        @if (isRoleActive(r)) {
+                          <span class="role-status occupied">Seat Occupied</span>
+                        } @else if (isRolePending(r)) {
+                          <span class="role-status pending">Outreach Active</span>
+                        } @else {
+                          <span class="role-status available">Seat Available</span>
+                        }
+                      </div>
                     </button>
                   }
                 </div>
               </div>
 
-              @if (errorMsg()) {
-                <div class="alert alert-error" style="margin-top:.75rem">{{ errorMsg() }}</div>
-              }
-
               <div class="invite-actions">
                 <button class="btn btn-ghost" (click)="selectedUser.set(null)">Back</button>
-                <button
-                  class="btn btn-primary"
-                  (click)="sendInvite()"
-                  [disabled]="inviting() || !selectedRole()"
-                >
+                <button class="btn btn-primary" (click)="sendInvite()" [disabled]="inviting() || !selectedRole()">
                   {{ inviting() ? 'Sending...' : 'Send Invitation' }}
                 </button>
               </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── STRATEGIC COMMAND LAYOUT ───────────────────────────── -->
+    @if (!showDiscovery()) {
+      <div class="team-command-layout">
+        
+        <!-- ACTIVE SQUAD (LEFT) -->
+        <div class="command-column active-squad">
+          <div class="column-header">
+            <span class="pulse-beacon active"></span>
+            <h3>Active Startup Squad</h3>
+          </div>
+
+          @if (loading()) {
+            <div class="member-list">
+              @for (i of [1,2,3]; track i) { <div class="skeleton-shimmer"></div> }
+            </div>
+          } @else if (teamMembers().length === 0) {
+            <div class="empty-column-card">
+              <p>No active teammates deployed.</p>
+              <button class="btn btn-primary btn-sm" (click)="openDiscovery()">Find Co-founders</button>
+            </div>
+          } @else {
+            <div class="member-list">
+              @for (m of teamMembers(); track m.id) {
+                <div class="member-card high-density" [class]="m.role">
+                  <div class="m-identity">
+                    <div class="m-avatar">{{ (userNames().get(m.userId) || 'M')[0] }}</div>
+                    <div class="m-info">
+                      <div class="m-name">{{ userNames().get(m.userId) || 'Member' }}</div>
+                      <div class="m-meta">
+                        <span class="badge" [class]="roleClass(m.role)">{{ roleShortLabel(m.role) }}</span>
+                        <span class="m-date">Joined {{ m.joinedAt | date:'mediumDate' }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="m-actions">
+                    <button class="btn-icon msg" (click)="messageMember(m.userId)" title="Message">💬</button>
+                    <button class="btn-icon remove" (click)="removeMember(m.id)" [disabled]="removing() === m.id">✕</button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- OUTREACH PIPELINE (RIGHT) -->
+        <div class="command-column pipeline-squad">
+          <div class="column-header">
+            <span class="pulse-beacon warning"></span>
+            <h3>Recruitment Pipeline</h3>
+          </div>
+
+          @if (pendingInvitations().length === 0) {
+            <div class="empty-column-card secondary">
+              <p>No outreach in transit.</p>
+            </div>
+          } @else {
+            <div class="member-list">
+              @for (inv of pendingInvitations(); track inv.id) {
+                <div class="member-card pipeline-card">
+                  <div class="m-identity">
+                    <div class="m-avatar pending">{{ (userNames().get(inv.invitedUserId) || 'M')[0] }}</div>
+                    <div class="m-info">
+                      <div class="m-name">{{ userNames().get(inv.invitedUserId) || 'Invited' }}</div>
+                      <div class="m-meta">
+                        <span class="badge badge-warning">Awaiting {{ roleShortLabel(inv.role) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="m-actions">
+                    <button class="btn-icon remove" (click)="cancelInvite(inv.id)" [disabled]="cancellingInvId() === inv.id">✕</button>
+                  </div>
+                </div>
+              }
             </div>
           }
         </div>
@@ -192,48 +261,42 @@
       <div class="modal-backdrop" (click)="closeProfile()">
         <div class="modal-content" (click)="$event.stopPropagation()">
           <div class="modal-header">
-            <h3>User Profile</h3>
+            <h3>Co-founder Profile</h3>
             <button class="btn btn-ghost btn-sm" (click)="closeProfile()">✕</button>
           </div>
           <div class="modal-body">
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; align-items: center; gap: 1.25rem; margin-bottom: 2rem;">
               <div class="uc-avatar large">{{ userInitials(viewedUser()!) }}</div>
               <div>
-                <h4 style="color: var(--text-primary); margin: 0; font-size: 1.15rem;">{{ viewedUser()!.name || viewedUser()!.email }}</h4>
-                <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">{{ viewedUser()!.email }}</p>
-                <span class="badge badge-purple" style="margin-top: 0.4rem; display: inline-block;">{{ viewedUser()!.role }}</span>
+                <h4 style="margin:0; font-size:1.25rem">{{ viewedUser()!.name || viewedUser()!.email }}</h4>
+                <p class="text-muted" style="margin:0.25rem 0">{{ viewedUser()!.email }}</p>
+                <span class="badge badge-purple">{{ viewedUser()!.role }}</span>
               </div>
             </div>
-            
+
             @if (viewedUser()!.bio) {
-              <div style="margin-bottom: 1.25rem;">
-                <strong style="display:block; margin-bottom:.25rem; font-size:.85rem; color:var(--text-primary)">Bio:</strong>
-                {{ viewedUser()!.bio }}
-              </div>
-            }
-            @if (viewedUser()!.experience) {
-              <div style="margin-bottom: 1.25rem;">
-                <strong style="display:block; margin-bottom:.25rem; font-size:.85rem; color:var(--text-primary)">Experience:</strong>
-                {{ viewedUser()!.experience }}
+              <div class="profile-section">
+                <strong>About Me</strong>
+                <p>{{ viewedUser()!.bio }}</p>
               </div>
             }
             @if (viewedUser()!.skills) {
-              <div style="margin-bottom: 1.25rem;">
-                <strong style="display:block; margin-bottom:.5rem; font-size:.85rem; color:var(--text-primary)">Skills:</strong>
-                <div class="uc-skills" style="margin:0">
+              <div class="profile-section">
+                <strong>Strategic Skills</strong>
+                <div class="uc-skills">
                   @for (skill of viewedUser()!.skills!.split(','); track skill) {
                     <span class="skill-chip">{{ skill.trim() }}</span>
                   }
                 </div>
               </div>
             }
-            @if (viewedUser()!.portfolioLinks) {
-              <div style="margin-bottom: 1.25rem;">
-                <strong style="display:block; margin-bottom:.25rem; font-size:.85rem; color:var(--text-primary)">Portfolio:</strong>
-                <a [href]="viewedUser()!.portfolioLinks" target="_blank" style="color: var(--primary);">{{ viewedUser()!.portfolioLinks }}</a>
+            @if (viewedUser()!.experience) {
+              <div class="profile-section">
+                <strong>Experience</strong>
+                <p>{{ viewedUser()!.experience }}</p>
               </div>
             }
-          </div>
+          </div> <!-- Close modal-body -->
           <div class="modal-footer">
             <button class="btn btn-primary" (click)="selectUserToInvite(viewedUser()!); closeProfile()">Select to Invite</button>
           </div>
@@ -241,94 +304,69 @@
       </div>
     }
 
-    <!-- ── TEAM MEMBERS ───────────────────────────────────────── -->
-    @if (!showDiscovery()) {
-      @if (loading()) {
-        <div class="member-list">
-          @for (i of [1,2,3]; track i) { <div class="skeleton-row"></div> }
-        </div>
-      } @else if (teamMembers().length === 0) {
-        <div class="empty-state">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          <h3>No team members yet</h3>
-          <p>Browse and invite co-founders to build your team</p>
-          <button class="btn btn-primary" (click)="openDiscovery()">Find Members</button>
-        </div>
-      } @else {
-        <div class="member-list">
-          @for (m of teamMembers(); track m.id) {
-            <div class="member-card">
-              <div class="mc-left">
-                <div class="mc-avatar">{{ (userNames().get(m.userId) || 'M')[0] }}</div>
-                <div class="mc-details">
-                  <div class="mc-name">{{ userNames().get(m.userId) || 'Member #' + m.userId }}</div>
-                  <div class="mc-meta">
-                    <span class="badge" [class]="roleClass(m.role)">{{ roleShortLabel(m.role) }}</span>
-                    <span class="mc-date">Joined {{ m.joinedAt | date:'mediumDate' }}</span>
-                  </div>
-                </div>
-              </div>
-              <div class="mc-right">
-                <span class="status-dot active"></span>
-                <span class="status-label">Active</span>
-                <button class="btn btn-primary btn-sm" (click)="messageMember(m.userId)">Message</button>
-                <button class="btn btn-danger btn-sm" (click)="removeMember(m.id)" [disabled]="removing() === m.id">
-                  @if (removing() === m.id) { <span class="spinner"></span> } @else { Remove }
-                </button>
-              </div>
-            </div>
-          }
-        </div>
-      }
-    }
+  } <!-- End Startup Tabs else -->
+} <!-- End isFounder if -->
 
-  }
-}
 
 <!-- ══════════════════════════════════════════════════════════════ -->
 <!-- COFOUNDER VIEW                                                 -->
 <!-- ══════════════════════════════════════════════════════════════ -->
 @if (isCoFounder()) {
-  @if (loading()) {
-    <div class="member-list">
-      @for (i of [1,2,3]; track i) { <div class="skeleton-row"></div> }
+  
+  <!-- ── COFOUNDER INTELLIGENCE RIBBON ─────────────────────── -->
+  <div class="team-intelligence-ribbon single-stat">
+    <div class="stat-card">
+      <div class="stat-icon-wrapper">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ myTeams().length }}</span>
+        <span class="stat-label">Active Board Seats</span>
+      </div>
     </div>
-  } @else if (myTeams().length === 0) {
-    <div class="empty-state">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-      <h3>Not part of any team yet</h3>
-      <p>Accept an invitation to join a startup team</p>
+  </div>
+
+  @if (loading()) {
+    <div class="team-command-layout single-column">
+      <div class="command-column">@for (i of [1,2,3]; track i) { <div class="skeleton-shimmer"></div> }</div>
     </div>
   } @else {
-    <div class="member-list">
-      @for (m of myTeams(); track m.id) {
-        <div class="member-card">
-          <div class="mc-left">
-            <div class="mc-avatar startup">{{ (startupNames().get(m.startupId) || 'S')[0] }}</div>
-            <div class="mc-details">
-              <div class="mc-name">{{ startupNames().get(m.startupId) || 'Startup ' + m.startupId }}</div>
-              <div class="mc-meta">
-                <span class="badge" [class]="roleClass(m.role)">{{ roleShortLabel(m.role) }}</span>
-                <span class="mc-date">Joined {{ m.joinedAt | date:'mediumDate' }}</span>
-              </div>
-            </div>
-          </div>
-          <div class="mc-right" style="gap: 1rem;">
-            <div style="display:flex; align-items:center; gap:0.5rem">
-              <span class="status-dot active"></span>
-              <span class="status-label">Active Member</span>
-            </div>
-            <div style="display:flex; gap:0.5rem">
-              <button class="btn btn-ghost btn-sm" (click)="messageFounder(m.startupId)" title="Message Founder" style="color: var(--primary); padding: 0.5rem; border: 1px solid var(--primary); border-radius: 10px; background: rgba(var(--primary-rgb), 0.05);">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              </button>
-              <button class="btn btn-primary btn-sm" (click)="viewStartup(m.startupId)" style="border-radius: 10px; font-weight: 700;">
-                View Startup
-              </button>
-            </div>
-          </div>
+    <div class="team-command-layout single-column">
+      
+      <!-- ACTIVE BOARD SEATS -->
+      <div class="command-column active-squad">
+        <div class="column-header">
+          <span class="pulse-beacon active"></span>
+          <h3>Active Startup Seats</h3>
         </div>
-      }
+
+        @if (myTeams().length === 0) {
+          <div class="empty-column-card">
+            <p>No active board memberships.</p>
+          </div>
+        } @else {
+          <div class="member-list">
+            @for (m of myTeams(); track m.id) {
+              <div class="member-card high-density active-seat" [class]="m.role">
+                <div class="m-identity">
+                  <div class="m-avatar">{{ (startupNames().get(m.startupId) || 'S')[0] }}</div>
+                  <div class="m-info">
+                    <div class="m-name">{{ startupNames().get(m.startupId) || 'Foundational Startup' }}</div>
+                    <div class="m-meta">
+                      <span class="badge" [class]="roleClass(m.role)">{{ roleShortLabel(m.role) }}</span>
+                      <span class="m-date">Joined {{ m.joinedAt | date:'mediumDate' }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="m-actions">
+                  <button class="btn-icon msg" (click)="messageFounder(m.startupId)" title="Message Founder">💬</button>
+                  <button class="btn btn-outline btn-sm" (click)="viewStartup(m.startupId)">View</button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
     </div>
   }
 }

@@ -2,6 +2,8 @@ import { Component, OnInit, signal, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { StartupService } from '../../../core/services/startup.service';
+import { InvestmentService } from '../../../core/services/investment.service';
+import { TeamService } from '../../../core/services/team.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { StartupResponse, StartupStage } from '../../../models';
 import { ThemeService } from '../../../core/services/theme.service';
@@ -17,6 +19,8 @@ export class StartupDetailComponent implements OnInit {
   get isCrystalMode() { return this.themeService.isCrystal(); }
 
   startup = signal<StartupResponse | null>(null);
+  investments = signal<any[]>([]);
+  teamMembers = signal<any[]>([]);
   loading = signal(true);
   error   = signal('');
 
@@ -24,6 +28,8 @@ export class StartupDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private startupService: StartupService,
+    private investmentService: InvestmentService,
+    private teamService: TeamService,
     public  authService: AuthService,
     public  themeService: ThemeService
   ) {}
@@ -31,9 +37,30 @@ export class StartupDetailComponent implements OnInit {
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.startupService.getDetails(id).subscribe({
-      next:  env => { this.startup.set(env.data); this.loading.set(false); },
+      next:  env => { 
+        this.startup.set(env.data); 
+        this.loading.set(false);
+        
+        // If Admin, perform deep observability fetch
+        if (this.authService.role() === 'ROLE_ADMIN') {
+          this.loadAdminDeepSight(id);
+        }
+      },
       error: ()  => { this.error.set('Startup not found.'); this.loading.set(false); }
     });
+  }
+
+  private loadAdminDeepSight(startupId: number): void {
+    this.investmentService.getStartupInvestments(startupId).subscribe(env => {
+      this.investments.set(env.data || []);
+    });
+    this.teamService.getTeamMembers(startupId).subscribe(env => {
+      this.teamMembers.set(env.data || []);
+    });
+  }
+
+  get isAdmin(): boolean {
+    return this.authService.role() === 'ROLE_ADMIN';
   }
 
   invest(): void {

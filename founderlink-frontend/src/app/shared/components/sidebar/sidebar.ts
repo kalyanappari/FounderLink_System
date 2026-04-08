@@ -21,8 +21,9 @@ export class SidebarComponent {
   closeMenu = output<void>();
 
   readonly navItems: NavItem[] = [
-    { label: 'Dashboard',    route: '/dashboard',              icon: 'grid',        roles: ['FOUNDER', 'INVESTOR', 'COFOUNDER'] },
-    { label: 'Startups',     route: '/dashboard/startups',     icon: 'rocket',      roles: ['FOUNDER', 'INVESTOR', 'COFOUNDER'] },
+    { label: 'Dashboard',    route: '/dashboard',              icon: 'grid',        roles: ['FOUNDER', 'INVESTOR', 'COFOUNDER', 'ADMIN'] },
+    { label: 'Startups',     route: '/dashboard/startups',     icon: 'rocket',      roles: ['FOUNDER', 'INVESTOR', 'COFOUNDER', 'ADMIN'] },
+    { label: 'User Network', route: '/dashboard/admin/users',  icon: 'users',       roles: ['ADMIN'] },
     { label: 'My Startup',   route: '/dashboard/my-startup',   icon: 'briefcase',   roles: ['FOUNDER'] },
     { label: 'Team',         route: '/dashboard/team',         icon: 'users',       roles: ['FOUNDER', 'COFOUNDER'] },
     { label: 'Invitations',  route: '/dashboard/invitations',  icon: 'mail',        roles: ['COFOUNDER'] },

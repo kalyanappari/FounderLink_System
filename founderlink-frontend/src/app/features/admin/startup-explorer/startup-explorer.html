@@ -1,0 +1,64 @@
+<div class="explorer-container">
+  <header class="explorer-header highlight-blue">
+    <div class="header-content">
+      <div class="role-tag">VENTURE COMMAND</div>
+      <h1 class="title">Global Startup Directory</h1>
+      <p class="description">Observing the full landscape of innovation across the FounderLink platform.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-refresh" (click)="loadStartups()" [class.spinning]="loading()">
+        <span class="icon">🔄</span> Sync Directory
+      </button>
+    </div>
+  </header>
+
+  <section class="explorer-content">
+    @if (loading()) {
+      <div class="mosaic-skeleton">
+        <div class="skeleton-card" *ngFor="let i of [1,2,3,4,5,6]"></div>
+      </div>
+    } @else if (error()) {
+      <div class="error-state">
+        <div class="error-icon">🛰️</div>
+        <p>{{ error() }}</p>
+        <button class="btn-retry" (click)="loadStartups()">Restore Signal</button>
+      </div>
+    } @else {
+      <div class="venture-grid">
+        @for (s of startups(); track s.id) {
+          <div class="venture-card">
+            <div class="card-glow"></div>
+            <div class="card-inner">
+              <header class="card-head">
+                <span class="card-id">#{{ s.id }}</span>
+                <span class="industry-badge">{{ s.industry }}</span>
+              </header>
+              
+              <h2 class="card-title">{{ s.name }}</h2>
+              <p class="card-desc">{{ s.description }}</p>
+
+              <div class="card-metrics">
+                <div class="metric">
+                  <span class="m-label">GROWTH STAGE</span>
+                  <span class="m-val">{{ getStageLabel(s.stage) }}</span>
+                </div>
+                <div class="metric">
+                  <span class="m-label">CAP TARGET</span>
+                  <span class="m-val-primary">{{ formatCurrency(s.fundingGoal) }}</span>
+                </div>
+              </div>
+
+              <footer class="card-actions">
+                <a [routerLink]="['/startup', s.id]" class="btn-observe">
+                  Observe Venture Details <span>→</span>
+                </a>
+              </footer>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-state">No ventures found in the dynamic directory.</div>
+        }
+      </div>
+    }
+  </section>
+</div>

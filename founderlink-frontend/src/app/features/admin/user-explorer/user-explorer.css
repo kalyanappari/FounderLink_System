@@ -1,0 +1,373 @@
+.explorer-container {
+    padding: 2.5rem;
+    animation: fadeIn 0.6s ease-out;
+  }
+  
+  .explorer-header {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    border-left: 5px solid #f43f5e; /* Rose highlight */
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  }
+  
+  .role-tag {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    color: #f43f5e;
+    margin-bottom: 0.5rem;
+  }
+  
+  .title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 0.5rem;
+  }
+  
+  .description {
+    color: #94a3b8;
+    font-size: 0.95rem;
+  }
+  
+  .btn-refresh {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .search-bar {
+    position: relative;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 320px;
+    transition: all 0.3s ease;
+  }
+
+  .search-bar:focus-within {
+    border-color: #f43f5e;
+    box-shadow: 0 0 15px rgba(244, 63, 94, 0.2);
+    width: 380px;
+  }
+
+  .search-icon {
+    font-size: 0.9rem;
+    opacity: 0.6;
+  }
+
+  .search-bar input {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 0.9rem;
+    outline: none;
+    width: 100%;
+  }
+
+  .search-bar input::placeholder {
+    color: #64748b;
+  }
+
+  /* Filter Box */
+  .filter-box {
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    padding: 0 0.75rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+
+  .filter-box:hover {
+    border-color: #f43f5e;
+  }
+
+  .filter-box select {
+    background: transparent;
+    border: none;
+    color: #f1f5f9;
+    padding: 0.6rem 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .filter-box select option {
+    background: #0f172a;
+    color: white;
+  }
+  
+  .btn-refresh:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  .spinning .icon {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  /* Celestial Table Styling */
+  .celestial-table-wrapper {
+    background: rgba(30, 41, 59, 0.4);
+    border-radius: 1.25rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(4px);
+  }
+  
+  .celestial-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+  
+  .celestial-table th {
+    padding: 1.25rem 1.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    letter-spacing: 0.05rem;
+  }
+  
+  .celestial-table td {
+    padding: 1.25rem 1.5rem;
+    color: #e2e8f0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    vertical-align: middle;
+  }
+  
+  .table-row-hover:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+  
+  /* Entity Branding */
+  .identity-box {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .avatar-mini {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(45deg, #334155, #1e293b);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+  }
+  
+  .name-text {
+    font-weight: 600;
+    color: #f1f5f9;
+  }
+  
+  /* Role Badges */
+  .badge-role {
+    padding: 0.25rem 0.75rem;
+    border-radius: 2rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  
+  .role-founder { background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.2); }
+  .role-investor { background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.2); }
+  .role-cofounder { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+  .role-admin { background: rgba(244, 63, 94, 0.1); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.2); }
+  
+  .col-skills {
+    max-width: 300px;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* States */
+  .skeleton-loader { padding: 2rem; }
+  .skeleton-row { height: 50px; background: rgba(255, 255, 255, 0.05); border-radius: 0.5rem; margin-bottom: 1rem; animation: pulse 1.5s infinite; }
+  
+  @keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0.5; }
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .error-state {
+    text-align: center;
+    padding: 4rem;
+    color: #f43f5e;
+  }
+  
+  .error-icon { font-size: 3rem; margin-bottom: 1rem; }
+  
+  .btn-retry {
+    margin-top: 1rem;
+    background: #f43f5e;
+    color: white;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+/* ── EXPLORER LIGHT MODE ADAPTATION (CRYSTAL) ───────────── */
+:host-context(.crystal-mode) .explorer-header {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-color: #f43f5e;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+:host-context(.crystal-mode) .title {
+  color: #0f172a;
+}
+
+:host-context(.crystal-mode) .description {
+  color: #64748b;
+}
+
+:host-context(.crystal-mode) .search-bar {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+:host-context(.crystal-mode) .search-bar input {
+  color: #0f172a !important;
+}
+
+:host-context(.crystal-mode) .filter-box {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+:host-context(.crystal-mode) .filter-box select {
+  color: #0f172a !important;
+}
+
+:host-context(.crystal-mode) .filter-box select option {
+  background: white;
+  color: #0f172a;
+}
+
+:host-context(.crystal-mode) .btn-refresh {
+  background: white;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+:host-context(.crystal-mode) .btn-refresh:hover {
+  background: #f8fafc;
+  border-color: var(--primary);
+}
+
+:host-context(.crystal-mode) .celestial-table-wrapper {
+  background: white;
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+:host-context(.crystal-mode) .celestial-table th {
+  background: #f8fafc;
+  color: #4b5563;
+  border-bottom-color: #f1f5f9;
+}
+
+:host-context(.crystal-mode) .celestial-table td {
+  color: #1e293b;
+  border-bottom-color: #f1f5f9;
+}
+
+:host-context(.crystal-mode) .table-row-hover:hover {
+  background: #f8fafc;
+}
+
+:host-context(.crystal-mode) .name-text {
+  color: #0f172a;
+}
+
+:host-context(.crystal-mode) .avatar-mini {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.col-actions {
+  text-align: center;
+  width: 80px;
+}
+
+.btn-msg {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  color: #6366f1;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-msg:hover {
+  background: #6366f1;
+  color: white;
+  transform: scale(1.1);
+}
+
+:host-context(.crystal-mode) .btn-msg {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+:host-context(.crystal-mode) .btn-msg:hover {
+  background: #6366f1;
+}

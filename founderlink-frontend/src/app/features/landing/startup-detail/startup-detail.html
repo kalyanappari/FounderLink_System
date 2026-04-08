@@ -129,5 +129,47 @@
 
     </aside>
   </div>
+
+  @if (isAdmin) {
+    <div class="admin-observability-hub">
+      <div class="panel-divider"></div>
+      <section class="admin-panel shadow-sm">
+        <header class="panel-header">
+          <div class="role-tag">ADMIN OVERVIEW</div>
+          <h2 class="panel-title">Institutional Investment Audit</h2>
+        </header>
+        <div class="admin-data-list">
+          @for (inv of investments(); track inv.id) {
+            <div class="data-item">
+              <span class="item-id">#{{ inv.id }}</span>
+              <span class="item-main">{{ formatCurrency(inv.amount) }}</span>
+              <span class="item-meta">Investor: #{{ inv.investorId }}</span>
+              <span class="item-status" [class]="inv.status.toLowerCase()">{{ inv.status }}</span>
+            </div>
+          } @empty {
+            <p class="empty-panel">No platform investments recorded.</p>
+          }
+        </div>
+      </section>
+
+      <section class="admin-panel shadow-sm">
+        <header class="panel-header">
+          <div class="role-tag">ADMIN OVERVIEW</div>
+          <h2 class="panel-title">Strategic Team Structure</h2>
+        </header>
+        <div class="admin-data-list">
+          @for (m of teamMembers(); track m.id) {
+            <div class="data-item">
+              <span class="item-role">{{ m.role }}</span>
+              <span class="item-meta">User: #{{ m.userId }}</span>
+              <span class="item-status active" *ngIf="m.isActive">ACTIVE</span>
+            </div>
+          } @empty {
+            <p class="empty-panel">No team engagements recorded.</p>
+          }
+        </div>
+      </section>
+    </div>
+  }
 </div>
 }
