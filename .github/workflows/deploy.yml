@@ -56,17 +56,20 @@ jobs:
         run: |
           TAG=$(echo ${{ github.sha }} | cut -c1-7)
           IMAGE_NAME=${{ secrets.ACR_LOGIN_SERVER }}/${{ matrix.service }}:$TAG
+          LATEST_IMAGE=${{ secrets.ACR_LOGIN_SERVER }}/${{ matrix.service }}:latest
           
           if [ "${{ matrix.service }}" == "founderlink-frontend" ]; then
             docker build \
               --build-arg RAZORPAY_KEY=${{ secrets.RAZORPAY_KEY_ID }} \
               -t $IMAGE_NAME \
+              -t $LATEST_IMAGE \
               ./${{ matrix.service }}
           else
-            docker build -t $IMAGE_NAME ./${{ matrix.service }}
+            docker build -t $IMAGE_NAME -t $LATEST_IMAGE ./${{ matrix.service }}
           fi
           
           docker push $IMAGE_NAME
+          docker push $LATEST_IMAGE
 
   deploy:
     name: Deploy to Azure VM
@@ -103,5 +106,10 @@ jobs:
               docker-compose -f docker-compose.infra.yml -f docker-compose.services.yml pull $s
               docker-compose -f docker-compose.infra.yml -f docker-compose.services.yml up -d --no-deps $s
             done
+            
+            # 4. Persist variables for manual usage
+            sed -i "s|^TAG=.*|TAG=latest|" .env || echo "TAG=latest" >> .env
+            sed -i "s|^ACR_LOGIN_SERVER=.*|ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER|" .env || echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> .env
+            echo "✅ Deployment complete. .env updated with TAG=latest for manual usage."
             
             docker system prune -f
