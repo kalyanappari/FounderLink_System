@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -6,10 +6,12 @@ import { AuthService } from '../../core/services/auth.service';
 import { StartupService } from '../../core/services/startup.service';
 import { InvestmentService } from '../../core/services/investment.service';
 import { StartupResponse, StartupStage } from '../../models';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-startups',
-  imports: [CommonModule, FormsModule, RouterLink],
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink, PaginationComponent],
   templateUrl: './startups.html',
   styleUrl: './startups.css'
 })
@@ -18,12 +20,21 @@ export class StartupsComponent implements OnInit {
   loading     = signal(true);
   errorMsg    = signal('');
 
+  // Pagination Logic
+  currentPage = signal(1);
+  pageSize = signal(12);
+
   // Filters
   selectedStage    = '';
   selectedIndustry = '';
   minFunding       = '';
   maxFunding       = '';
   availableIndustries = signal<string[]>([]);
+
+  paginatedStartups = computed(() => {
+    const start = (this.currentPage() - 1) * this.pageSize();
+    return this.allStartups().slice(start, start + this.pageSize());
+  });
 
   // Invest modal
   investModal   = signal<StartupResponse | null>(null);
@@ -42,7 +53,18 @@ export class StartupsComponent implements OnInit {
     private startupService: StartupService,
     private investmentService: InvestmentService,
     private router: Router
-  ) {}
+  ) {
+    // Reset to page 1 whenever results change
+    effect(() => {
+      this.allStartups();
+      this.currentPage.set(1);
+    }, { allowSignalWrites: true });
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   ngOnInit(): void {
     this.loadStartups();

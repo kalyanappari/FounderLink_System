@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,10 +7,12 @@ import { InvestmentService } from '../../core/services/investment.service';
 import { StartupService } from '../../core/services/startup.service';
 import { UserService } from '../../core/services/user.service';
 import { InvestmentResponse, InvestmentStatus, StartupResponse } from '../../models';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-investments',
-  imports: [CommonModule, FormsModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule, PaginationComponent],
   templateUrl: './investments.html',
   styleUrl: './investments.css'
 })
@@ -25,6 +27,16 @@ export class InvestmentsComponent implements OnInit {
   filterStatus      = '';
   userNames         = signal<Map<number, string>>(new Map());
 
+  // Pagination State
+  currentPage = signal(1);
+  pageSize = signal(8);
+
+  paginatedInvestments = computed(() => {
+    const list = this.filteredInvestments;
+    const start = (this.currentPage() - 1) * this.pageSize();
+    return list.slice(start, start + this.pageSize());
+  });
+
   constructor(
     public authService: AuthService,
     private investmentService: InvestmentService,
@@ -32,6 +44,16 @@ export class InvestmentsComponent implements OnInit {
     private userService: UserService,
     private router: Router
   ) {}
+
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Handle filter changes manually to reset pagination
+  onFilterChange(): void {
+    this.currentPage.set(1);
+  }
 
   ngOnInit(): void {
     this.startupService.getMyStartups().subscribe({
@@ -59,6 +81,7 @@ export class InvestmentsComponent implements OnInit {
 
   onStartupChange(startupId: number): void {
     this.selectedStartupId.set(startupId);
+    this.currentPage.set(1);
     this.loadInvestments(startupId);
   }
 

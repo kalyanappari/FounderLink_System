@@ -343,8 +343,8 @@ export class HomeComponent implements OnInit {
     return this.myInvestments().filter(i => i.status === 'COMPLETED').length;
   }
   get totalFundingReceived(): number {
-    return this.startupInvestments()
-      .filter(i => i.status === 'COMPLETED' || i.status === 'APPROVED')
+    return this.allProjectInvestments()
+      .filter(i => i.status === 'COMPLETED')
       .reduce((s, i) => s + i.amount, 0);
   }
 
@@ -377,7 +377,7 @@ export class HomeComponent implements OnInit {
   }
 
   get pendingStartupInvestments(): number {
-    return this.startupInvestments().filter(i => i.status === 'PENDING').length;
+    return this.allProjectInvestments().filter(i => i.status === 'PENDING').length;
   }
 
   getStatusClass(status: string): string {

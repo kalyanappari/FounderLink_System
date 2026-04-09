@@ -58,6 +58,10 @@
     margin-left: 0 !important;
   }
 
+  .dashboard-content {
+    padding: 1rem;
+  }
+
   .mobile-overlay {
     display: block;
   }

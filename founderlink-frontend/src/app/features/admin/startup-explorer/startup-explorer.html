@@ -25,7 +25,7 @@
       </div>
     } @else {
       <div class="venture-grid">
-        @for (s of startups(); track s.id) {
+        @for (s of paginatedStartups(); track s.id) {
           <div class="venture-card">
             <div class="card-glow"></div>
             <div class="card-inner">
@@ -59,6 +59,13 @@
           <div class="empty-state">No ventures found in the dynamic directory.</div>
         }
       </div>
+
+      <app-pagination 
+        [totalItems]="startups().length" 
+        [pageSize]="pageSize()" 
+        [currentPage]="currentPage()" 
+        (pageChange)="onPageChange($event)">
+      </app-pagination>
     }
   </section>
 </div>

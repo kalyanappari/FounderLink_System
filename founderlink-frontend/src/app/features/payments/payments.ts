@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { PaymentService } from '../../core/services/payment.service';
@@ -6,6 +6,7 @@ import { InvestmentService } from '../../core/services/investment.service';
 import { StartupService } from '../../core/services/startup.service';
 import { environment } from '../../../environments/environment';
 import { InvestmentResponse, InvestmentStatus, PaymentResponse, PaymentStatus, CreateOrderResponse } from '../../models';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 
 interface InvestmentWithPayment {
   investment: InvestmentResponse;
@@ -16,7 +17,8 @@ interface InvestmentWithPayment {
 
 @Component({
   selector: 'app-payments',
-  imports: [CommonModule],
+  standalone: true,
+  imports: [CommonModule, PaginationComponent],
   templateUrl: './payments.html',
   styleUrl: './payments.css'
 })
@@ -30,12 +32,27 @@ export class PaymentsComponent implements OnInit {
   processingId: number | null = null;
   startupNames = signal<Map<number, string>>(new Map());
 
+  // Pagination State
+  currentPage = signal(1);
+  pageSize = signal(5);
+
+  paginatedItems = computed(() => {
+    const list = this.items();
+    const start = (this.currentPage() - 1) * this.pageSize();
+    return list.slice(start, start + this.pageSize());
+  });
+
   constructor(
     public authService: AuthService,
     private investmentService: InvestmentService,
     private paymentService: PaymentService,
     private startupService: StartupService
   ) {}
+
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   ngOnInit(): void {
     this.loadPortfolio();

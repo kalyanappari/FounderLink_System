@@ -1,13 +1,14 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { UserService } from '../../../core/services/user.service';
 import { UserResponse } from '../../../models';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-user-explorer',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, PaginationComponent],
   templateUrl: './user-explorer.html',
   styleUrl: './user-explorer.css'
 })
@@ -19,6 +20,10 @@ export class UserExplorerComponent implements OnInit {
   // Search Logic
   searchQuery = signal('');
   roleFilter = signal('ALL');
+
+  // Pagination Logic
+  currentPage = signal(1);
+  pageSize = signal(10);
 
   filteredUsers = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -40,7 +45,18 @@ export class UserExplorerComponent implements OnInit {
     return list;
   });
 
-  constructor(private userService: UserService) {}
+  paginatedUsers = computed(() => {
+    const start = (this.currentPage() - 1) * this.pageSize();
+    return this.filteredUsers().slice(start, start + this.pageSize());
+  });
+
+  constructor(private userService: UserService) {
+    // Reset to page 1 whenever results change
+    effect(() => {
+      this.filteredUsers(); // Watch for changes
+      this.currentPage.set(1);
+    }, { allowSignalWrites: true });
+  }
 
   ngOnInit(): void {
     this.loadUsers();
@@ -68,5 +84,10 @@ export class UserExplorerComponent implements OnInit {
       case 'ADMIN': return 'role-admin';
       default: return '';
     }
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }

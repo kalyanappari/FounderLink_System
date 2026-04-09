@@ -106,7 +106,7 @@
               <div class="empty-state-sm"><p>No available users found.</p></div>
             } @else {
               <div class="user-cards-grid">
-                @for (u of filteredUsers(); track u.userId) {
+                @for (u of paginatedDiscovery(); track u.userId) {
                   <div class="user-card" [class.selected]="selectedUser()?.userId === u.userId" (click)="selectUserToInvite(u)">
                     <div class="uc-header">
                       <div class="uc-avatar">{{ userInitials(u) }}</div>
@@ -126,6 +126,12 @@
                   </div>
                 }
               </div>
+              <app-pagination 
+                [totalItems]="filteredUsers().length" 
+                [pageSize]="pageSizeDiscovery()" 
+                [currentPage]="currentPageDiscovery()" 
+                (pageChange)="onPageChangeDiscovery($event)">
+              </app-pagination>
             }
           </div>
 
@@ -199,7 +205,7 @@
             </div>
           } @else {
             <div class="member-list">
-              @for (m of teamMembers(); track m.id) {
+              @for (m of paginatedSquad(); track m.id) {
                 <div class="member-card high-density" [class]="m.role">
                   <div class="m-identity">
                     <div class="m-avatar">{{ (userNames().get(m.userId) || 'M')[0] }}</div>
@@ -217,6 +223,12 @@
                   </div>
                 </div>
               }
+              <app-pagination 
+                [totalItems]="teamMembers().length" 
+                [pageSize]="pageSizeSquad()" 
+                [currentPage]="currentPageSquad()" 
+                (pageChange)="onPageChangeSquad($event)">
+              </app-pagination>
             </div>
           }
         </div>
@@ -234,7 +246,7 @@
             </div>
           } @else {
             <div class="member-list">
-              @for (inv of pendingInvitations(); track inv.id) {
+              @for (inv of paginatedPipeline(); track inv.id) {
                 <div class="member-card pipeline-card">
                   <div class="m-identity">
                     <div class="m-avatar pending">{{ (userNames().get(inv.invitedUserId) || 'M')[0] }}</div>
@@ -250,6 +262,12 @@
                   </div>
                 </div>
               }
+              <app-pagination 
+                [totalItems]="pendingInvitations().length" 
+                [pageSize]="pageSizePipeline()" 
+                [currentPage]="currentPagePipeline()" 
+                (pageChange)="onPageChangePipeline($event)">
+              </app-pagination>
             </div>
           }
         </div>
@@ -346,7 +364,7 @@
           </div>
         } @else {
           <div class="member-list">
-            @for (m of myTeams(); track m.id) {
+            @for (m of paginatedTeams(); track m.id) {
               <div class="member-card high-density active-seat" [class]="m.role">
                 <div class="m-identity">
                   <div class="m-avatar">{{ (startupNames().get(m.startupId) || 'S')[0] }}</div>
@@ -364,6 +382,12 @@
                 </div>
               </div>
             }
+            <app-pagination 
+              [totalItems]="myTeams().length" 
+              [pageSize]="pageSizeTeams()" 
+              [currentPage]="currentPageTeams()" 
+              (pageChange)="onPageChangeTeams($event)">
+            </app-pagination>
           </div>
         }
       </div>

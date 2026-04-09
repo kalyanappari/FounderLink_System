@@ -54,7 +54,7 @@
   <!-- Filter -->
   <div class="toolbar">
     <h3 class="section-title" style="margin:0">Investment History</h3>
-    <select [(ngModel)]="filterStatus" class="filter-select">
+    <select [(ngModel)]="filterStatus" (ngModelChange)="onFilterChange()" class="filter-select">
       <option value="">All Status</option>
       <option value="PENDING">Pending</option>
       <option value="APPROVED">Approved</option>
@@ -72,7 +72,7 @@
     </div>
   } @else {
     <div class="portfolio-list">
-      @for (inv of filtered; track inv.id) {
+      @for (inv of paginatedInvestments(); track inv.id) {
         <div class="portfolio-item">
           <div class="pi-left">
             <div class="pi-avatar">{{ (startupNames().get(inv.startupId) || 'S')[0] }}</div>
@@ -96,5 +96,12 @@
         </div>
       }
     </div>
+
+    <app-pagination 
+      [totalItems]="filtered.length" 
+      [pageSize]="pageSize()" 
+      [currentPage]="currentPage()" 
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
   }
 }

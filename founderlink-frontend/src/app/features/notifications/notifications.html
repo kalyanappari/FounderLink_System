@@ -49,7 +49,7 @@
       </div>
     } @else {
       <div class="notifications-list">
-        @for (n of getFiltered(); track n.id) {
+        @for (n of paginatedNotifications(); track n.id) {
           <div class="notification-item" [class.unread]="!n.read" (click)="onNotificationClick(n)">
             <div class="notification-icon">
               @switch (getIcon(n.type)) {
@@ -73,6 +73,13 @@
             </div>
           </div>
         }
+
+        <app-pagination 
+          [totalItems]="getFiltered().length" 
+          [pageSize]="pageSize()" 
+          [currentPage]="currentPage()" 
+          (pageChange)="onPageChange($event)">
+        </app-pagination>
       </div>
     }
   </div>

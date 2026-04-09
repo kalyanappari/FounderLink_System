@@ -396,7 +396,7 @@
             <div class="list-skeleton"></div>
           } @else {
             @if (role === 'FOUNDER') {
-              @for (s of myStartups(); track s.id) {
+              @for (s of myStartups().slice(0, 5); track s.id) {
                 <div class="data-table-row">
                   <div class="dt-col-brand">
                     <span class="dt-name">{{ s.name }}</span>

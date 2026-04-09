@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -9,10 +9,12 @@ import { UserService } from '../../core/services/user.service';
 import {
   TeamMemberResponse, StartupResponse, UserResponse, TeamRole, InvitationRequest, InvitationResponse
 } from '../../models';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-team',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PaginationComponent],
   templateUrl: './team.html',
   styleUrl: './team.css'
 })
@@ -20,6 +22,19 @@ export class TeamComponent implements OnInit {
   loading = signal(true);
   errorMsg = signal('');
   successMsg = signal('');
+
+  // ── Pagination State ───────────────────────────────────────────────────────
+  currentPageSquad = signal(1);
+  pageSizeSquad = signal(5);
+
+  currentPagePipeline = signal(1);
+  pageSizePipeline = signal(5);
+
+  currentPageDiscovery = signal(1);
+  pageSizeDiscovery = signal(8);
+
+  currentPageTeams = signal(1);
+  pageSizeTeams = signal(5);
 
   // ── Founder state ─────────────────────────────────────────────────────────
   myStartups = signal<StartupResponse[]>([]);
@@ -38,6 +53,27 @@ export class TeamComponent implements OnInit {
   selectedUser = signal<UserResponse | null>(null);
   selectedRole = signal<TeamRole | ''>('');
   inviting = signal(false);
+
+  // ── Computed Paginated Lists ──────────────────────────────────────────────
+  paginatedSquad = computed(() => {
+    const start = (this.currentPageSquad() - 1) * this.pageSizeSquad();
+    return this.teamMembers().slice(start, start + this.pageSizeSquad());
+  });
+
+  paginatedPipeline = computed(() => {
+    const start = (this.currentPagePipeline() - 1) * this.pageSizePipeline();
+    return this.pendingInvitations().slice(start, start + this.pageSizePipeline());
+  });
+
+  paginatedDiscovery = computed(() => {
+    const start = (this.currentPageDiscovery() - 1) * this.pageSizeDiscovery();
+    return this.filteredUsers().slice(start, start + this.pageSizeDiscovery());
+  });
+
+  paginatedTeams = computed(() => {
+    const start = (this.currentPageTeams() - 1) * this.pageSizeTeams();
+    return this.myTeams().slice(start, start + this.pageSizeTeams());
+  });
 
   // ── CoFounder state ───────────────────────────────────────────────────────
   myTeams = signal<TeamMemberResponse[]>([]);
@@ -80,7 +116,36 @@ export class TeamComponent implements OnInit {
     private startupService: StartupService,
     private userService: UserService,
     private router: Router
-  ) { }
+  ) { 
+    // Reset pages when context changes
+    effect(() => {
+      this.selectedStartupId();
+      this.currentPageSquad.set(1);
+      this.currentPagePipeline.set(1);
+    }, { allowSignalWrites: true });
+
+    effect(() => {
+      this.searchQuery();
+      this.roleFilter();
+      this.currentPageDiscovery.set(1);
+    }, { allowSignalWrites: true });
+  }
+
+  onPageChangeSquad(page: number): void {
+    this.currentPageSquad.set(page);
+  }
+
+  onPageChangePipeline(page: number): void {
+    this.currentPagePipeline.set(page);
+  }
+
+  onPageChangeDiscovery(page: number): void {
+    this.currentPageDiscovery.set(page);
+  }
+
+  onPageChangeTeams(page: number): void {
+    this.currentPageTeams.set(page);
+  }
 
   ngOnInit(): void {
     if (this.isFounder()) this.loadFounderData();

@@ -1,14 +1,16 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { NotificationResponse } from '../../models';
 import { Router } from '@angular/router';
 import { ThemeService } from '../../core/services/theme.service';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-notifications',
-  imports: [CommonModule],
+  standalone: true,
+  imports: [CommonModule, PaginationComponent],
   templateUrl: './notifications.html',
   styleUrl: './notifications.css'
 })
@@ -20,6 +22,16 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   filterType    = signal<'all' | 'unread' | 'read'>('all');
   selectedNotification = signal<NotificationResponse | null>(null);
 
+  // Pagination State
+  currentPage = signal(1);
+  pageSize = signal(10);
+
+  paginatedNotifications = computed(() => {
+    const list = this.getFiltered();
+    const start = (this.currentPage() - 1) * this.pageSize();
+    return list.slice(start, start + this.pageSize());
+  });
+
   private refreshInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(
@@ -27,7 +39,18 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     public themeService: ThemeService,
     private notificationService: NotificationService,
     private router: Router
-  ) {}
+  ) {
+    // Reset page when filterType changes
+    effect(() => {
+      this.filterType();
+      this.currentPage.set(1);
+    }, { allowSignalWrites: true });
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   ngOnInit(): void {
     this.loadNotifications();

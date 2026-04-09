@@ -37,7 +37,7 @@
         </button>
       }
     </div>
-    <select [(ngModel)]="filterStatus" class="filter-select">
+    <select [(ngModel)]="filterStatus" (ngModelChange)="onFilterChange()" class="filter-select">
       <option value="">All Status</option>
       <option value="PENDING">Pending</option>
       <option value="APPROVED">Approved</option>
@@ -92,7 +92,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (inv of filteredInvestments; track inv.id) {
+          @for (inv of paginatedInvestments(); track inv.id) {
             <tr>
               <td class="td-id">{{ inv.id }}</td>
               <td>
@@ -134,5 +134,12 @@
         </tbody>
       </table>
     </div>
+
+    <app-pagination 
+      [totalItems]="filteredInvestments.length" 
+      [pageSize]="pageSize()" 
+      [currentPage]="currentPage()" 
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
   }
 }

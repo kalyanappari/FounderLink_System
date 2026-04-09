@@ -122,8 +122,13 @@
   }
 
   .filter-box select option {
-    background: #0f172a;
-    color: white;
+    background-color: #0f172a; /* Solid dark background */
+    color: #ffffff;
+  }
+  
+  :host-context(.crystal-mode) .filter-box select option {
+    background-color: #ffffff;
+    color: #0f172a;
   }
   
   .btn-refresh:hover {
