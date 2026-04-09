@@ -19,6 +19,7 @@ jobs:
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          base: ${{ github.ref_name }}
           filters: |
             auth-service: ['auth-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
             user-service: ['user-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
