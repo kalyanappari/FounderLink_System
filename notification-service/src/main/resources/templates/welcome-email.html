@@ -1,24 +1,29 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base-layout :: layout('🎉 Welcome to FounderLink!', ~{::email_content})}">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base-layout :: layout('Onboarding Portal', 'Welcome to FounderLink', ~{::email_content})}">
 <body>
     <div th:fragment="email_content">
-        <p>Hello <strong th:text="${userName}">User</strong>,</p>
-        <p>We're thrilled to have you join our ecosystem as a <span class="badge badge-primary" th:text="${role}">ROLE</span>. FounderLink is where visionaries, investors, and elite talent converge to build the next generation of startups.</p>
-        
-        <div class="divider"></div>
-        
-        <h3 style="color: #0f172a; font-size: 18px;">Get Started Today:</h3>
-        <ul style="padding-left: 20px; color: #475569;">
-            <li>Complete your professional profile to stand out.</li>
-            <li>Explore the venture discovery directory.</li>
-            <li>Connect with potential co-founders and investors.</li>
-        </ul>
+        <p>Your strategic account has been provisioned. Below is a summary of your profile details and next steps to activate your presence in the ecosystem.</p>
+
+        <table class="form-table">
+            <tr class="form-row">
+                <td class="label">User Name</td>
+                <td class="value" th:text="${userName}">John Doe</td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Assigned Role</td>
+                <td class="value">
+                    <span class="badge" th:text="${role}">FOUNDER</span>
+                </td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Account Status</td>
+                <td class="value">ACTIVE (Pending Profile Completion)</td>
+            </tr>
+        </table>
 
         <div style="text-align: center; margin-top: 40px;">
-            <a href="https://founderlink.online/dashboard" class="button">Access Your Dashboard</a>
+            <a href="https://founderlink.tech/dashboard" class="button">Access Platform</a>
         </div>
-
-        <p style="margin-top: 40px; font-size: 14px; color: #64748b;">If you have any questions, our support core is always ready to assist you.</p>
     </div>
 </body>
 </html>

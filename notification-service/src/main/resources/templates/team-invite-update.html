@@ -1,27 +1,32 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base-layout :: layout('Team Update', ~{::email_content})}">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base-layout :: layout('Human Resources', 'Team Update', ~{::email_content})}">
 <body>
     <div th:fragment="email_content">
-        <p>Hello <strong th:text="${founderName}">Founder</strong>,</p>
-        
-        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 25px; margin: 25px 0;" th:if="${status == 'ACCEPTED'}">
-            <h3 style="margin: 0; color: #166534; font-size: 18px;">✅ Invitation Accepted</h3>
-            <p style="margin: 10px 0 0 0; color: #15803d;">
-                <strong th:text="${memberName}">Member</strong> has joined <strong th:text="${'Startup #' + startupId}">Startup</strong> as <span class="badge badge-primary" th:text="${role}">Role</span>.
-            </p>
-        </div>
+        <p>A strategic recruitment update has been logged for your venture. The current status of the collaboration request is detailed below.</p>
 
-        <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 25px; margin: 25px 0;" th:if="${status == 'REJECTED'}">
-            <h3 style="margin: 0; color: #991b1b; font-size: 18px;">❌ Invitation Declined</h3>
-            <p style="margin: 10px 0 0 0; color: #b91c1c;">
-                <strong th:text="${memberName}">Member</strong> has declined the invitation for <strong th:text="${'Startup #' + startupId}">Startup</strong>.
-            </p>
-        </div>
-
-        <p style="margin-top: 25px;">You can manage your team and invitations directly from your strategic dashboard.</p>
+        <table class="form-table">
+            <tr class="form-row">
+                <td class="label">Primary Founder</td>
+                <td class="value" th:text="${founderName}">Founder</td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Candidate Name</td>
+                <td class="value" th:text="${memberName}">Member</td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Provisioned Role</td>
+                <td class="value" th:text="${role}">Role</td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Current Status</td>
+                <td class="value">
+                    <span class="badge" th:style="${status == 'ACCEPTED' ? 'background: #dcfce7; color: #166534;' : 'background: #fef2f2; color: #991b1b;'}" th:text="${status}">ACCEPTED</span>
+                </td>
+            </tr>
+        </table>
 
         <div style="text-align: center; margin-top: 35px;">
-            <a href="https://founderlink.online/dashboard/team" class="button">Manage Team</a>
+            <a href="https://founderlink.tech/dashboard/team" class="button">Manage Team Structure</a>
         </div>
     </div>
 </body>

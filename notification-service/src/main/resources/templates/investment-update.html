@@ -1,20 +1,36 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base-layout :: layout('Investment Update', ~{::email_content})}">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base-layout :: layout('Financial Transaction', 'Investment Update', ~{::email_content})}">
 <body>
     <div th:fragment="email_content">
-        <p>Hello <strong th:text="${userName}">User</strong>,</p>
-        
-        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin: 25px 0;">
-            <p style="margin: 0; color: #64748b; font-size: 14px;">Update for Investment <span th:text="${'#' + investmentId}">#ID</span></p>
-            <h3 style="margin: 10px 0; color: #0f172a; font-size: 20px;" th:text="${message}">Update Message Placeholder</h3>
-            <div class="divider" style="margin: 15px 0;"></div>
-            <p style="margin: 0; font-weight: 700; color: #8b5cf6; font-size: 18px;" th:text="${amount}">$0.00</p>
-        </div>
+        <p>A new status update has been recorded for your investment transaction. Detailed metrics are provided in the summary below.</p>
 
-        <p th:if="${reason}" style="color: #64748b; font-style: italic;">Note: <span th:text="${reason}">Reason goes here</span></p>
+        <table class="form-table">
+            <tr class="form-row">
+                <td class="label">Reference ID</td>
+                <td class="value" th:text="${'#INV-' + investmentId}">#INV-0000</td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Legal Entity</td>
+                <td class="value" th:text="${userName}">User Name</td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Update Status</td>
+                <td class="value">
+                    <span class="badge" th:text="${message}">Update Message</span>
+                </td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Verified Amount</td>
+                <td class="value" style="font-weight: 700; color: #6366f1;" th:text="${amount}">$0.00</td>
+            </tr>
+            <tr class="form-row" th:if="${reason}">
+                <td class="label">Strategic Note</td>
+                <td class="value" style="font-style: italic; color: #64748b;" th:text="${reason}">Reason</td>
+            </tr>
+        </table>
 
         <div style="text-align: center; margin-top: 35px;">
-            <a th:href="@{https://founderlink.online/dashboard/portfolio(id=${investmentId})}" class="button">View Details</a>
+            <a th:href="@{https://founderlink.tech/dashboard/portfolio(id=${investmentId})}" class="button">Audit Transaction</a>
         </div>
     </div>
 </body>

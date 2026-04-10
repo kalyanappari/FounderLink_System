@@ -34,7 +34,7 @@ public class EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
-            helper.setFrom("noreply@founderlink.online");
+            helper.setFrom("noreply@founderlink.online", "FounderLink");
 
             mailSender.send(message);
             log.info("Premium HTML Email sent successfully to: {}", to);
