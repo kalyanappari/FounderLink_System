@@ -25,6 +25,7 @@ export interface ApiEnvelope<T> {
   totalPages?: number;
   pageNumber?: number;
   pageSize?: number;
+  isLast?: boolean;
 }
 
 /** Raw backend wrapped response shape  { message, data } */
