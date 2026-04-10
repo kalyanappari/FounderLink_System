@@ -37,9 +37,9 @@ public class EmailService {
             helper.setFrom("noreply@founderlink.online", "FounderLink");
 
             mailSender.send(message);
-            log.info("Premium HTML Email sent successfully to: {}", to);
+            log.info("Email sent successfully to: {}", to);
         } catch (Exception e) {
-            log.error("Failed to send HTML email to {}: {}", to, e.getMessage());
+            log.error("Failed to send email to {}: {}", to, e.getMessage());
         }
     }
 
@@ -48,7 +48,7 @@ public class EmailService {
         context.setVariable("userName", userName);
         context.setVariable("role", role);
         String html = templateEngine.process("welcome-email", context);
-        sendEmail(to, "🎉 Welcome to FounderLink!", html);
+        sendEmail(to, "Welcome to FounderLink", html);
     }
 
     public void sendPasswordResetPinEmail(String to, String userName, String pin) {
@@ -66,7 +66,7 @@ public class EmailService {
         context.setVariable("message", "Your investment has been approved by the founder.");
         context.setVariable("amount", amount);
         String html = templateEngine.process("investment-update", context);
-        sendEmail(investorEmail, "✅ Your Investment Was Approved", html);
+        sendEmail(investorEmail, "Investment Approved", html);
     }
 
     public void sendInvestmentRejectedEmail(String investorEmail, String investorName, Long startupId, String amount, String reason) {
@@ -77,7 +77,7 @@ public class EmailService {
         context.setVariable("amount", amount);
         context.setVariable("reason", reason != null ? reason : "Strategic mismatch");
         String html = templateEngine.process("investment-update", context);
-        sendEmail(investorEmail, "❌ Your Investment Was Rejected", html);
+        sendEmail(investorEmail, "Investment Update", html);
     }
 
     public void sendPaymentCompletedEmail(String email, String userName, Long investmentId, String amount) {
@@ -87,7 +87,7 @@ public class EmailService {
         context.setVariable("message", "Your payment was successfully processed.");
         context.setVariable("amount", amount);
         String html = templateEngine.process("investment-update", context);
-        sendEmail(email, "✅ Payment Successful - Investment Confirmed", html);
+        sendEmail(email, "Payment Successful - Investment Confirmed", html);
     }
 
     public void sendPaymentFailedEmail(String email, String userName, Long investmentId, String reason) {
@@ -98,7 +98,7 @@ public class EmailService {
         context.setVariable("amount", "Attempted Transaction");
         context.setVariable("reason", reason);
         String html = templateEngine.process("investment-update", context);
-        sendEmail(email, "❌ Payment Failed - Action Required", html);
+        sendEmail(email, "Payment Failed - Action Required", html);
     }
 
     public void sendTeamMemberAcceptedEmail(String founderEmail, String founderName, String memberName, String role, Long startupId) {
@@ -109,7 +109,7 @@ public class EmailService {
         context.setVariable("startupId", startupId);
         context.setVariable("status", "ACCEPTED");
         String html = templateEngine.process("team-invite-update", context);
-        sendEmail(founderEmail, "✅ Team Member Accepted Your Invitation", html);
+        sendEmail(founderEmail, "Team Member Accepted Invitation", html);
     }
 
     public void sendTeamMemberRejectedEmail(String founderEmail, String founderName, String memberName, String role, Long startupId) {
@@ -120,12 +120,38 @@ public class EmailService {
         context.setVariable("startupId", startupId);
         context.setVariable("status", "REJECTED");
         String html = templateEngine.process("team-invite-update", context);
-        sendEmail(founderEmail, "❌ Team Member Rejected Your Invitation", html);
+        sendEmail(founderEmail, "Team Member Rejected Invitation", html);
     }
 
-    public void sendBulkEmail(String[] recipients, String subject, String htmlContent) {
-        for (String email : recipients) {
-            sendEmail(email, subject, htmlContent);
+    public void sendStartupAlertEmail(String[] to, String startupName, String industry, String fundingGoal, Long startupId) {
+        Context context = new Context();
+        context.setVariable("startupName", startupName);
+        context.setVariable("industry", industry);
+        context.setVariable("fundingGoal", fundingGoal);
+        context.setVariable("startupId", startupId);
+        String html = templateEngine.process("startup-alert", context);
+        for (String email : to) {
+            sendEmail(email, "New Venture Opportunity: " + startupName, html);
+        }
+    }
+
+    public void sendTeamInviteEmail(String to, String userName, String role, Long startupId) {
+        Context context = new Context();
+        context.setVariable("founderName", "Team Lead"); // Generic since we might not have it easily here
+        context.setVariable("memberName", userName);
+        context.setVariable("role", role);
+        context.setVariable("startupId", startupId);
+        context.setVariable("status", "PENDING_INVITE");
+        String html = templateEngine.process("team-invite-update", context);
+        sendEmail(to, "Team Collaboration Invitation", html);
+    }
+
+    public void sendEmail(String to, String subject, String body, boolean isHtml) {
+        if (isHtml) {
+            sendEmail(to, subject, body);
+        } else {
+            // Fallback for plain text if needed, but we aim for HTML
+            sendEmail(to, subject, body);
         }
     }
 }

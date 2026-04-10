@@ -103,19 +103,12 @@ public class NotificationService {
                 catch (Exception e) { log.error("Failed to create startup notification for user {}: {}", user.getId(), e.getMessage()); }
             });
 
-            String subject = "🚀 New Startup Alert: " + startupName;
-            String body = String.format(
-                    "Hi Investor,\n\nA new startup has been created that might interest you!\n\n" +
-                    "Startup Name: %s\nIndustry: %s\nFunding Goal: $%,.2f\nStartup ID: %d\n\n" +
-                    "Check it out and consider investing!\n\nBest regards,\nFounderLink Team",
-                    startupName, industry, fundingGoal, startupId);
-
             String[] emails = investors.stream()
                     .map(UserDTO::getEmail)
                     .filter(email -> email != null && !email.isEmpty())
                     .toArray(String[]::new);
 
-            emailService.sendBulkEmail(emails, subject, body);
+            emailService.sendStartupAlertEmail(emails, startupName, industry, String.format("$%,.2f", fundingGoal), startupId);
         } catch (Exception e) {
             log.error("Error sending startup created emails: {}", e.getMessage());
         }
@@ -143,11 +136,7 @@ public class NotificationService {
             createNotification(startup.getFounderId(), "INVESTMENT_INTERESTED",
                     String.format("%s is interested in your startup #%d", resolvedName, startupId));
 
-            emailService.sendEmail(founder.getEmail(),
-                    "💡 Investor Interest in Your Startup #" + startupId,
-                    String.format("Hi Founder,\n\nAn investor is interested in your startup!\n\n" +
-                            "Investor Name: %s\nInvestor Email: %s\nStartup ID: %d\n\nBest regards,\nFounderLink Team",
-                            resolvedName, investor != null ? investor.getEmail() : "Not available", startupId));
+            emailService.sendInvestmentApprovedEmail(founder.getEmail(), resolvedName, startupId, "Interest Expressed");
         } catch (Exception e) {
             log.error("Error sending investment interest email: {}", e.getMessage());
         }
@@ -167,11 +156,7 @@ public class NotificationService {
             createNotification(founderId, "INVESTMENT_CREATED",
                     String.format("%s showed investment interest in startup #%d with $%,.2f", investorName, startupId, amount));
 
-            emailService.sendEmail(founder.getEmail(),
-                    "💡 New Investor Interest in Startup #" + startupId,
-                    String.format("Hi Founder,\n\nAn investor has shown interest in your startup.\n\n" +
-                            "Investor Name: %s\nInterested Amount: $%,.2f\nStartup ID: %d\n\nBest regards,\nFounderLink Team",
-                            investorName, amount, startupId));
+            emailService.sendInvestmentApprovedEmail(founder.getEmail(), investorName, startupId, String.format("$%,.2f", amount));
         } catch (Exception e) {
             log.error("Error sending investment created email: {}", e.getMessage());
         }
@@ -185,11 +170,7 @@ public class NotificationService {
                 return;
             }
 
-            emailService.sendEmail(invitedUser.getEmail(),
-                    "🤝 Team Invitation for Startup #" + startupId,
-                    String.format("Hi %s,\n\nYou have been invited to join startup #%d as %s.\n\n" +
-                            "Please log in to FounderLink to review the invitation.\n\nBest regards,\nFounderLink Team",
-                            invitedUser.getName() != null ? invitedUser.getName() : "User", startupId, role));
+            emailService.sendTeamInviteEmail(invitedUser.getEmail(), invitedUser.getName(), role, startupId);
         } catch (Exception e) {
             log.error("Error sending team invite email: {}", e.getMessage());
         }
