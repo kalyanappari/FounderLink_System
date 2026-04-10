@@ -293,7 +293,7 @@ class NotificationServiceTest {
 
         verify(userServiceClient).getUsersByRole("INVESTOR");
         verify(userServiceClient, never()).getAllUsers();
-        verify(emailService).sendBulkEmail(any(String[].class), anyString(), anyString());
+        verify(emailService).sendStartupAlertEmail(any(String[].class), eq("TechStartup"), eq("Tech"), eq("$500,000.00"), eq(1L));
         verify(commandService, times(2)).createNotification(anyLong(), anyString(), anyString());
     }
 
@@ -317,7 +317,7 @@ class NotificationServiceTest {
 
         notificationService.sendStartupCreatedEmailToAllInvestors(1L, "TechStartup", "Tech", 500000.0);
 
-        verify(emailService).sendBulkEmail(any(String[].class), anyString(), anyString());
+        verify(emailService).sendStartupAlertEmail(any(String[].class), anyString(), anyString(), anyString(), anyLong());
         verify(commandService, never()).createNotification(anyLong(), anyString(), anyString());
     }
 
@@ -337,7 +337,7 @@ class NotificationServiceTest {
 
         notificationService.sendInvestmentInterestEmailToFounder(1L, 200L, "Bob");
 
-        verify(emailService).sendEmail(eq("alice@test.com"), anyString(), anyString());
+        verify(emailService).sendInvestmentApprovedEmail(eq("alice@test.com"), eq("Bob"), eq(1L), anyString());
         verify(commandService).createNotification(anyLong(), anyString(), anyString());
     }
 
@@ -370,7 +370,7 @@ class NotificationServiceTest {
 
         notificationService.sendInvestmentCreatedEmailToFounder(1L, 100L, 200L, 50000.0);
 
-        verify(emailService).sendEmail(eq("alice@test.com"), anyString(), anyString());
+        verify(emailService).sendInvestmentApprovedEmail(eq("alice@test.com"), eq("Bob"), eq(1L), anyString());
         verify(commandService).createNotification(anyLong(), anyString(), anyString());
     }
 
@@ -397,7 +397,7 @@ class NotificationServiceTest {
 
         notificationService.sendTeamInviteEmail(1L, 300L, "CTO");
 
-        verify(emailService).sendEmail(eq("charlie@test.com"), anyString(), anyString());
+        verify(emailService).sendTeamInviteEmail(eq("charlie@test.com"), eq("Charlie"), eq("CTO"), eq(1L));
     }
 
     @Test
