@@ -446,7 +446,7 @@
               }
             }
             @if (role === 'COFOUNDER') {
-              @for (inv of myInvitations().slice(0, 10); track inv.id) {
+              @for (inv of pendingInvitations().slice(0, 10); track inv.id) {
                 <div class="data-table-row">
                   <div class="dt-col-brand">
                     <span class="dt-name">{{ startupNames().get(inv.startupId) || 'Startup ' + inv.startupId }}</span>
@@ -489,7 +489,11 @@
               <div class="data-table-row">
                 <div class="dt-col-brand">
                   <span class="dt-name">{{ userNames().get(member.userId) }}</span>
-                  <span class="dt-tag-active">Active Engagement</span>
+                  @if (member.isActive) {
+                    <span class="dt-tag-active">Active Engagement</span>
+                  } @else {
+                    <span class="dt-tag-active" style="background: rgba(255, 255, 255, 0.05); color: #8892b0;">Historical Role</span>
+                  }
                 </div>
                 <div class="dt-col-info">
                   <span class="dt-label">Functional Role</span>

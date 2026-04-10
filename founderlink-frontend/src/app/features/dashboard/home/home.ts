@@ -90,7 +90,7 @@ export class HomeComponent implements OnInit {
         });
       });
     } else if (role === 'COFOUNDER') {
-      this.teamService.getMyActiveRoles().subscribe(env => {
+      this.teamService.getMemberHistory().subscribe(env => {
         this.allTeamMembers.set(env.data ?? []);
       });
     }
@@ -326,7 +326,6 @@ export class HomeComponent implements OnInit {
   });
 
   // ── Partnership Logic ──────────────────────────────────────────
-  acceptedInvitations = computed(() => this.myInvitations().filter(i => i.status === 'ACCEPTED'));
   pendingInvitations = computed(() => this.myInvitations().filter(i => i.status === 'PENDING'));
 
   // ── Computed stats ─────────────────────────────────────────────
@@ -363,7 +362,7 @@ export class HomeComponent implements OnInit {
   }
 
   get totalPartnershipsCount(): number {
-    return this.acceptedInvitations().length;
+    return this.allTeamMembers().filter(m => m.isActive === true).length;
   }
 
   get totalInvitationsCount(): number {

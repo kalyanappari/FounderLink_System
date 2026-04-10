@@ -43,7 +43,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   loadUnread(): void {
     if (!this.authService.userId()) return;
     this.notificationService.getMyUnreadNotifications().subscribe({
-      next: env => this.unreadCount.set((env.data ?? []).length),
+      next: env => this.unreadCount.set(env.totalElements ?? 0),
       error: () => { }
     });
   }

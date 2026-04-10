@@ -61,10 +61,10 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   }
 
   pollUnreadCount(): void {
-    this.notificationService.getUnreadCount().subscribe({
+    this.notificationService.getMyUnreadNotifications(0, 1).subscribe({
       next: env => {
-        if (env.data !== undefined && env.data !== null) {
-          this.unreadCount.set(env.data);
+        if (env.totalElements !== undefined) {
+          this.unreadCount.set(env.totalElements);
         }
       }
     });
