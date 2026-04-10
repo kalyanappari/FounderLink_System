@@ -35,7 +35,7 @@ export class UserService {
     let params = `?page=${page}&size=${size}`;
     if (search) params += `&search=${encodeURIComponent(search)}`;
     return this.http.get<any>(`${this.api}/users${params}`).pipe(
-      map(normalizePage),
+      map(res => normalizePage<UserResponse>(res)),
       catchError(err => throwError(() => normalizeError(err)))
     );
   }
@@ -44,7 +44,7 @@ export class UserService {
     let params = `?page=${page}&size=${size}`;
     if (search) params += `&search=${encodeURIComponent(search)}`;
     return this.http.get<any>(`${this.api}/users/role/${role}${params}`).pipe(
-      map(normalizePage),
+      map(res => normalizePage<UserResponse>(res)),
       catchError(err => throwError(() => normalizeError(err)))
     );
   }

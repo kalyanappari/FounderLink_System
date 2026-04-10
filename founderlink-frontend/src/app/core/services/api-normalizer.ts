@@ -22,19 +22,19 @@ export function normalizeArray<T>(body: any): ApiEnvelope<T[]> {
 }
 
 /** Pattern D: Spring Data Page structure */
-export function normalizePage<T>(body: any): ApiEnvelope<T[]> {
-  if (body && Array.isArray(body.content)) {
-    return { 
-        success: true, 
-        data: body.content, 
-        error: null,
-        totalElements: body.totalElements,
-        totalPages: body.totalPages,
-        pageNumber: body.pageNumber,
-        pageSize: body.pageSize
-    };
-  }
-  return normalizeArray(body); // fallback
+export function normalizePage<T>(res: any): ApiEnvelope<T[]> {
+  if (!res) return { success: true, data: [], error: null, totalElements: 0 };
+  const arr = res.data ?? res.content ?? [];
+  return {
+    success: true,
+    data: Array.isArray(arr) ? arr : [],
+    error: null,
+    totalElements: res.totalElements ?? 0,
+    totalPages: res.totalPages ?? 0,
+    pageNumber: res.pageNumber ?? res.number ?? 0,
+    pageSize: res.pageSize ?? res.size ?? 0,
+    isLast: res.last ?? res.isLast ?? true
+  };
 }
 
 /** Pattern D: Empty body (204 logout) */

@@ -28,10 +28,6 @@ export class NotificationsComponent implements OnInit, OnDestroy {
 
   totalElements = signal(0);
 
-  // Pagination State
-  currentPage = signal(1);
-  pageSize = signal(10);
-
   private refreshInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(
@@ -67,7 +63,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   pollUnreadCount(): void {
     this.notificationService.getUnreadCount().subscribe({
       next: env => {
-        if (env.data !== undefined) {
+        if (env.data !== undefined && env.data !== null) {
           this.unreadCount.set(env.data);
         }
       }

@@ -17,7 +17,7 @@ export class NotificationService {
   getMyNotifications(page: number = 0, size: number = 10): Observable<ApiEnvelope<NotificationResponse[]>> {
     const userId = this.auth.userId()!;
     return this.http.get<any>(`${this.api}/notifications/${userId}?page=${page}&size=${size}`).pipe(
-      map(normalizePage),
+      map(res => normalizePage<NotificationResponse>(res)),
       catchError(err => throwError(() => normalizeError(err)))
     );
   }
@@ -26,7 +26,7 @@ export class NotificationService {
   getMyUnreadNotifications(page: number = 0, size: number = 10): Observable<ApiEnvelope<NotificationResponse[]>> {
     const userId = this.auth.userId()!;
     return this.http.get<any>(`${this.api}/notifications/${userId}/unread?page=${page}&size=${size}`).pipe(
-      map(normalizePage),
+      map(res => normalizePage<NotificationResponse>(res)),
       catchError(err => throwError(() => normalizeError(err)))
     );
   }

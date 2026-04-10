@@ -16,7 +16,7 @@ export class StartupService {
   getAll(page: number = 0, size: number = 10): Observable<ApiEnvelope<StartupResponse[]>> {
     const params = new HttpParams().set('page', page).set('size', size);
     return this.http.get<any>(`${this.api}/startup`, { params }).pipe(
-      map(normalizePage),
+      map(res => normalizePage<StartupResponse>(res)),
       catchError(err => throwError(() => normalizeError(err)))
     );
   }
@@ -28,7 +28,7 @@ export class StartupService {
     if (filters.minFunding != null) params = params.set('minFunding', filters.minFunding);
     if (filters.maxFunding != null) params = params.set('maxFunding', filters.maxFunding);
     return this.http.get<any>(`${this.api}/startup/search`, { params }).pipe(
-      map(normalizePage),
+      map(res => normalizePage<StartupResponse>(res)),
       catchError(err => throwError(() => normalizeError(err)))
     );
   }
@@ -43,7 +43,7 @@ export class StartupService {
   getMyStartups(page: number = 0, size: number = 10): Observable<ApiEnvelope<StartupResponse[]>> {
     const params = new HttpParams().set('page', page).set('size', size);
     return this.http.get<any>(`${this.api}/startup/founder`, { params }).pipe(
-      map(normalizePage),
+      map(res => normalizePage<StartupResponse>(res)),
       catchError(err => throwError(() => normalizeError(err)))
     );
   }

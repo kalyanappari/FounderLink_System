@@ -29,7 +29,7 @@ export class MessagingService {
   getConversation(partnerId: number, page: number = 0, size: number = 50): Observable<ApiEnvelope<MessageResponse[]>> {
     const userId = this.auth.userId()!;
     return this.http.get<any>(`${this.api}/messages/conversation/${userId}/${partnerId}?page=${page}&size=${size}`).pipe(
-      map(normalizePage),
+      map(res => normalizePage<MessageResponse>(res)),
       catchError(err => throwError(() => normalizeError(err)))
     );
   }
@@ -41,7 +41,7 @@ export class MessagingService {
   getPartnerIds(): Observable<ApiEnvelope<number[]>> {
     const userId = this.auth.userId()!;
     return this.http.get<number[]>(`${this.api}/messages/partners/${userId}`).pipe(
-      map(normalizeArray),
+      map(res => normalizeArray<number>(res)),
       catchError(err => throwError(() => normalizeError(err)))
     );
   }
