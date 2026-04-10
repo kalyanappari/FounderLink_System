@@ -14,15 +14,19 @@ public class UserServiceClientFallback implements UserServiceClient {
     private static final Logger log = LoggerFactory.getLogger(UserServiceClientFallback.class);
 
     @Override
-    public List<UserDTO> getAllUsers() {
+    public com.founderlink.notification.dto.PagedResponse<UserDTO> getAllUsers(int page, int size) {
         log.warn("User-service is unavailable. Fallback triggered for getAllUsers");
-        return Collections.emptyList();
+        com.founderlink.notification.dto.PagedResponse<UserDTO> response = new com.founderlink.notification.dto.PagedResponse<>();
+        response.setContent(Collections.emptyList());
+        return response;
     }
 
     @Override
-    public List<UserDTO> getUsersByRole(String role) {
+    public com.founderlink.notification.dto.PagedResponse<UserDTO> getUsersByRole(String role, int page, int size) {
         log.warn("User-service is unavailable. Fallback triggered for getUsersByRole: {}", role);
-        return Collections.emptyList();
+        com.founderlink.notification.dto.PagedResponse<UserDTO> response = new com.founderlink.notification.dto.PagedResponse<>();
+        response.setContent(Collections.emptyList());
+        return response;
     }
 
     @Override

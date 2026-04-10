@@ -14,6 +14,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 })
 export class UserExplorerComponent implements OnInit {
   users = signal<UserResponse[]>([]);
+  totalElements = signal(0);
   loading = signal(true);
   error = signal<string | null>(null);
 
@@ -25,48 +26,42 @@ export class UserExplorerComponent implements OnInit {
   currentPage = signal(1);
   pageSize = signal(10);
 
-  filteredUsers = computed(() => {
-    const q = this.searchQuery().toLowerCase().trim();
-    const role = this.roleFilter();
-    let list = this.users();
-
-    if (role !== 'ALL') {
-      list = list.filter(u => u.role === role);
-    }
-
-    if (q) {
-      list = list.filter(u => 
-        u.name?.toLowerCase().includes(q) || 
-        u.email.toLowerCase().includes(q) || 
-        u.role.toLowerCase().includes(q)
-      );
-    }
-
-    return list;
-  });
-
-  paginatedUsers = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize();
-    return this.filteredUsers().slice(start, start + this.pageSize());
-  });
-
   constructor(private userService: UserService) {
-    // Reset to page 1 whenever results change
+    // Whenever parameters change, reload users from backend
     effect(() => {
-      this.filteredUsers(); // Watch for changes
-      this.currentPage.set(1);
+      const role = this.roleFilter();
+      const q = this.searchQuery().trim();
+      const page = this.currentPage();
+      const size = this.pageSize();
+      
+      // Prevent running load if we aren't fully initialized (optional, but effect runs automatically)
+      // Call load internally
+      // Note: updating component state within effect requires allowSignalWrites
+      this.fetchUsersFromBackend(page, size, q, role);
     }, { allowSignalWrites: true });
   }
 
   ngOnInit(): void {
-    this.loadUsers();
+    // Intentionally left blank as the effect will trigger on mount due to default signal signals
   }
 
   loadUsers(): void {
+    this.fetchUsersFromBackend(this.currentPage(), this.pageSize(), this.searchQuery().trim(), this.roleFilter());
+  }
+
+  private fetchUsersFromBackend(page: number, size: number, search: string, role: string): void {
     this.loading.set(true);
-    this.userService.getAllUsers().subscribe({
+    // Backend pages are 0-indexed
+    const pageIndex = page - 1 < 0 ? 0 : page - 1;
+
+    const request$ = role === 'ALL' 
+      ? this.userService.getAllUsers(pageIndex, size, search)
+      : this.userService.getUsersByRole(role, pageIndex, size, search);
+
+    request$.subscribe({
       next: (res) => {
         this.users.set(res.data || []);
+        this.totalElements.set(res.totalElements || res.data?.length || 0);
         this.loading.set(false);
       },
       error: (err) => {

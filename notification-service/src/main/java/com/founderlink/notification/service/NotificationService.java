@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import com.founderlink.notification.dto.PagedResponse;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Facade that preserves the existing NotificationService contract.
@@ -56,12 +58,16 @@ public class NotificationService {
 
     // ── Delegated to Query side ──────────────────────────────────────────────
 
-    public List<NotificationResponseDTO> getNotificationsByUser(Long userId) {
-        return queryService.getNotificationsByUser(userId);
+    public PagedResponse<NotificationResponseDTO> getNotificationsByUser(Long userId, Pageable pageable) {
+        return queryService.getNotificationsByUser(userId, pageable);
     }
 
-    public List<NotificationResponseDTO> getUnreadNotifications(Long userId) {
-        return queryService.getUnreadNotifications(userId);
+    public PagedResponse<NotificationResponseDTO> getUnreadNotifications(Long userId, Pageable pageable) {
+        return queryService.getUnreadNotifications(userId, pageable);
+    }
+
+    public long getUnreadCount(Long userId) {
+        return queryService.getUnreadCount(userId);
     }
 
     // ── Event-driven email helpers (unchanged) ───────────────────────────────
@@ -70,7 +76,7 @@ public class NotificationService {
     @Retry(name = "notificationService")
     public void notifyAllUsers(String type, String message) {
         try {
-            var users = userServiceClient.getAllUsers();
+            var users = userServiceClient.getAllUsers(0, 10000).getContent();
             log.info("Notifying {} users about event type: {}", users.size(), type);
             users.forEach(user -> {
                 try {
@@ -91,7 +97,7 @@ public class NotificationService {
 
     public void sendStartupCreatedEmailToAllInvestors(Long startupId, String startupName, String industry, Double fundingGoal) {
         try {
-            List<UserDTO> investors = userServiceClient.getUsersByRole("INVESTOR");
+            List<UserDTO> investors = userServiceClient.getUsersByRole("INVESTOR", 0, 10000).getContent();
             log.info("Sending startup created email to {} investors", investors.size());
 
             String notificationMessage = String.format(

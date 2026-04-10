@@ -75,7 +75,7 @@
         }
 
         <app-pagination 
-          [totalItems]="getFiltered().length" 
+          [totalItems]="totalElements()" 
           [pageSize]="pageSize()" 
           [currentPage]="currentPage()" 
           (pageChange)="onPageChange($event)">

@@ -4,7 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { ApiEnvelope, MessageResponse, UserResponse } from '../../models';
-import { normalizeArray, normalizePlain, normalizeError } from './api-normalizer';
+import { normalizeArray, normalizePlain, normalizeError, normalizePage } from './api-normalizer';
 import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
@@ -25,11 +25,11 @@ export class MessagingService {
     );
   }
 
-  /** Get full conversation between current user and a partner (plain array response) */
-  getConversation(partnerId: number): Observable<ApiEnvelope<MessageResponse[]>> {
+  /** Get full conversation between current user and a partner */
+  getConversation(partnerId: number, page: number = 0, size: number = 50): Observable<ApiEnvelope<MessageResponse[]>> {
     const userId = this.auth.userId()!;
-    return this.http.get<MessageResponse[]>(`${this.api}/messages/conversation/${userId}/${partnerId}`).pipe(
-      map(normalizeArray),
+    return this.http.get<any>(`${this.api}/messages/conversation/${userId}/${partnerId}?page=${page}&size=${size}`).pipe(
+      map(normalizePage),
       catchError(err => throwError(() => normalizeError(err)))
     );
   }

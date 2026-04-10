@@ -7,6 +7,8 @@ import com.founderlink.messaging.query.MessageQueryService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import com.founderlink.messaging.dto.PagedResponse;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Facade that preserves the existing MessageService contract.
@@ -32,8 +34,8 @@ public class MessageService {
         return queryService.getMessageById(id);
     }
 
-    public List<MessageResponseDTO> getConversation(Long user1, Long user2) {
-        return queryService.getConversation(user1, user2);
+    public PagedResponse<MessageResponseDTO> getConversation(Long user1, Long user2, Pageable pageable) {
+        return queryService.getConversation(user1, user2, pageable);
     }
 
     public List<Long> getConversationPartners(Long userId) {

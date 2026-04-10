@@ -11,10 +11,15 @@ import java.util.List;
 public interface UserServiceClient {
 
     @GetMapping("/users")
-    List<UserDTO> getAllUsers();
+    com.founderlink.notification.dto.PagedResponse<UserDTO> getAllUsers(
+            @org.springframework.web.bind.annotation.RequestParam(value = "page", defaultValue = "0") int page,
+            @org.springframework.web.bind.annotation.RequestParam(value = "size", defaultValue = "10") int size);
 
     @GetMapping("/users/role/{role}")
-    List<UserDTO> getUsersByRole(@PathVariable("role") String role);
+    com.founderlink.notification.dto.PagedResponse<UserDTO> getUsersByRole(
+            @PathVariable("role") String role,
+            @org.springframework.web.bind.annotation.RequestParam(value = "page", defaultValue = "0") int page,
+            @org.springframework.web.bind.annotation.RequestParam(value = "size", defaultValue = "10") int size);
 
     @GetMapping("/users/{id}")
     UserDTO getUserById(@PathVariable Long id);

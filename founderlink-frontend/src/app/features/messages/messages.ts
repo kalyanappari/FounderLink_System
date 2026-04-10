@@ -38,6 +38,12 @@ export class MessagesComponent implements OnInit, OnDestroy, AfterViewChecked {
   errorMsg       = signal('');
   successMsg     = signal('');
   messageContent = '';
+  
+  // Pagination State
+  currentChatPage = signal(0);
+  totalMessages   = signal(0);
+  loadingOlder    = signal(false);
+  
   private pollInterval: any;
 
   constructor(
@@ -124,22 +130,50 @@ export class MessagesComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.selectedPartner.set(partner);
     this.messageContent = '';
     this.showUserSelector.set(false);
-    this.loadMessages(partner.userId);
+    this.messages.set([]);
+    this.currentChatPage.set(0);
+    this.loadMessages(partner.userId, 0);
     
     // Start live polling for this conversation
     if (this.pollInterval) clearInterval(this.pollInterval);
     this.pollInterval = setInterval(() => {
       if (this.selectedPartner()?.userId === partner.userId) {
-        this.loadMessages(partner.userId);
+        // Polling only fetches the latest page (page 0) to grab any new texts
+        this.loadMessages(partner.userId, 0, true);
       }
     }, 2000);
   }
 
-  loadMessages(partnerId: number): void {
-    this.messagingService.getConversation(partnerId).subscribe({
-      next: env => this.messages.set(env.data ?? []),
+  loadMessages(partnerId: number, page: number, isPolling: boolean = false): void {
+    this.messagingService.getConversation(partnerId, page).subscribe({
+      next: env => {
+        let incoming = env.data ?? [];
+        incoming = incoming.reverse(); // Back to oldest->newest for chat UI
+        this.totalMessages.set(env.totalElements || incoming.length);
+
+        const currentMap = new Map(this.messages().map(m => [m.id, m]));
+        const uniqueNew = incoming.filter(m => !currentMap.has(m.id));
+
+        if (page === 0 && uniqueNew.length > 0) {
+          // New messages arrived at the bottom
+          this.messages.update(list => [...list, ...uniqueNew]);
+          if (!isPolling) setTimeout(() => this.scrollToBottom(), 100);
+        } else if (page > 0) {
+          // Prepending historical messages to the top
+          this.messages.update(list => [...uniqueNew, ...list]);
+          this.loadingOlder.set(false);
+        }
+      },
       error: () => this.errorMsg.set('Failed to load messages.')
     });
+  }
+
+  loadOlderMessages(): void {
+    const partner = this.selectedPartner();
+    if (!partner) return;
+    this.loadingOlder.set(true);
+    this.currentChatPage.update(p => p + 1);
+    this.loadMessages(partner.userId, this.currentChatPage());
   }
 
   sendMessage(): void {

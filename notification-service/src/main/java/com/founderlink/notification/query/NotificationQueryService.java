@@ -10,8 +10,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.stream.Collectors;
+import com.founderlink.notification.dto.PagedResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class NotificationQueryService {
@@ -26,40 +28,45 @@ public class NotificationQueryService {
 
     /**
      * QUERY: Get all notifications for a user (newest first).
-     * Cache key = userId.
+     * Cache key = userId + page configs.
      */
     @CircuitBreaker(name = "notificationService", fallbackMethod = "getNotificationsByUserFallback")
     @Retry(name = "notificationService")
-    @Cacheable(value = "notificationsByUser", key = "#userId")
-    public List<NotificationResponseDTO> getNotificationsByUser(Long userId) {
+    @Cacheable(value = "notificationsByUser", key = "#userId + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
+    public PagedResponse<NotificationResponseDTO> getNotificationsByUser(Long userId, Pageable pageable) {
         log.info("QUERY - getNotificationsByUser: userId={} (cache miss, hitting DB)", userId);
-        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        Page<com.founderlink.notification.entity.Notification> page = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        return PagedResponse.of(page.map(this::mapToDTO));
     }
 
-    public List<NotificationResponseDTO> getNotificationsByUserFallback(Long userId, Throwable throwable) {
+    public PagedResponse<NotificationResponseDTO> getNotificationsByUserFallback(Long userId, Pageable pageable, Throwable throwable) {
         log.error("Fallback - getNotificationsByUser. User: {}, Reason: {}", userId, throwable.getMessage());
-        return Collections.emptyList();
+        return new PagedResponse<>();
     }
 
     /**
      * QUERY: Get only unread notifications for a user.
-     * Cache key = userId.
+     * Cache key = userId + page configs.
      */
     @CircuitBreaker(name = "notificationService", fallbackMethod = "getUnreadNotificationsFallback")
     @Retry(name = "notificationService")
-    @Cacheable(value = "unreadNotifications", key = "#userId")
-    public List<NotificationResponseDTO> getUnreadNotifications(Long userId) {
+    @Cacheable(value = "unreadNotifications", key = "#userId + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
+    public PagedResponse<NotificationResponseDTO> getUnreadNotifications(Long userId, Pageable pageable) {
         log.info("QUERY - getUnreadNotifications: userId={} (cache miss, hitting DB)", userId);
-        return notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(userId).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        Page<com.founderlink.notification.entity.Notification> page = notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(userId, pageable);
+        return PagedResponse.of(page.map(this::mapToDTO));
     }
 
-    public List<NotificationResponseDTO> getUnreadNotificationsFallback(Long userId, Throwable throwable) {
+    public PagedResponse<NotificationResponseDTO> getUnreadNotificationsFallback(Long userId, Pageable pageable, Throwable throwable) {
         log.error("Fallback - getUnreadNotifications. User: {}, Reason: {}", userId, throwable.getMessage());
-        return Collections.emptyList();
+        return new PagedResponse<>();
+    }
+
+    /**
+     * QUERY: Get unread notification integer total.
+     */
+    public long getUnreadCount(Long userId) {
+        return notificationRepository.countUnreadByUserId(userId);
     }
 
     private NotificationResponseDTO mapToDTO(com.founderlink.notification.entity.Notification notification) {

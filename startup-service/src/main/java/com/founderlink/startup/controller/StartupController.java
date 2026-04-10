@@ -85,8 +85,10 @@ public class StartupController {
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Startups fetched successfully"),
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Access denied — insufficient role")
         })
-        public ResponseEntity<ApiResponse<?>> getAllStartups(
-                        @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+        public ResponseEntity<com.founderlink.startup.dto.response.PagedResponse<StartupResponseDto>> getAllStartups(
+                        @RequestHeader(value = "X-User-Role", required = false) String userRole,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size) {
 
                 // Public path: allow unauthenticated browsing; authenticated users get role-checked
                 if (userRole != null &&
@@ -98,13 +100,10 @@ public class StartupController {
                 }
 
                 log.info("GET /startup - get all the startups");
-                List<StartupResponseDto> response = startupService
-                                .getAllStartups();
+                com.founderlink.startup.dto.response.PagedResponse<StartupResponseDto> response = startupService
+                                .getAllStartups(page, size);
 
-                return ResponseEntity
-                                .ok(new ApiResponse<>(
-                                                "Startups fetched successfully",
-                                                response));
+                return ResponseEntity.ok(response);
         }
 
         // ─────────────────────────────────────────
@@ -166,9 +165,11 @@ public class StartupController {
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Startups fetched successfully"),
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Access denied — FOUNDER role required")
         })
-        public ResponseEntity<ApiResponse<?>> getStartupsByFounder(
+        public ResponseEntity<com.founderlink.startup.dto.response.PagedResponse<StartupResponseDto>> getStartupsByFounder(
                         @RequestHeader("X-User-Id") Long founderId,
-                        @RequestHeader("X-User-Role") String userRole) {
+                        @RequestHeader("X-User-Role") String userRole,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size) {
 
                 log.info("GET /startup/founder - founderId: {}, role: {}", founderId, userRole);
                 if (!userRole.equals("ROLE_FOUNDER")) {
@@ -178,13 +179,10 @@ public class StartupController {
                                                         "can view their startups");
                 }
 
-                List<StartupResponseDto> response = startupService
-                                .getStartupsByFounderId(founderId);
+                com.founderlink.startup.dto.response.PagedResponse<StartupResponseDto> response = startupService
+                                .getStartupsByFounderId(founderId, page, size);
 
-                return ResponseEntity
-                                .ok(new ApiResponse<>(
-                                                "Startups fetched successfully",
-                                                response));
+                return ResponseEntity.ok(response);
         }
 
         // ─────────────────────────────────────────
@@ -268,12 +266,14 @@ public class StartupController {
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid search parameters or enum value"),
                 @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Access denied — insufficient role")
         })
-        public ResponseEntity<ApiResponse<?>> searchStartups(
+        public ResponseEntity<com.founderlink.startup.dto.response.PagedResponse<StartupResponseDto>> searchStartups(
                         @RequestHeader(value = "X-User-Role", required = false) String userRole,
                         @RequestParam(required = false) String industry,
                         @RequestParam(required = false) StartupStage stage,
                         @RequestParam(required = false) BigDecimal minFunding,
-                        @RequestParam(required = false) BigDecimal maxFunding) {
+                        @RequestParam(required = false) BigDecimal maxFunding,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size) {
 
                 log.info("GET /startup/search - industry: {}, stage: {}, role: {}", industry, stage, userRole);
                 // Public path: skip role check for unauthenticated requests
@@ -285,16 +285,14 @@ public class StartupController {
                         throw new ForbiddenAccessException("Access denied");
                 }
 
-                List<StartupResponseDto> response = startupService
+                com.founderlink.startup.dto.response.PagedResponse<StartupResponseDto> response = startupService
                                 .searchStartups(
                                                 industry,
                                                 stage,
                                                 minFunding,
-                                                maxFunding);
+                                                maxFunding,
+                                                page, size);
 
-                return ResponseEntity
-                                .ok(new ApiResponse<>(
-                                                "Startups fetched successfully",
-                                                response));
+                return ResponseEntity.ok(response);
         }
 }

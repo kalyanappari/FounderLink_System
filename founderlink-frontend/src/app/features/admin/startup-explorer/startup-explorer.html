@@ -25,7 +25,7 @@
       </div>
     } @else {
       <div class="venture-grid">
-        @for (s of paginatedStartups(); track s.id) {
+        @for (s of startups(); track s.id) {
           <div class="venture-card">
             <div class="card-glow"></div>
             <div class="card-inner">
@@ -61,7 +61,7 @@
       </div>
 
       <app-pagination 
-        [totalItems]="startups().length" 
+        [totalItems]="totalElements()" 
         [pageSize]="pageSize()" 
         [currentPage]="currentPage()" 
         (pageChange)="onPageChange($event)">

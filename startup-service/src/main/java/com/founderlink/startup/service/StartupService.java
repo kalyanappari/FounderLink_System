@@ -37,7 +37,7 @@ public interface StartupService {
     // → returns empty list if none
     // → excludes deleted startups
     // ─────────────────────────────────────────
-    List<StartupResponseDto> getAllStartups();
+    com.founderlink.startup.dto.response.PagedResponse<StartupResponseDto> getAllStartups(int page, int size);
 
     // ─────────────────────────────────────────
     // GET STARTUPS BY FOUNDER
@@ -47,8 +47,8 @@ public interface StartupService {
     // → returns empty list if none
     // → excludes deleted startups
     // ─────────────────────────────────────────
-    List<StartupResponseDto> getStartupsByFounderId(
-            Long founderId);
+    com.founderlink.startup.dto.response.PagedResponse<StartupResponseDto> getStartupsByFounderId(
+            Long founderId, int page, int size);
 
     // ─────────────────────────────────────────
     // UPDATE STARTUP
@@ -85,9 +85,10 @@ public interface StartupService {
     // → excludes deleted startups
     // → funding range validation
     // ─────────────────────────────────────────
-    List<StartupResponseDto> searchStartups(
+    com.founderlink.startup.dto.response.PagedResponse<StartupResponseDto> searchStartups(
             String industry,
             StartupStage stage,
             BigDecimal minFunding,
-            BigDecimal maxFunding);
+            BigDecimal maxFunding,
+            int page, int size);
 }

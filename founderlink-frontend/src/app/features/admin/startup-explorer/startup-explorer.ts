@@ -14,6 +14,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 })
 export class StartupExplorerComponent implements OnInit {
   startups = signal<StartupResponse[]>([]);
+  totalElements = signal(0);
   loading = signal(true);
   error = signal<string | null>(null);
 
@@ -21,28 +22,32 @@ export class StartupExplorerComponent implements OnInit {
   currentPage = signal(1);
   pageSize = signal(9); // 3x3 grid
 
-  paginatedStartups = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize();
-    return this.startups().slice(start, start + this.pageSize());
-  });
-
   constructor(private startupService: StartupService) {
-    // Reset to page 1 whenever results change
+    // Reload items on page change
     effect(() => {
-      this.startups();
-      this.currentPage.set(1);
+      const page = this.currentPage();
+      const size = this.pageSize();
+      this.fetchStartups(page, size);
     }, { allowSignalWrites: true });
   }
 
   ngOnInit(): void {
-    this.loadStartups();
+    // Intentionally left blank as effect handles initial load
   }
 
   loadStartups(): void {
+    this.fetchStartups(this.currentPage(), this.pageSize());
+  }
+
+  private fetchStartups(page: number, size: number): void {
     this.loading.set(true);
-    this.startupService.getAll().subscribe({
+    // Backend pages are 0-indexed
+    const pageIndex = page - 1 < 0 ? 0 : page - 1;
+
+    this.startupService.getAll(pageIndex, size).subscribe({
       next: (res) => {
         this.startups.set(res.data || []);
+        this.totalElements.set(res.totalElements || res.data?.length || 0);
         this.loading.set(false);
       },
       error: () => {

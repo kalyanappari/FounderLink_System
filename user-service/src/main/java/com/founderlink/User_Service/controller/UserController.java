@@ -85,8 +85,12 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Users fetched successfully")
     })
     @GetMapping
-    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
-        return ResponseEntity.ok(service.getAllUsers());
+    public ResponseEntity<com.founderlink.User_Service.dto.PagedResponse<UserResponseDto>> getAllUsers(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        return ResponseEntity.ok(service.getAllUsers(search, pageable));
     }
 
     @Operation(summary = "Get users by role", description = "Fetches users by their role.")
@@ -96,10 +100,13 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "Forbidden — ADMIN role not allowed")
     })
     @GetMapping("/role/{role}")
-    public ResponseEntity<List<UserResponseDto>> getUsersByRole(
-            @PathVariable String role) {
+    public ResponseEntity<com.founderlink.User_Service.dto.PagedResponse<UserResponseDto>> getUsersByRole(
+            @PathVariable String role,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        log.info("GET /users/role/{} - fetching users by role", role);
+        log.info("GET /users/role/{} - fetching users by role, page: {}", role, page);
 
         try {
             String roleName = role.toUpperCase().replace("ROLE_", "");
@@ -108,15 +115,16 @@ public class UserController {
             if (roleEnum == Role.ADMIN) {
                 log.warn("Attempt to fetch ADMIN users - blocked");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Collections.emptyList());
+                        .body(null);
             }
 
-            List<UserResponseDto> response = service.getUsersByRole(roleEnum);
-            log.info("Successfully fetched {} users with role: {}", response.size(), role);
+            org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+            com.founderlink.User_Service.dto.PagedResponse<UserResponseDto> response = service.getUsersByRole(roleEnum, search, pageable);
+            log.info("Successfully fetched {} users in current page with role: {}", response.getContent().size(), role);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             log.warn("Invalid role provided: {}", role);
-            return ResponseEntity.badRequest().body(Collections.emptyList());
+            return ResponseEntity.badRequest().body(null);
         }
     }
 

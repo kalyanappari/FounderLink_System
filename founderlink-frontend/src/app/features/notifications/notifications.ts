@@ -26,11 +26,11 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   currentPage = signal(1);
   pageSize = signal(10);
 
-  paginatedNotifications = computed(() => {
-    const list = this.getFiltered();
-    const start = (this.currentPage() - 1) * this.pageSize();
-    return list.slice(start, start + this.pageSize());
-  });
+  totalElements = signal(0);
+
+  // Pagination State
+  currentPage = signal(1);
+  pageSize = signal(10);
 
   private refreshInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -40,10 +40,12 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private router: Router
   ) {
-    // Reset page when filterType changes
+    // Reload items on page or filter change
     effect(() => {
-      this.filterType();
-      this.currentPage.set(1);
+      const page = this.currentPage();
+      const size = this.pageSize();
+      const type = this.filterType(); // Reacts to filter change
+      this.fetchNotifications(page, size, type);
     }, { allowSignalWrites: true });
   }
 
@@ -53,21 +55,45 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.loadNotifications();
-    this.refreshInterval = setInterval(() => this.loadNotifications(), 30000);
+    this.pollUnreadCount();
+    // Poll just the integer every 30 seconds rather than massive array
+    this.refreshInterval = setInterval(() => this.pollUnreadCount(), 30000);
   }
 
   ngOnDestroy(): void {
     if (this.refreshInterval) clearInterval(this.refreshInterval);
   }
 
-  loadNotifications(): void {
+  pollUnreadCount(): void {
+    this.notificationService.getUnreadCount().subscribe({
+      next: env => {
+        if (env.data !== undefined) {
+          this.unreadCount.set(env.data);
+        }
+      }
+    });
+  }
+
+  fetchNotifications(page: number, size: number, type: string): void {
     this.loading.set(true);
-    this.notificationService.getMyNotifications().subscribe({
+    const pageIndex = page - 1 < 0 ? 0 : page - 1;
+    
+    const obs = type === 'unread' 
+      ? this.notificationService.getMyUnreadNotifications(pageIndex, size)
+      : this.notificationService.getMyNotifications(pageIndex, size);
+
+    obs.subscribe({
       next: env => {
         const all = env.data ?? [];
-        this.notifications.set(all);
-        this.unreadCount.set(all.filter(n => !n.read).length);
+        if (type === 'read') {
+          // Fallback client-side filter for 'read' tab using 'all' data
+          const readOnly = all.filter(n => n.read);
+          this.notifications.set(readOnly);
+          this.totalElements.set(readOnly.length);
+        } else {
+          this.notifications.set(all);
+          this.totalElements.set(env.totalElements || all.length);
+        }
         this.loading.set(false);
       },
       error: () => {
@@ -75,6 +101,10 @@ export class NotificationsComponent implements OnInit, OnDestroy {
         this.loading.set(false);
       }
     });
+  }
+
+  loadNotifications(): void {
+    this.fetchNotifications(this.currentPage(), this.pageSize(), this.filterType());
   }
 
   markAsRead(id: number): void {
@@ -118,15 +148,12 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   }
 
   getFiltered(): NotificationResponse[] {
-    const f = this.filterType();
-    const all = this.notifications();
-    if (f === 'read')   return all.filter(n => n.read);
-    if (f === 'unread') return all.filter(n => !n.read);
-    return all;
+    return this.notifications();
   }
 
   setFilter(f: 'all' | 'unread' | 'read'): void {
     this.filterType.set(f);
+    this.currentPage.set(1);
   }
 
   getIcon(type: string): string {

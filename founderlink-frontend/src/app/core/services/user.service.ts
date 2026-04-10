@@ -4,7 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { ApiEnvelope, UserResponse, UserUpdateRequest } from '../../models';
-import { normalizeArray, normalizePlain, normalizeError } from './api-normalizer';
+import { normalizeArray, normalizePlain, normalizeError, normalizePage } from './api-normalizer';
 import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
@@ -30,17 +30,21 @@ export class UserService {
     );
   }
 
-  /** Get all users (plain array response) */
-  getAllUsers(): Observable<ApiEnvelope<UserResponse[]>> {
-    return this.http.get<UserResponse[]>(`${this.api}/users`).pipe(
-      map(normalizeArray),
+  /** Get all users paged with search */
+  getAllUsers(page: number = 0, size: number = 10, search?: string): Observable<ApiEnvelope<UserResponse[]>> {
+    let params = `?page=${page}&size=${size}`;
+    if (search) params += `&search=${encodeURIComponent(search)}`;
+    return this.http.get<any>(`${this.api}/users${params}`).pipe(
+      map(normalizePage),
       catchError(err => throwError(() => normalizeError(err)))
     );
   }
 
-  getUsersByRole(role: string): Observable<ApiEnvelope<UserResponse[]>> {
-    return this.http.get<UserResponse[]>(`${this.api}/users/role/${role}`).pipe(
-      map(normalizeArray),
+  getUsersByRole(role: string, page: number = 0, size: number = 10, search?: string): Observable<ApiEnvelope<UserResponse[]>> {
+    let params = `?page=${page}&size=${size}`;
+    if (search) params += `&search=${encodeURIComponent(search)}`;
+    return this.http.get<any>(`${this.api}/users/role/${role}${params}`).pipe(
+      map(normalizePage),
       catchError(err => throwError(() => normalizeError(err)))
     );
   }

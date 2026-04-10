@@ -55,7 +55,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (user of paginatedUsers(); track user.userId) {
+            @for (user of users(); track user.userId) {
               <tr class="table-row-hover">
                 <td class="col-id">#{{ user.userId }}</td>
                 <td class="col-identity">
@@ -94,7 +94,7 @@
       </div>
 
       <app-pagination 
-        [totalItems]="filteredUsers().length" 
+        [totalItems]="totalElements()" 
         [pageSize]="pageSize()" 
         [currentPage]="currentPage()" 
         (pageChange)="onPageChange($event)">

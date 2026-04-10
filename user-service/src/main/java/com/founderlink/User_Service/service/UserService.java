@@ -37,12 +37,12 @@ public class UserService {
         return queryService.getUser(id);
     }
 
-    public List<UserResponseDto> getAllUsers() {
-        return queryService.getAllUsers();
+    public com.founderlink.User_Service.dto.PagedResponse<UserResponseDto> getAllUsers(String search, org.springframework.data.domain.Pageable pageable) {
+        return queryService.getAllUsers(search, pageable);
     }
 
-    public List<UserResponseDto> getUsersByRole(Role role) {
-        return queryService.getUsersByRole(role);
+    public com.founderlink.User_Service.dto.PagedResponse<UserResponseDto> getUsersByRole(Role role, String search, org.springframework.data.domain.Pageable pageable) {
+        return queryService.getUsersByRole(role, search, pageable);
     }
 
     public long countByRole(Role role) {

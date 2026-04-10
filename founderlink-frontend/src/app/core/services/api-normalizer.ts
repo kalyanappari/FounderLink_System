@@ -11,9 +11,30 @@ export function normalizePlain<T>(body: T): ApiEnvelope<T> {
   return { success: true, data: body, error: null };
 }
 
-/** Pattern C: Plain array */
-export function normalizeArray<T>(body: T[]): ApiEnvelope<T[]> {
-  return { success: true, data: Array.isArray(body) ? body : [], error: null };
+/** Pattern C: Plain array or Paginated response fallback */
+export function normalizeArray<T>(body: any): ApiEnvelope<T[]> {
+  if (Array.isArray(body)) {
+    return { success: true, data: body, error: null };
+  } else if (body && Array.isArray(body.content)) {
+    return { success: true, data: body.content, error: null };
+  }
+  return { success: true, data: [], error: null };
+}
+
+/** Pattern D: Spring Data Page structure */
+export function normalizePage<T>(body: any): ApiEnvelope<T[]> {
+  if (body && Array.isArray(body.content)) {
+    return { 
+        success: true, 
+        data: body.content, 
+        error: null,
+        totalElements: body.totalElements,
+        totalPages: body.totalPages,
+        pageNumber: body.pageNumber,
+        pageSize: body.pageSize
+    };
+  }
+  return normalizeArray(body); // fallback
 }
 
 /** Pattern D: Empty body (204 logout) */
