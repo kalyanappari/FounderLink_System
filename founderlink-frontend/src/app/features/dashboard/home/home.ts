@@ -171,14 +171,23 @@ export class HomeComponent implements OnInit {
       notification: true
     };
 
-    // 1. User & Skill Density
+    // 1. User & Skill Density (Corrected for Global Counts)
+    this.userService.getPublicStats().subscribe({
+      next: stats => {
+        this.foundersCount.set(stats.founders);
+        this.investorsCount.set(stats.investors);
+        this.cofoundersCount.set(stats.cofounders);
+        this.totalPlatformUsers.set(stats.founders + stats.investors + stats.cofounders);
+      }
+    });
+
     this.userService.getAllUsers().subscribe({
       next: env => {
         const users = env.data ?? [];
-        this.totalPlatformUsers.set(users.length);
-        this.foundersCount.set(users.filter(u => u.role === 'FOUNDER').length);
-        this.investorsCount.set(users.filter(u => u.role === 'INVESTOR').length);
-        this.cofoundersCount.set(users.filter(u => u.role === 'COFOUNDER').length);
+        // Map users for names (only needs current page as it's for recent activity/lookups)
+        const map = new Map(this.userNames());
+        users.forEach(u => map.set(u.userId, u.name || `User ${u.userId}`));
+        this.userNames.set(map);
 
         // Skill Density Map
         const skillCounters: Record<string, number> = {};
@@ -326,7 +335,13 @@ export class HomeComponent implements OnInit {
   });
 
   // ── Partnership Logic ──────────────────────────────────────────
+  acceptedInvitations = computed(() => this.myInvitations().filter(i => i.status === 'ACCEPTED'));
   pendingInvitations = computed(() => this.myInvitations().filter(i => i.status === 'PENDING'));
+  recentInvitations = computed(() => {
+    return [...this.myInvitations()]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5);
+  });
 
   // ── Computed stats ─────────────────────────────────────────────
   get totalInvested(): number {
@@ -394,6 +409,10 @@ export class HomeComponent implements OnInit {
       ACCEPTED: 'Active'
     };
     return labels[status] ?? status;
+  }
+
+  isPartnershipActive(startupId: number): boolean {
+    return this.allTeamMembers().some(m => m.startupId === startupId && m.isActive);
   }
 
   formatCurrency(amount: number): string {

@@ -72,8 +72,12 @@ export class TeamComponent implements OnInit {
 
   paginatedTeams = computed(() => {
     const start = (this.currentPageTeams() - 1) * this.pageSizeTeams();
-    return this.myTeams().slice(start, start + this.pageSizeTeams());
+    return this.activeTeams().slice(start, start + this.pageSizeTeams());
   });
+
+  // ── Computed Filtered Team Lists ───────────────────────────────────────────
+  activeTeams = computed(() => this.myTeams().filter(m => m.isActive));
+  historicalTeams = computed(() => this.myTeams().filter(m => !m.isActive));
 
   // ── CoFounder state ───────────────────────────────────────────────────────
   myTeams = signal<TeamMemberResponse[]>([]);
@@ -371,7 +375,7 @@ export class TeamComponent implements OnInit {
 
   // ── CoFounder ─────────────────────────────────────────────────────────────
   loadCoFounderData(): void {
-    this.teamService.getMyActiveRoles().subscribe({
+    this.teamService.getMemberHistory().subscribe({
       next: env => { this.myTeams.set(env.data ?? []); this.loading.set(false); },
       error: env => { this.errorMsg.set(env.error ?? 'Failed to load teams.'); this.loading.set(false); }
     });

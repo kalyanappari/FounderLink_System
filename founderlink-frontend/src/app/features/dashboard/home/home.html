@@ -127,14 +127,6 @@
               <div class="panel-body">
                 <div class="stat-main text-emerald">{{ formatCurrency(totalPlatformCapitalTarget()) }}</div>
                 <div class="stat-desc">Strategic Platform Funding Target</div>
-                <div class="industry-mix">
-                  @for (ind of topIndustries(); track ind.name) {
-                    <div class="ind-row">
-                      <span class="ind-name">{{ ind.name }}</span>
-                      <span class="ind-count">{{ ind.count }}</span>
-                    </div>
-                  }
-                </div>
               </div>
             </section>
 
@@ -446,11 +438,21 @@
               }
             }
             @if (role === 'COFOUNDER') {
-              @for (inv of pendingInvitations().slice(0, 10); track inv.id) {
+              @for (inv of recentInvitations(); track inv.id) {
                 <div class="data-table-row">
                   <div class="dt-col-brand">
                     <span class="dt-name">{{ startupNames().get(inv.startupId) || 'Startup ' + inv.startupId }}</span>
-                    <span class="dt-tag-active">{{ statusLabel(inv.status) }}</span>
+                    @if (inv.status === 'ACCEPTED') {
+                      @if (isPartnershipActive(inv.startupId)) {
+                        <span class="dt-tag-active">Active</span>
+                      } @else {
+                        <span class="dt-tag-active" style="color: #ef4444;">Historical</span>
+                      }
+                    } @else if (inv.status === 'PENDING') {
+                      <span class="dt-tag-active" style="color: #f59e0b;">Pending</span>
+                    } @else {
+                      <span class="dt-tag-active" style="color: #64748b;">{{ inv.status }}</span>
+                    }
                   </div>
                   <div class="dt-col-info">
                     <span class="dt-label">Requested Role</span>
@@ -492,7 +494,7 @@
                   @if (member.isActive) {
                     <span class="dt-tag-active">Active Engagement</span>
                   } @else {
-                    <span class="dt-tag-active" style="background: rgba(255, 255, 255, 0.05); color: #8892b0;">Historical Role</span>
+                    <span class="dt-tag-active" style="color: #ef4444; background: transparent;">Historical Role</span>
                   }
                 </div>
                 <div class="dt-col-info">

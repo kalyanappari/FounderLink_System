@@ -338,7 +338,7 @@
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       </div>
       <div class="stat-info">
-        <span class="stat-value">{{ myTeams().length }}</span>
+        <span class="stat-value">{{ activeTeams().length }}</span>
         <span class="stat-label">Active Board Seats</span>
       </div>
     </div>
@@ -357,8 +357,7 @@
           <span class="pulse-beacon active"></span>
           <h3>Active Startup Seats</h3>
         </div>
-
-        @if (myTeams().length === 0) {
+        @if (activeTeams().length === 0) {
           <div class="empty-column-card">
             <p>No active board memberships.</p>
           </div>
@@ -383,7 +382,7 @@
               </div>
             }
             <app-pagination 
-              [totalItems]="myTeams().length" 
+              [totalItems]="activeTeams().length" 
               [pageSize]="pageSizeTeams()" 
               [currentPage]="currentPageTeams()" 
               (pageChange)="onPageChangeTeams($event)">
@@ -391,6 +390,45 @@
           </div>
         }
       </div>
+
+      <!-- HISTORICAL ENGAGEMENTS -->
+      <div class="command-column historical-squad" style="margin-top: 2rem;">
+        <div class="column-header">
+          <span class="pulse-beacon" style="background: #ef4444; box-shadow: 0 0 10px #ef4444;"></span>
+          <h3>Historical Engagements</h3>
+        </div>
+
+        @if (historicalTeams().length === 0) {
+          <div class="empty-column-card secondary">
+            <p>No historical memberships recorded.</p>
+          </div>
+        } @else {
+          <div class="member-list">
+            @for (m of historicalTeams(); track m.id) {
+              <div class="member-card high-density historical-seat">
+                <div class="m-identity">
+                  <div class="m-avatar" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">{{ (startupNames().get(m.startupId) || 'S')[0] }}</div>
+                  <div class="m-info">
+                    <div class="m-name">{{ startupNames().get(m.startupId) || 'Startup' }}</div>
+                    <div class="m-meta">
+                      <span class="badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);">
+                        {{ roleShortLabel(m.role) }} (Past)
+                      </span>
+                      <span class="m-date">
+                        {{ m.joinedAt | date:'shortDate' }} - {{ m.leftAt | date:'shortDate' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="m-actions">
+                  <button class="btn btn-outline btn-sm" (click)="viewStartup(m.startupId)">Registry Archive</button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
     </div>
   }
 }
