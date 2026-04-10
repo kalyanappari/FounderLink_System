@@ -7,6 +7,14 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import com.founderlink.startup.dto.response.PagedResponse;
+
+import static org.mockito.ArgumentMatchers.any;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -80,25 +88,22 @@ class GetAllStartupsTest {
     void getAllStartups_Success() {
 
         // Arrange
-        when(startupRepository
-                .findByIsDeletedFalse())
-                .thenReturn(
-                        List.of(startup1, startup2));
+        when(startupRepository.findByIsDeletedFalse(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(startup1, startup2)));
         when(startupMapper.toResponseDto(startup1))
                 .thenReturn(responseDto1);
         when(startupMapper.toResponseDto(startup2))
                 .thenReturn(responseDto2);
 
         // Act
-        List<StartupResponseDto> result =
-                startupService.getAllStartups();
+        PagedResponse<StartupResponseDto> result = startupService.getAllStartups(PageRequest.of(0, 10));
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).getName())
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getName())
                 .isEqualTo("EduReach");
-        assertThat(result.get(1).getName())
+        assertThat(result.getContent().get(1).getName())
                 .isEqualTo("HealthTech");
     }
 
@@ -108,16 +113,14 @@ class GetAllStartupsTest {
     void getAllStartups_EmptyList_ReturnsEmpty() {
 
         // Arrange
-        when(startupRepository
-                .findByIsDeletedFalse())
-                .thenReturn(List.of());
+        when(startupRepository.findByIsDeletedFalse(any(Pageable.class)))
+                .thenReturn(Page.empty());
 
         // Act
-        List<StartupResponseDto> result =
-                startupService.getAllStartups();
+        PagedResponse<StartupResponseDto> result = startupService.getAllStartups(PageRequest.of(0, 10));
 
         // Assert
-        assertThat(result).isEmpty();
+        assertThat(result.getContent()).isEmpty();
     }
 
     // DELETED EXCLUDED
@@ -126,21 +129,17 @@ class GetAllStartupsTest {
     void getAllStartups_DeletedExcluded() {
 
         // Arrange
-        // findByIsDeletedFalse returns only
-        // active startups automatically
-        when(startupRepository
-                .findByIsDeletedFalse())
-                .thenReturn(List.of(startup1));
+        when(startupRepository.findByIsDeletedFalse(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(startup1)));
         when(startupMapper.toResponseDto(startup1))
                 .thenReturn(responseDto1);
 
         // Act
-        List<StartupResponseDto> result =
-                startupService.getAllStartups();
+        PagedResponse<StartupResponseDto> result = startupService.getAllStartups(PageRequest.of(0, 10));
 
         // Assert
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getName())
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getName())
                 .isEqualTo("EduReach");
     }
 }

@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - development
-      - infra/github-actions-setup # Temporarily include this for testing
 
 jobs:
   detect-changes:
@@ -21,19 +20,19 @@ jobs:
         with:
           base: ${{ github.ref_name }}
           filters: |
-            auth-service: ['auth-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
-            user-service: ['user-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
-            startup-service: ['startup-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
-            investment-service: ['investment-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
-            team-service: ['team-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
-            messaging-service: ['messaging-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
-            notification-service: ['notification-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
-            payment-service: ['payment-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
-            wallet-service: ['wallet-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
-            api-gateway: ['api-gateway/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
-            config-server: ['config-server/**', 'docker-compose.infra.yml', '.github/workflows/deploy.yml']
-            eureka-server: ['eureka-server/**', 'docker-compose.infra.yml', '.github/workflows/deploy.yml']
-            founderlink-frontend: ['founderlink-frontend/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
+            auth-service: ['auth-service/**', 'docker-compose.services.yml']
+            user-service: ['user-service/**', 'docker-compose.services.yml']
+            startup-service: ['startup-service/**', 'docker-compose.services.yml']
+            investment-service: ['investment-service/**', 'docker-compose.services.yml']
+            team-service: ['team-service/**', 'docker-compose.services.yml']
+            messaging-service: ['messaging-service/**', 'docker-compose.services.yml']
+            notification-service: ['notification-service/**', 'docker-compose.services.yml']
+            payment-service: ['payment-service/**', 'docker-compose.services.yml']
+            wallet-service: ['wallet-service/**', 'docker-compose.services.yml']
+            api-gateway: ['api-gateway/**', 'docker-compose.services.yml']
+            config-server: ['config-server/**', 'docker-compose.infra.yml']
+            eureka-server: ['eureka-server/**', 'docker-compose.infra.yml']
+            founderlink-frontend: ['founderlink-frontend/**', 'docker-compose.services.yml']
 
   build-and-push:
     name: Build & Push

@@ -8,6 +8,16 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import com.founderlink.startup.dto.response.PagedResponse;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -84,22 +94,20 @@ class SearchStartupsTest {
     void searchStartups_NoFilters_ReturnsAll() {
 
         // Arrange
-        when(startupRepository
-                .findByIsDeletedFalse())
-                .thenReturn(
-                        List.of(startup1, startup2));
+        when(startupRepository.searchStartups(isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(startup1, startup2)));
         when(startupMapper.toResponseDto(startup1))
                 .thenReturn(responseDto1);
         when(startupMapper.toResponseDto(startup2))
                 .thenReturn(responseDto2);
 
         // Act
-        List<StartupResponseDto> result =
+        PagedResponse<StartupResponseDto> result =
                 startupService.searchStartups(
-                        null, null, null, null);
+                        null, null, null, null, PageRequest.of(0, 10));
 
         // Assert
-        assertThat(result).hasSize(2);
+        assertThat(result.getContent()).hasSize(2);
     }
 
     // ─────────────────────────────────────────
@@ -109,21 +117,19 @@ class SearchStartupsTest {
     void searchStartups_ByIndustry_Success() {
 
         // Arrange
-        when(startupRepository
-                .findByIndustryAndIsDeletedFalse(
-                        "EdTech"))
-                .thenReturn(List.of(startup1));
+        when(startupRepository.searchStartups(eq("EdTech"), isNull(), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(startup1)));
         when(startupMapper.toResponseDto(startup1))
                 .thenReturn(responseDto1);
 
         // Act
-        List<StartupResponseDto> result =
+        PagedResponse<StartupResponseDto> result =
                 startupService.searchStartups(
-                        "EdTech", null, null, null);
+                        "EdTech", null, null, null, PageRequest.of(0, 10));
 
         // Assert
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getIndustry())
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getIndustry())
                 .isEqualTo("EdTech");
     }
 
@@ -134,22 +140,20 @@ class SearchStartupsTest {
     void searchStartups_ByStage_Success() {
 
         // Arrange
-        when(startupRepository
-                .findByStageAndIsDeletedFalse(
-                        StartupStage.MVP))
-                .thenReturn(List.of(startup1));
+        when(startupRepository.searchStartups(isNull(), eq(StartupStage.MVP), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(startup1)));
         when(startupMapper.toResponseDto(startup1))
                 .thenReturn(responseDto1);
 
         // Act
-        List<StartupResponseDto> result =
+        PagedResponse<StartupResponseDto> result =
                 startupService.searchStartups(
                         null, StartupStage.MVP,
-                        null, null);
+                        null, null, PageRequest.of(0, 10));
 
         // Assert
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getStage())
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getStage())
                 .isEqualTo(StartupStage.MVP);
     }
 
@@ -160,22 +164,20 @@ class SearchStartupsTest {
     void searchStartups_ByIndustryAndStage_Success() {
 
         // Arrange
-        when(startupRepository
-                .findByIndustryAndStageAndIsDeletedFalse(
-                        "EdTech", StartupStage.MVP))
-                .thenReturn(List.of(startup1));
+        when(startupRepository.searchStartups(eq("EdTech"), eq(StartupStage.MVP), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(startup1)));
         when(startupMapper.toResponseDto(startup1))
                 .thenReturn(responseDto1);
 
         // Act
-        List<StartupResponseDto> result =
+        PagedResponse<StartupResponseDto> result =
                 startupService.searchStartups(
                         "EdTech", StartupStage.MVP,
-                        null, null);
+                        null, null, PageRequest.of(0, 10));
 
         // Assert
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getName())
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getName())
                 .isEqualTo("EduReach");
     }
 
@@ -186,23 +188,20 @@ class SearchStartupsTest {
     void searchStartups_ByFundingRange_Success() {
 
         // Arrange
-        when(startupRepository
-                .findByFundingGoalBetweenAndIsDeletedFalse(
-                        new BigDecimal("1000000.00"),
-                        new BigDecimal("6000000.00")))
-                .thenReturn(List.of(startup1));
+        when(startupRepository.searchStartups(isNull(), isNull(), eq(new BigDecimal("1000000.00")), eq(new BigDecimal("6000000.00")), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(startup1)));
         when(startupMapper.toResponseDto(startup1))
                 .thenReturn(responseDto1);
 
         // Act
-        List<StartupResponseDto> result =
+        PagedResponse<StartupResponseDto> result =
                 startupService.searchStartups(
                         null, null,
                         new BigDecimal("1000000.00"),
-                        new BigDecimal("6000000.00"));
+                        new BigDecimal("6000000.00"), PageRequest.of(0, 10));
 
         // Assert
-        assertThat(result).hasSize(1);
+        assertThat(result.getContent()).hasSize(1);
     }
 
     // ─────────────────────────────────────────
@@ -216,7 +215,7 @@ class SearchStartupsTest {
                 startupService.searchStartups(
                         null, null,
                         new BigDecimal("6000000.00"),
-                        new BigDecimal("1000000.00")))
+                        new BigDecimal("1000000.00"), PageRequest.of(0, 10)))
                 .isInstanceOf(
                         InvalidSearchException.class)
                 .hasMessage(
@@ -235,7 +234,7 @@ class SearchStartupsTest {
                 startupService.searchStartups(
                         null, null,
                         new BigDecimal("-1000.00"),
-                        new BigDecimal("6000000.00")))
+                        new BigDecimal("6000000.00"), PageRequest.of(0, 10)))
                 .isInstanceOf(
                         InvalidSearchException.class)
                 .hasMessage(
@@ -249,18 +248,16 @@ class SearchStartupsTest {
     void searchStartups_NoResults_ReturnsEmpty() {
 
         // Arrange
-        when(startupRepository
-                .findByIndustryAndIsDeletedFalse(
-                        "BlockChain"))
-                .thenReturn(List.of());
+        when(startupRepository.searchStartups(eq("BlockChain"), isNull(), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(Page.empty());
 
         // Act
-        List<StartupResponseDto> result =
+        PagedResponse<StartupResponseDto> result =
                 startupService.searchStartups(
                         "BlockChain",
-                        null, null, null);
+                        null, null, null, PageRequest.of(0, 10));
 
         // Assert
-        assertThat(result).isEmpty();
+        assertThat(result.getContent()).isEmpty();
     }
 }

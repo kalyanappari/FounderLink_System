@@ -24,6 +24,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import com.founderlink.messaging.dto.PagedResponse;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -142,24 +148,24 @@ class MessageServiceTest {
     @Test
     @DisplayName("getConversation - returns conversation between two users")
     void getConversation_ReturnsMessages() {
-        when(messageRepository.findConversation(100L, 200L))
-                .thenReturn(Arrays.asList(message1, message2));
+        when(messageRepository.findConversation(eq(100L), eq(200L), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Arrays.asList(message1, message2)));
 
-        List<MessageResponseDTO> result = messageQueryService.getConversation(100L, 200L);
+        PagedResponse<MessageResponseDTO> result = messageQueryService.getConversation(100L, 200L, PageRequest.of(0, 10));
 
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).getContent()).isEqualTo("Hello from sender!");
-        assertThat(result.get(1).getContent()).isEqualTo("Hello back from receiver!");
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getContent()).isEqualTo("Hello from sender!");
+        assertThat(result.getContent().get(1).getContent()).isEqualTo("Hello back from receiver!");
     }
 
     @Test
     @DisplayName("getConversation - returns empty list when no messages")
     void getConversation_WhenNoMessages_ReturnsEmptyList() {
-        when(messageRepository.findConversation(100L, 300L)).thenReturn(List.of());
+        when(messageRepository.findConversation(eq(100L), eq(300L), any(Pageable.class))).thenReturn(Page.empty());
 
-        List<MessageResponseDTO> result = messageQueryService.getConversation(100L, 300L);
+        PagedResponse<MessageResponseDTO> result = messageQueryService.getConversation(100L, 300L, PageRequest.of(0, 10));
 
-        assertThat(result).isEmpty();
+        assertThat(result.getContent()).isEmpty();
     }
 
     // --- getConversationPartners tests ---
@@ -204,10 +210,10 @@ class MessageServiceTest {
     @Test
     @DisplayName("getConversationFallback - returns empty list")
     void getConversationFallback_ReturnsEmptyList() {
-        List<MessageResponseDTO> result = messageQueryService.getConversationFallback(
-                100L, 200L, new RuntimeException("fail"));
+        PagedResponse<MessageResponseDTO> result = messageQueryService.getConversationFallback(
+                100L, 200L, PageRequest.of(0, 10), new RuntimeException("fail"));
 
-        assertThat(result).isEmpty();
+        assertThat(result.getContent()).isEmpty();
     }
 
     @Test

@@ -10,6 +10,9 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
@@ -59,50 +62,50 @@ class NotificationRepositoryTest {
     @Test
     @DisplayName("findByUserIdOrderByCreatedAtDesc - returns all notifications for user")
     void findByUserId_ReturnsAll() {
-        List<Notification> result = notificationRepository.findByUserIdOrderByCreatedAtDesc(100L);
+        Page<Notification> result = notificationRepository.findByUserIdOrderByCreatedAtDesc(100L, PageRequest.of(0, 10));
 
-        assertThat(result).hasSize(3);
-        assertThat(result).allMatch(n -> n.getUserId().equals(100L));
+        assertThat(result.getContent()).hasSize(3);
+        assertThat(result.getContent()).allMatch(n -> n.getUserId().equals(100L));
     }
 
     @Test
     @DisplayName("findByUserIdOrderByCreatedAtDesc - returns empty for unknown user")
     void findByUserId_EmptyForUnknown() {
-        List<Notification> result = notificationRepository.findByUserIdOrderByCreatedAtDesc(999L);
+        Page<Notification> result = notificationRepository.findByUserIdOrderByCreatedAtDesc(999L, PageRequest.of(0, 10));
 
-        assertThat(result).isEmpty();
+        assertThat(result.getContent()).isEmpty();
     }
 
     @Test
     @DisplayName("findByUserIdAndReadFalseOrderByCreatedAtDesc - returns only unread")
     void findUnread_ReturnsOnlyUnread() {
-        List<Notification> result = notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(100L);
+        Page<Notification> result = notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(100L, PageRequest.of(0, 10));
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getType()).isEqualTo("TEAM_INVITE_SENT");
-        assertThat(result.get(0).isRead()).isFalse();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getType()).isEqualTo("TEAM_INVITE_SENT");
+        assertThat(result.getContent().get(0).isRead()).isFalse();
     }
 
     @Test
     @DisplayName("findByUserIdAndReadFalseOrderByCreatedAtDesc - returns empty when all read")
     void findUnread_EmptyWhenAllRead() {
         // Mark all as read for user 100
-        notificationRepository.findByUserIdOrderByCreatedAtDesc(100L).forEach(n -> {
+        notificationRepository.findByUserIdOrderByCreatedAtDesc(100L, PageRequest.of(0, 10)).forEach(n -> {
             n.setRead(true);
             notificationRepository.save(n);
         });
 
-        List<Notification> result = notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(100L);
+        Page<Notification> result = notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(100L, PageRequest.of(0, 10));
 
-        assertThat(result).isEmpty();
+        assertThat(result.getContent()).isEmpty();
     }
 
     @Test
     @DisplayName("findByUserIdAndReadFalseOrderByCreatedAtDesc - different user has own unread")
     void findUnread_IsolatedPerUser() {
-        List<Notification> user200Unread = notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(200L);
+        Page<Notification> user200Unread = notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(200L, PageRequest.of(0, 10));
 
-        assertThat(user200Unread).hasSize(1);
-        assertThat(user200Unread.get(0).getUserId()).isEqualTo(200L);
+        assertThat(user200Unread.getContent()).hasSize(1);
+        assertThat(user200Unread.getContent().get(0).getUserId()).isEqualTo(200L);
     }
 }

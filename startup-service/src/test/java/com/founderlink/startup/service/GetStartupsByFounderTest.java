@@ -7,6 +7,15 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import com.founderlink.startup.dto.response.PagedResponse;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,26 +86,22 @@ class GetStartupsByFounderTest {
     void getStartupsByFounder_Success() {
 
         // Arrange
-        when(startupRepository
-                .findByFounderIdAndIsDeletedFalse(5L))
-                .thenReturn(
-                        List.of(startup1, startup2));
+        when(startupRepository.findByFounderIdAndIsDeletedFalse(eq(5L), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(startup1, startup2)));
         when(startupMapper.toResponseDto(startup1))
                 .thenReturn(responseDto1);
         when(startupMapper.toResponseDto(startup2))
                 .thenReturn(responseDto2);
 
         // Act
-        List<StartupResponseDto> result =
-                startupService
-                        .getStartupsByFounderId(5L);
+        PagedResponse<StartupResponseDto> result = startupService.getStartupsByFounderId(5L, PageRequest.of(0, 10));
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).getFounderId())
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getFounderId())
                 .isEqualTo(5L);
-        assertThat(result.get(1).getFounderId())
+        assertThat(result.getContent().get(1).getFounderId())
                 .isEqualTo(5L);
     }
 
@@ -106,16 +111,13 @@ class GetStartupsByFounderTest {
     void getStartupsByFounder_NoStartups_ReturnsEmpty() {
 
         // Arrange
-        when(startupRepository
-                .findByFounderIdAndIsDeletedFalse(5L))
-                .thenReturn(List.of());
+        when(startupRepository.findByFounderIdAndIsDeletedFalse(eq(5L), any(Pageable.class)))
+                .thenReturn(Page.empty());
 
         // Act
-        List<StartupResponseDto> result =
-                startupService
-                        .getStartupsByFounderId(5L);
+        PagedResponse<StartupResponseDto> result = startupService.getStartupsByFounderId(5L, PageRequest.of(0, 10));
 
         // Assert
-        assertThat(result).isEmpty();
+        assertThat(result.getContent()).isEmpty();
     }
 }

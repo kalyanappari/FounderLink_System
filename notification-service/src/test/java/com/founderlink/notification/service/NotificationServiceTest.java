@@ -23,6 +23,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import com.founderlink.notification.dto.PagedResponse;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
@@ -130,33 +136,33 @@ class NotificationServiceTest {
     @Test
     @DisplayName("getNotificationsByUser - returns all notifications")
     void getNotificationsByUser_ReturnsAll() {
-        when(notificationRepository.findByUserIdOrderByCreatedAtDesc(100L))
-                .thenReturn(Arrays.asList(unreadNotification, notification2, notification1));
+        when(notificationRepository.findByUserIdOrderByCreatedAtDesc(eq(100L), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Arrays.asList(unreadNotification, notification2, notification1)));
 
-        List<NotificationResponseDTO> result = notificationQueryService.getNotificationsByUser(100L);
+        PagedResponse<NotificationResponseDTO> result = notificationQueryService.getNotificationsByUser(100L, PageRequest.of(0, 10));
 
-        assertThat(result).hasSize(3);
-        assertThat(result.get(0).getType()).isEqualTo("TEAM_INVITE_SENT");
+        assertThat(result.getContent()).hasSize(3);
+        assertThat(result.getContent().get(0).getType()).isEqualTo("TEAM_INVITE_SENT");
     }
 
     @Test
     @DisplayName("getNotificationsByUser - returns empty for unknown user")
     void getNotificationsByUser_EmptyForUnknownUser() {
-        when(notificationRepository.findByUserIdOrderByCreatedAtDesc(999L))
-                .thenReturn(List.of());
+        when(notificationRepository.findByUserIdOrderByCreatedAtDesc(eq(999L), any(Pageable.class)))
+                .thenReturn(Page.empty());
 
-        List<NotificationResponseDTO> result = notificationQueryService.getNotificationsByUser(999L);
+        PagedResponse<NotificationResponseDTO> result = notificationQueryService.getNotificationsByUser(999L, PageRequest.of(0, 10));
 
-        assertThat(result).isEmpty();
+        assertThat(result.getContent()).isEmpty();
     }
 
     @Test
     @DisplayName("getNotificationsByUserFallback - returns empty list")
     void getNotificationsByUserFallback_ReturnsEmpty() {
-        List<NotificationResponseDTO> result = notificationQueryService.getNotificationsByUserFallback(
-                100L, new RuntimeException("fail"));
+        PagedResponse<NotificationResponseDTO> result = notificationQueryService.getNotificationsByUserFallback(
+                100L, PageRequest.of(0, 10), new RuntimeException("fail"));
 
-        assertThat(result).isEmpty();
+        assertThat(result.getContent()).isEmpty();
     }
 
     // --- getUnreadNotifications tests (Query side) ---
@@ -164,23 +170,23 @@ class NotificationServiceTest {
     @Test
     @DisplayName("getUnreadNotifications - returns only unread")
     void getUnreadNotifications_ReturnsOnlyUnread() {
-        when(notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(100L))
-                .thenReturn(List.of(unreadNotification));
+        when(notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(eq(100L), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(unreadNotification)));
 
-        List<NotificationResponseDTO> result = notificationQueryService.getUnreadNotifications(100L);
+        PagedResponse<NotificationResponseDTO> result = notificationQueryService.getUnreadNotifications(100L, PageRequest.of(0, 10));
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).isRead()).isFalse();
-        assertThat(result.get(0).getType()).isEqualTo("TEAM_INVITE_SENT");
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).isRead()).isFalse();
+        assertThat(result.getContent().get(0).getType()).isEqualTo("TEAM_INVITE_SENT");
     }
 
     @Test
     @DisplayName("getUnreadNotificationsFallback - returns empty list")
     void getUnreadNotificationsFallback_ReturnsEmpty() {
-        List<NotificationResponseDTO> result = notificationQueryService.getUnreadNotificationsFallback(
-                100L, new RuntimeException("fail"));
+        PagedResponse<NotificationResponseDTO> result = notificationQueryService.getUnreadNotificationsFallback(
+                100L, PageRequest.of(0, 10), new RuntimeException("fail"));
 
-        assertThat(result).isEmpty();
+        assertThat(result.getContent()).isEmpty();
     }
 
     // --- markAsRead tests (Command side) ---
@@ -251,7 +257,7 @@ class NotificationServiceTest {
     void notifyAllUsers_SendsNotificationToAllUsers() {
         UserDTO user1 = new UserDTO(1L, "Alice", "alice@test.com", "INVESTOR", null, null, null, null);
         UserDTO user2 = new UserDTO(2L, "Bob", "bob@test.com", "FOUNDER", null, null, null, null);
-        when(userServiceClient.getAllUsers()).thenReturn(List.of(user1, user2));
+        when(userServiceClient.getAllUsers(0, 1000)).thenReturn(com.founderlink.notification.dto.PagedResponse.<UserDTO>builder().content(List.of(user1, user2)).build());
         when(commandService.createNotification(anyLong(), anyString(), anyString()))
                 .thenReturn(NotificationResponseDTO.builder().build());
 
@@ -263,7 +269,7 @@ class NotificationServiceTest {
     @Test
     @DisplayName("notifyAllUsers - throws RuntimeException when userService fails")
     void notifyAllUsers_ThrowsWhenUserServiceFails() {
-        when(userServiceClient.getAllUsers()).thenThrow(new RuntimeException("Service unavailable"));
+        when(userServiceClient.getAllUsers(0, 1000)).thenThrow(new RuntimeException("Service unavailable"));
 
         assertThatThrownBy(() -> notificationService.notifyAllUsers("TYPE", "msg"))
                 .isInstanceOf(RuntimeException.class)
@@ -285,14 +291,14 @@ class NotificationServiceTest {
     void sendStartupCreatedEmailToAllInvestors_SendsBulkEmail() {
         UserDTO investor1 = new UserDTO(1L, "Alice", "alice@test.com", "INVESTOR", null, null, null, null);
         UserDTO investor2 = new UserDTO(2L, "Bob", "bob@test.com", "INVESTOR", null, null, null, null);
-        when(userServiceClient.getUsersByRole("INVESTOR")).thenReturn(List.of(investor1, investor2));
+        when(userServiceClient.getUsersByRole("INVESTOR", 0, 1000)).thenReturn(com.founderlink.notification.dto.PagedResponse.<UserDTO>builder().content(List.of(investor1, investor2)).build());
         when(commandService.createNotification(anyLong(), anyString(), anyString()))
                 .thenReturn(NotificationResponseDTO.builder().build());
 
         notificationService.sendStartupCreatedEmailToAllInvestors(1L, "TechStartup", "Tech", 500000.0);
 
-        verify(userServiceClient).getUsersByRole("INVESTOR");
-        verify(userServiceClient, never()).getAllUsers();
+        verify(userServiceClient).getUsersByRole("INVESTOR", 0, 1000);
+        verify(userServiceClient, never()).getAllUsers(0, 1000);
         verify(emailService).sendStartupAlertEmail(any(String[].class), eq("TechStartup"), eq("Tech"), eq("$500,000.00"), eq(1L));
         verify(commandService, times(2)).createNotification(anyLong(), anyString(), anyString());
     }
@@ -301,7 +307,7 @@ class NotificationServiceTest {
     @DisplayName("sendStartupCreatedEmailToAllInvestors - does not notify non-investor users")
     void sendStartupCreatedEmailToAllInvestors_DoesNotNotifyNonInvestors() {
         UserDTO investor = new UserDTO(1L, "Alice", "alice@test.com", "INVESTOR", null, null, null, null);
-        when(userServiceClient.getUsersByRole("INVESTOR")).thenReturn(List.of(investor));
+        when(userServiceClient.getUsersByRole("INVESTOR", 0, 1000)).thenReturn(com.founderlink.notification.dto.PagedResponse.<UserDTO>builder().content(List.of(investor)).build());
         when(commandService.createNotification(anyLong(), anyString(), anyString()))
                 .thenReturn(NotificationResponseDTO.builder().build());
 
@@ -313,7 +319,7 @@ class NotificationServiceTest {
     @Test
     @DisplayName("sendStartupCreatedEmailToAllInvestors - handles empty investor list")
     void sendStartupCreatedEmailToAllInvestors_NoUsers() {
-        when(userServiceClient.getUsersByRole("INVESTOR")).thenReturn(List.of());
+        when(userServiceClient.getUsersByRole("INVESTOR", 0, 1000)).thenReturn(com.founderlink.notification.dto.PagedResponse.<UserDTO>builder().content(List.of()).build());
 
         notificationService.sendStartupCreatedEmailToAllInvestors(1L, "TechStartup", "Tech", 500000.0);
 

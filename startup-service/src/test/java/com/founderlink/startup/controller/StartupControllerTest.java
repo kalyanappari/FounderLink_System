@@ -20,8 +20,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.founderlink.startup.dto.response.PagedResponse;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -90,13 +94,14 @@ class StartupControllerTest {
 
     @Test
     void getAllStartups_Success() throws Exception {
-        when(startupService.getAllStartups()).thenReturn(List.of(responseDto));
+        PagedResponse<StartupResponseDto> mockPage = new PagedResponse<>();
+        mockPage.setContent(List.of(responseDto));
+        when(startupService.getAllStartups(anyInt(), anyInt())).thenReturn(mockPage);
 
-        mockMvc.perform(get("/startup")
-                .header("X-User-Role", "ROLE_INVESTOR"))
+        mockMvc.perform(get("/startup"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Startups fetched successfully"))
-                .andExpect(jsonPath("$.data[0].name").value("EduReach"));
+                .andExpect(jsonPath("$.data.content[0].name").value("EduReach"));
     }
 
     @Test
@@ -128,14 +133,16 @@ class StartupControllerTest {
 
     @Test
     void getStartupsByFounder_Success() throws Exception {
-        when(startupService.getStartupsByFounderId(5L)).thenReturn(List.of(responseDto));
+        PagedResponse<StartupResponseDto> mockPage = new PagedResponse<>();
+        mockPage.setContent(List.of(responseDto));
+        when(startupService.getStartupsByFounderId(eq(5L), anyInt(), anyInt())).thenReturn(mockPage);
 
         mockMvc.perform(get("/startup/founder")
                 .header("X-User-Id", 5L)
                 .header("X-User-Role", "ROLE_FOUNDER"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Startups fetched successfully"))
-                .andExpect(jsonPath("$.data[0].founderId").value(5L));
+                .andExpect(jsonPath("$.data.content[0].founderId").value(5L));
     }
 
     @Test
@@ -173,8 +180,10 @@ class StartupControllerTest {
 
     @Test
     void searchStartups_Success() throws Exception {
-        when(startupService.searchStartups("EdTech", StartupStage.MVP, null, null))
-                .thenReturn(List.of(responseDto));
+        PagedResponse<StartupResponseDto> mockPage = new PagedResponse<>();
+        mockPage.setContent(List.of(responseDto));
+        when(startupService.searchStartups(eq("EdTech"), eq(StartupStage.MVP), isNull(), isNull(), anyInt(), anyInt()))
+                .thenReturn(mockPage);
 
         mockMvc.perform(get("/startup/search")
                 .header("X-User-Role", "ROLE_INVESTOR")

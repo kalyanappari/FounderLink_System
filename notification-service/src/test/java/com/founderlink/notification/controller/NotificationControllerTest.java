@@ -18,6 +18,11 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import com.founderlink.notification.dto.PagedResponse;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -64,24 +69,32 @@ class NotificationControllerTest {
     @Test
     @DisplayName("GET /notifications/{userId} - returns all notifications")
     void getNotifications_ReturnsAll() throws Exception {
-        when(notificationService.getNotificationsByUser(100L))
-                .thenReturn(Arrays.asList(unreadDto, dto2, dto1));
+        PagedResponse<NotificationResponseDTO> mockPage = PagedResponse.<NotificationResponseDTO>builder()
+                .content(Arrays.asList(unreadDto, dto2, dto1))
+                .build();
+
+        when(notificationService.getNotificationsByUser(eq(100L), any(Pageable.class)))
+                .thenReturn(mockPage);
 
         mockMvc.perform(get("/notifications/100"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(3))
-                .andExpect(jsonPath("$[0].type").value("TEAM_INVITE_SENT"))
-                .andExpect(jsonPath("$[1].type").value("INVESTMENT_CREATED"));
+                .andExpect(jsonPath("$.content.length()").value(3))
+                .andExpect(jsonPath("$.content[0].type").value("TEAM_INVITE_SENT"))
+                .andExpect(jsonPath("$.content[1].type").value("INVESTMENT_CREATED"));
     }
 
     @Test
     @DisplayName("GET /notifications/{userId} - returns empty for unknown user")
     void getNotifications_EmptyForUnknownUser() throws Exception {
-        when(notificationService.getNotificationsByUser(999L)).thenReturn(List.of());
+        PagedResponse<NotificationResponseDTO> mockPage = PagedResponse.<NotificationResponseDTO>builder()
+                .content(List.of())
+                .build();
+
+        when(notificationService.getNotificationsByUser(eq(999L), any(Pageable.class))).thenReturn(mockPage);
 
         mockMvc.perform(get("/notifications/999"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.content.length()").value(0));
     }
 
     // --- GET /notifications/{userId}/unread ---
@@ -89,13 +102,17 @@ class NotificationControllerTest {
     @Test
     @DisplayName("GET /notifications/{userId}/unread - returns only unread")
     void getUnreadNotifications_ReturnsUnread() throws Exception {
-        when(notificationService.getUnreadNotifications(100L))
-                .thenReturn(List.of(unreadDto));
+        PagedResponse<NotificationResponseDTO> mockPage = PagedResponse.<NotificationResponseDTO>builder()
+                .content(List.of(unreadDto))
+                .build();
+
+        when(notificationService.getUnreadNotifications(eq(100L), any(Pageable.class)))
+                .thenReturn(mockPage);
 
         mockMvc.perform(get("/notifications/100/unread"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].read").value(false));
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].read").value(false));
     }
 
     // --- PUT /notifications/{id}/read ---

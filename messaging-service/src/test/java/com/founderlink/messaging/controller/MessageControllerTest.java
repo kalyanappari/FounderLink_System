@@ -21,7 +21,11 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import com.founderlink.messaging.dto.PagedResponse;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -143,14 +147,18 @@ class MessageControllerTest {
                 .id(2L).senderId(200L).receiverId(100L)
                 .content("Reply!").createdAt(LocalDateTime.now()).build();
 
-        when(messageService.getConversation(100L, 200L))
-                .thenReturn(Arrays.asList(responseDTO, response2));
+        PagedResponse<MessageResponseDTO> mockPage = PagedResponse.<MessageResponseDTO>builder()
+                .content(Arrays.asList(responseDTO, response2))
+                .build();
+
+        when(messageService.getConversation(eq(100L), eq(200L), any(Pageable.class)))
+                .thenReturn(mockPage);
 
         mockMvc.perform(get("/messages/conversation/100/200"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].content").value("Hello!"))
-                .andExpect(jsonPath("$[1].content").value("Reply!"));
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].content").value("Hello!"))
+                .andExpect(jsonPath("$.content[1].content").value("Reply!"));
     }
 
     // --- GET /messages/partners/{userId} ---
