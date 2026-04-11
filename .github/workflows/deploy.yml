@@ -3,8 +3,8 @@ name: FounderLink CI/CD
 on:
   push:
     branches:
+      - main
       - development
-      - infra/github-actions-setup # Temporarily include this for testing
 
 jobs:
   detect-changes:
