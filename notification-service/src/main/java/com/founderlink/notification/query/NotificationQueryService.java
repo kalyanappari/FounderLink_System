@@ -41,7 +41,9 @@ public class NotificationQueryService {
 
     public PagedResponse<NotificationResponseDTO> getNotificationsByUserFallback(Long userId, Pageable pageable, Throwable throwable) {
         log.error("Fallback - getNotificationsByUser. User: {}, Reason: {}", userId, throwable.getMessage());
-        return new PagedResponse<>();
+        PagedResponse<NotificationResponseDTO> response = new PagedResponse<>();
+        response.setContent(Collections.emptyList());
+        return response;
     }
 
     /**
@@ -59,7 +61,9 @@ public class NotificationQueryService {
 
     public PagedResponse<NotificationResponseDTO> getUnreadNotificationsFallback(Long userId, Pageable pageable, Throwable throwable) {
         log.error("Fallback - getUnreadNotifications. User: {}, Reason: {}", userId, throwable.getMessage());
-        return new PagedResponse<>();
+        PagedResponse<NotificationResponseDTO> response = new PagedResponse<>();
+        response.setContent(Collections.emptyList());
+        return response;
     }
 
     /**

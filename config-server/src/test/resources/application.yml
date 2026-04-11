@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: config-server-test
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: classpath:/test-config
+  profiles:
+    active: native
+
+server:
+  port: 0
+
+eureka:
+  client:
+    enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

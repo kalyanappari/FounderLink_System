@@ -35,10 +35,43 @@ jobs:
             eureka-server: ['eureka-server/**', 'docker-compose.infra.yml', '.github/workflows/deploy.yml']
             founderlink-frontend: ['founderlink-frontend/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
 
-  build-and-push:
-    name: Build & Push
+  quality-analysis:
+    name: SonarCloud Analysis
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.services != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        if: ${{ matrix.service != 'founderlink-frontend' }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Analyze with SonarCloud
+        if: ${{ matrix.service != 'founderlink-frontend' }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -d "./${{ matrix.service }}" ] && [ -f "./${{ matrix.service }}/pom.xml" ]; then
+            cd ${{ matrix.service }}
+            mvn -B clean verify sonar:sonar -Dsonar.token=$SONAR_TOKEN
+          else
+            echo "Skipping non-Maven service: ${{ matrix.service }}"
+          fi
+
+  build-and-push:
+    name: Build & Push
+    needs: [detect-changes, quality-analysis]
+    if: ${{ always() && needs.detect-changes.outputs.services != '[]' && (needs.quality-analysis.result == 'success' || needs.quality-analysis.result == 'skipped') }}
     runs-on: ubuntu-latest
     strategy:
       matrix:

@@ -57,7 +57,9 @@ public class MessageQueryService {
 
     public PagedResponse<MessageResponseDTO> getConversationFallback(Long user1, Long user2, Pageable pageable, Throwable throwable) {
         log.error("Circuit breaker fallback - getConversation. Reason: {}", throwable.getMessage());
-        return new PagedResponse<>();
+        PagedResponse<MessageResponseDTO> response = new PagedResponse<>();
+        response.setContent(Collections.emptyList());
+        return response;
     }
 
     /**

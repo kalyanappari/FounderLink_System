@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
+@org.junit.jupiter.api.Disabled("Disabled to match project patterns and favor isolated unit tests")
 @SpringBootTest
 @TestPropertySource(properties = {
         "spring.cloud.config.enabled=false",

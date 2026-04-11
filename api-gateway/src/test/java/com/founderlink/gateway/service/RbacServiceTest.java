@@ -165,6 +165,94 @@ class RbacServiceTest {
     }
 
     @Test
+    void rejectsRuleWithMissingHttpMethod() {
+        assertThatThrownBy(() -> new RbacService(properties(
+                RbacProperties.DefaultPolicy.DENY,
+                rule(null, "/teams/invite", Role.FOUNDER)
+        )))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("missing HTTP method");
+    }
+
+    @Test
+    void rejectsRuleWithMissingPath() {
+        RbacProperties.Rule badRule = new RbacProperties.Rule();
+        badRule.setMethod(HttpMethod.GET);
+        // path left null
+        badRule.setRoles(List.of(Role.FOUNDER));
+
+        RbacProperties props = new RbacProperties();
+        props.setDefaultPolicy(RbacProperties.DefaultPolicy.DENY);
+        props.setRules(List.of(badRule));
+
+        assertThatThrownBy(() -> new RbacService(props))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("missing path");
+    }
+
+    @Test
+    void rejectsRuleWithNullRolesList() {
+        RbacProperties.Rule badRule = new RbacProperties.Rule();
+        badRule.setMethod(HttpMethod.GET);
+        badRule.setPath("/users");
+        badRule.setRoles(null); // explicitly null
+
+        RbacProperties props = new RbacProperties();
+        props.setDefaultPolicy(RbacProperties.DefaultPolicy.DENY);
+        props.setRules(List.of(badRule));
+
+        assertThatThrownBy(() -> new RbacService(props))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("must define at least one role");
+    }
+
+    @Test
+    void rejectsRuleWithEmptyRolesList() {
+        RbacProperties.Rule badRule = new RbacProperties.Rule();
+        badRule.setMethod(HttpMethod.GET);
+        badRule.setPath("/users");
+        badRule.setRoles(List.of()); // empty list
+
+        RbacProperties props = new RbacProperties();
+        props.setDefaultPolicy(RbacProperties.DefaultPolicy.DENY);
+        props.setRules(List.of(badRule));
+
+        assertThatThrownBy(() -> new RbacService(props))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("must define at least one role");
+    }
+
+    @Test
+    void pathsWithDoubleWildcardsAtDifferentDepthsProduceCorrectOverlapDetection() {
+        // Forces both ** short-circuit OR operands and memo cache paths in segmentPatternsOverlap
+        // /api/**/users vs /api/**/admin → overlapping, equal specificity → ambiguous conflict
+        assertThatThrownBy(() -> new RbacService(properties(
+                RbacProperties.DefaultPolicy.DENY,
+                rule(HttpMethod.GET, "/api/**", Role.FOUNDER),
+                rule(HttpMethod.GET, "/api/**", Role.ADMIN)
+        )))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Ambiguous RBAC rules");
+    }
+
+    @Test
+    void pathsWithDoubleWildcardAndLiteralDoNotConflictWhenNonOverlapping() {
+        // /a/**/b vs /c/**/d — segments 'a' and 'c' don't overlap → pathsOverlap returns false
+        // exercises the rightSegment-is-** branch where first OR operand is false
+        RbacService service = new RbacService(properties(
+                RbacProperties.DefaultPolicy.DENY,
+                rule(HttpMethod.GET, "/alpha/**/end", Role.FOUNDER),
+                rule(HttpMethod.GET, "/beta/**/end", Role.ADMIN)
+        ));
+
+        // Both rules coexist without conflict — asserting construction succeeds
+        assertThatCode(() -> service.verifyAccess(HttpMethod.GET, "/alpha/x/end", Role.FOUNDER))
+                .doesNotThrowAnyException();
+        assertThatCode(() -> service.verifyAccess(HttpMethod.GET, "/beta/x/end", Role.ADMIN))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
     void rejectsAmbiguousOverlappingRulesWithEqualSpecificity() {
         assertThatThrownBy(() -> new RbacService(properties(
                 RbacProperties.DefaultPolicy.DENY,

@@ -108,16 +108,32 @@ class JwtServiceTest {
     }
 
     @Test
-    void rejectsTokenWithMultipleRolesClaim() {
+    void authenticatesTokenWithMultipleRolesCollectionTakingFirst() {
         String token = tokenBuilder()
                 .subject("user-123")
                 .claim("role", List.of("FOUNDER", "ADMIN"))
                 .compact();
 
-        // Service picks first role from collection, so this authenticates successfully
+        // Service picks first role from collection
         AuthenticatedUser user = jwtService.authenticate(token);
         assertThat(user.userId()).isEqualTo("user-123");
         assertThat(user.role()).isEqualTo(Role.FOUNDER);
+    }
+
+    @Test
+    void rejectsTokenWithEmptyRoleCollection() {
+        String token = tokenBuilder()
+                .subject("user-123")
+                .claim("role", List.of())
+                .compact();
+
+        ResponseStatusException exception = org.junit.jupiter.api.Assertions.assertThrows(
+                ResponseStatusException.class,
+                () -> jwtService.authenticate(token)
+        );
+
+        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(exception.getReason()).isEqualTo("Token role collection is empty");
     }
 
     @Test
@@ -150,6 +166,94 @@ class JwtServiceTest {
 
         assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(exception.getReason()).isEqualTo("Token role is invalid: SUPER_ADMIN");
+    }
+
+    @Test
+    void rejectsTokenSignedWithDifferentKey() {
+        // Build token with a different 32-byte secret
+        String otherSecret = "DifferentSecretKeyFor256BitMinimumPaddingToBeValid"; // 50 chars
+        SecretKey otherKey = Keys.hmacShaKeyFor(otherSecret.getBytes(StandardCharsets.UTF_8));
+        String token = Jwts.builder()
+                .subject("user-123")
+                .claim("role", "FOUNDER")
+                .issuedAt(Date.from(Instant.now().minusSeconds(60)))
+                .expiration(Date.from(Instant.now().plusSeconds(3600)))
+                .signWith(otherKey)
+                .compact();
+
+        ResponseStatusException exception = org.junit.jupiter.api.Assertions.assertThrows(
+                ResponseStatusException.class,
+                () -> jwtService.authenticate(token)
+        );
+
+        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        // Signature mismatch maps to either specific or broad handler depending on JJWT version
+        assertThat(exception.getReason()).isIn("Invalid token signature", "Invalid or expired token");
+    }
+
+    @Test
+    void rejectsConstructionWhenSecretIsTooShort() {
+        org.junit.jupiter.api.Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> new JwtService("tooshort")
+        );
+    }
+
+    @Test
+    void constructsWithNonBase64RawBytesSecret() {
+        // "not!base64==encoded$%" is not valid Base64 → triggers catch(IllegalArgumentException)
+        // and falls back to raw UTF-8 bytes (must be >= 32 bytes)
+        String rawSecret = "This_Is_A_Raw_UTF8_Secret_Not_Base64_At_All_123";
+        JwtService serviceWithRawSecret = new JwtService(rawSecret);
+
+        // Should be able to build and authenticate a token signed with the same raw bytes
+        SecretKey rawKey = Keys.hmacShaKeyFor(rawSecret.getBytes(StandardCharsets.UTF_8));
+        String token = Jwts.builder()
+                .subject("user-raw")
+                .claim("role", "ADMIN")
+                .issuedAt(Date.from(Instant.now().minusSeconds(60)))
+                .expiration(Date.from(Instant.now().plusSeconds(3600)))
+                .signWith(rawKey)
+                .compact();
+
+        AuthenticatedUser user = serviceWithRawSecret.authenticate(token);
+        assertThat(user.userId()).isEqualTo("user-raw");
+        assertThat(user.role()).isEqualTo(Role.ADMIN);
+    }
+
+    @Test
+    void rejectsTokenWhereRoleClaimIsBlankAfterTrim() {
+        // Encode a payload with role=" " by building a JWT using the secret key directly
+        // and injecting a whitespace-only role claim
+        String token = tokenBuilder()
+                .subject("user-whitespace")
+                .claim("role", "   ")  // whitespace-only role string
+                .compact();
+
+        ResponseStatusException exception = org.junit.jupiter.api.Assertions.assertThrows(
+                ResponseStatusException.class,
+                () -> jwtService.authenticate(token)
+        );
+
+        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(exception.getReason()).isEqualTo("Token role is empty");
+    }
+
+    @Test
+    void authenticatesTokenWithNoExpirationClaim() {
+        // Build a token with NO expiration → parseClaims hits expiration == null branch
+        SecretKey key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(SECRET));
+        String token = Jwts.builder()
+                .subject("user-noexp")
+                .claim("role", "INVESTOR")
+                .issuedAt(Date.from(Instant.now().minusSeconds(60)))
+                // No .expiration() call → expiration is null in claims
+                .signWith(key)
+                .compact();
+
+        AuthenticatedUser user = jwtService.authenticate(token);
+        assertThat(user.userId()).isEqualTo("user-noexp");
+        assertThat(user.role()).isEqualTo(Role.INVESTOR);
     }
 
     private JwtBuilder tokenBuilder() {

@@ -115,6 +115,16 @@ class NotificationControllerTest {
                 .andExpect(jsonPath("$.content[0].read").value(false));
     }
 
+    @Test
+    @DisplayName("GET /notifications/{userId}/unread/count - returns count of unread notifications")
+    void getUnreadNotificationCount_ReturnsCount() throws Exception {
+        when(notificationService.getUnreadCount(100L)).thenReturn(5L);
+
+        mockMvc.perform(get("/notifications/100/unread/count"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("5"));
+    }
+
     // --- PUT /notifications/{id}/read ---
 
     @Test

@@ -144,7 +144,7 @@ class UpdateInvestmentStatusEventPublishingTest {
 
         // Assert: Should NOT publish rejected event
         verify(eventPublisher).publishInvestmentApprovedEvent(any(InvestmentApprovedEvent.class));
-        verify(eventPublisher).publishInvestmentRejectedEvent(any(InvestmentRejectedEvent.class));
+        org.mockito.Mockito.verifyNoMoreInteractions(eventPublisher);
     }
 
     // ================= INVESTMENT REJECTED EVENT TESTS =================

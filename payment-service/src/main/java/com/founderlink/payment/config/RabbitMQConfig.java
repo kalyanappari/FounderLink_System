@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Configuration;
  * DLQ consumer handles logging, alerts, manual intervention
  */
 @Configuration
+@org.springframework.context.annotation.Profile("!test")
 public class RabbitMQConfig {
 
     @Value("${rabbitmq.exchange:founderlink.exchange}")

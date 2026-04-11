@@ -8,6 +8,8 @@ import com.founderlink.team.entity.TeamRole;
 import com.founderlink.team.service.InvitationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -24,6 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(value = InvitationController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@ExtendWith(MockitoExtension.class)
 class InvitationControllerTest {
 
     @Autowired
@@ -35,27 +38,25 @@ class InvitationControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private InvitationResponseDto responseDto;
     private InvitationRequestDto requestDto;
+    private InvitationResponseDto responseDto;
 
     @BeforeEach
     void setUp() {
+        requestDto = new InvitationRequestDto();
+        requestDto.setStartupId(100L);
+        requestDto.setInvitedUserId(200L);
+        requestDto.setRole(TeamRole.CTO);
+
         responseDto = new InvitationResponseDto();
         responseDto.setId(1L);
-        responseDto.setStartupId(101L);
-        responseDto.setInvitedUserId(300L);
+        responseDto.setStartupId(100L);
         responseDto.setStatus(InvitationStatus.PENDING);
-
-        requestDto = new InvitationRequestDto();
-        requestDto.setStartupId(101L);
-        requestDto.setInvitedUserId(300L);
-        requestDto.setRole(TeamRole.CTO);
     }
 
     @Test
     void sendInvitation_Success() throws Exception {
-        when(invitationService.sendInvitation(eq(5L), any(InvitationRequestDto.class)))
-                .thenReturn(responseDto);
+        when(invitationService.sendInvitation(eq(5L), any())).thenReturn(responseDto);
 
         mockMvc.perform(post("/teams/invite")
                 .header("X-User-Id", 5L)
@@ -64,22 +65,21 @@ class InvitationControllerTest {
                 .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.message").value("Invitation sent successfully"))
-                .andExpect(jsonPath("$.data.startupId").value(101L));
+                .andExpect(jsonPath("$.data.id").value(1));
     }
 
     @Test
-    void sendInvitation_WrongRole_Forbidden() throws Exception {
+    void sendInvitation_Forbidden() throws Exception {
         mockMvc.perform(post("/teams/invite")
-                .header("X-User-Id", 300L)
+                .header("X-User-Id", 5L)
                 .header("X-User-Role", "ROLE_COFOUNDER")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isForbidden());
     }
 
     @Test
     void cancelInvitation_Success() throws Exception {
-        responseDto.setStatus(InvitationStatus.CANCELLED);
         when(invitationService.cancelInvitation(1L, 5L)).thenReturn(responseDto);
 
         mockMvc.perform(put("/teams/invitations/1/cancel")
@@ -90,53 +90,68 @@ class InvitationControllerTest {
     }
 
     @Test
-    void cancelInvitation_WrongRole_Forbidden() throws Exception {
+    void cancelInvitation_Forbidden() throws Exception {
         mockMvc.perform(put("/teams/invitations/1/cancel")
-                .header("X-User-Id", 300L)
+                .header("X-User-Id", 5L)
                 .header("X-User-Role", "ROLE_COFOUNDER"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isForbidden());
     }
 
     @Test
     void rejectInvitation_Success() throws Exception {
-        responseDto.setStatus(InvitationStatus.REJECTED);
-        when(invitationService.rejectInvitation(1L, 300L)).thenReturn(responseDto);
+        when(invitationService.rejectInvitation(1L, 200L)).thenReturn(responseDto);
 
         mockMvc.perform(put("/teams/invitations/1/reject")
-                .header("X-User-Id", 300L)
+                .header("X-User-Id", 200L)
                 .header("X-User-Role", "ROLE_COFOUNDER"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Invitation rejected successfully"));
     }
 
     @Test
-    void getInvitationsByUserId_Success() throws Exception {
-        when(invitationService.getInvitationsByUserId(300L)).thenReturn(List.of(responseDto));
-
-        mockMvc.perform(get("/teams/invitations/user")
-                .header("X-User-Id", 300L)
-                .header("X-User-Role", "ROLE_COFOUNDER"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Invitations fetched successfully"))
-                .andExpect(jsonPath("$.data[0].invitedUserId").value(300L));
+    void rejectInvitation_Forbidden() throws Exception {
+        mockMvc.perform(put("/teams/invitations/1/reject")
+                .header("X-User-Id", 200L)
+                .header("X-User-Role", "ROLE_FOUNDER"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    void getInvitationsByUserId_WrongRole_Forbidden() throws Exception {
+    void getInvitationsByUserId_Success() throws Exception {
+        when(invitationService.getInvitationsByUserId(200L)).thenReturn(List.of(responseDto));
+
         mockMvc.perform(get("/teams/invitations/user")
-                .header("X-User-Id", 5L)
+                .header("X-User-Id", 200L)
+                .header("X-User-Role", "ROLE_COFOUNDER"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Invitations fetched successfully"))
+                .andExpect(jsonPath("$.data[0].id").value(1));
+    }
+
+    @Test
+    void getInvitationsByUserId_Forbidden() throws Exception {
+        mockMvc.perform(get("/teams/invitations/user")
+                .header("X-User-Id", 200L)
                 .header("X-User-Role", "ROLE_FOUNDER"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isForbidden());
     }
 
     @Test
     void getInvitationsByStartupId_Success() throws Exception {
-        when(invitationService.getInvitationsByStartupId(101L, 5L)).thenReturn(List.of(responseDto));
+        when(invitationService.getInvitationsByStartupId(100L, 5L)).thenReturn(List.of(responseDto));
 
-        mockMvc.perform(get("/teams/invitations/startup/101")
+        mockMvc.perform(get("/teams/invitations/startup/100")
                 .header("X-User-Id", 5L)
                 .header("X-User-Role", "ROLE_FOUNDER"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Invitations fetched successfully"));
+    }
+
+    @Test
+    void getInvitationsByStartupId_Forbidden() throws Exception {
+        mockMvc.perform(get("/teams/invitations/startup/100")
+                .header("X-User-Id", 5L)
+                .header("X-User-Role", "ROLE_COFOUNDER"))
+                .andExpect(status().isForbidden());
     }
 }

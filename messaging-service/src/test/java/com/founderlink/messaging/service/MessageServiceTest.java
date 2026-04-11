@@ -130,6 +130,49 @@ class MessageServiceTest {
         verify(messageRepository, never()).save(any());
     }
 
+    @Test
+    @DisplayName("sendMessage - throws when receiver is not found")
+    void sendMessage_WhenReceiverIsNull_ThrowsException() {
+        when(userServiceClient.getUserById(100L)).thenReturn(senderDTO);
+        when(userServiceClient.getUserById(200L)).thenReturn(null);
+
+        assertThatThrownBy(() -> messageCommandService.sendMessage(validRequest))
+                .isInstanceOf(InvalidMessageException.class)
+                .hasMessageContaining("does not exist");
+
+        verify(messageRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("sendMessage - handles null sender name gracefully")
+    void sendMessage_WhenSenderNameIsNull() {
+        UserDTO namelessSender = new UserDTO(1L, 100L, null, "sender@test.com");
+        when(userServiceClient.getUserById(100L)).thenReturn(namelessSender);
+        when(userServiceClient.getUserById(200L)).thenReturn(receiverDTO);
+        when(messageRepository.saveAndFlush(any(Message.class))).thenReturn(message1);
+
+        MessageResponseDTO result = messageCommandService.sendMessage(validRequest);
+
+        assertThat(result).isNotNull();
+        verify(messageEventPublisher).publishMessageSent(message1.getId(), 100L, 200L, "Someone");
+    }
+
+    @Test
+    @DisplayName("sendMessage - prevents exception propagation when event publisher fails")
+    void sendMessage_WhenPublisherFails_ContinuesNormally() {
+        when(userServiceClient.getUserById(100L)).thenReturn(senderDTO);
+        when(userServiceClient.getUserById(200L)).thenReturn(receiverDTO);
+        when(messageRepository.saveAndFlush(any(Message.class))).thenReturn(message1);
+        
+        doThrow(new RuntimeException("RabbitMQ Down"))
+            .when(messageEventPublisher).publishMessageSent(any(), any(), any(), any());
+
+        MessageResponseDTO result = messageCommandService.sendMessage(validRequest);
+
+        assertThat(result).isNotNull();
+        verify(messageRepository).saveAndFlush(any(Message.class));
+    }
+
     // --- sendMessageFallback test ---
 
     @Test

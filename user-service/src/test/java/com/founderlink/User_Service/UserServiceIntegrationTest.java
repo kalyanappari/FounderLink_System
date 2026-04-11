@@ -35,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
+@org.junit.jupiter.api.Disabled("Integration tests disabled by user request")
 class UserServiceIntegrationTest {
 
     @Autowired

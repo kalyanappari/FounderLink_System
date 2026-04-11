@@ -44,8 +44,7 @@ public class AuthService {
     private static final Set<Role> ALLOWED_SELF_ROLES = Set.of(
             Role.FOUNDER,
             Role.INVESTOR,
-            Role.COFOUNDER
-    );
+            Role.COFOUNDER);
 
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
@@ -102,16 +101,14 @@ public class AuthService {
 
     public AuthSession login(LoginRequest request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 
         String token = jwtService.generateToken(
                 user.getId(),
-                user.getRole().name()
-        );
+                user.getRole().name());
         String refreshToken = refreshTokenService.createToken(user.getId());
 
         return new AuthSession(buildAuthResponse(user, token), refreshToken);
@@ -127,8 +124,7 @@ public class AuthService {
 
         String accessToken = jwtService.generateToken(
                 user.getId(),
-                user.getRole().name()
-        );
+                user.getRole().name());
         String rotatedRefreshToken = refreshTokenService.rotateToken(refreshToken);
 
         return new AuthSession(buildAuthResponse(user, accessToken), rotatedRefreshToken);
@@ -137,9 +133,7 @@ public class AuthService {
     public void logout(String refreshToken) {
         try {
             refreshTokenService.revokeToken(refreshToken);
-        } catch (InvalidRefreshTokenException |
-                 RevokedRefreshTokenException |
-                 ExpiredRefreshTokenException ex) {
+        } catch (InvalidRefreshTokenException | RevokedRefreshTokenException | ExpiredRefreshTokenException ex) {
 
             log.debug("Logout no-op: {}", ex.getMessage());
         }
@@ -162,14 +156,14 @@ public class AuthService {
         passwordResetPinRepository.deleteByEmail(email);
 
         String pin = generateSixDigitPin();
-        
+
         PasswordResetPin resetPin = PasswordResetPin.builder()
                 .email(email)
                 .pin(pin)
                 .expiryDate(LocalDateTime.now().plusMinutes(5))
                 .used(false)
                 .build();
-        
+
         passwordResetPinRepository.save(resetPin);
         log.debug("Generated password reset PIN for email: {}", email);
 
@@ -178,7 +172,7 @@ public class AuthService {
                 .pin(pin)
                 .userName(user.getName())
                 .build();
-        
+
         passwordResetEventPublisher.publishPasswordResetEvent(event);
 
         return ForgotPasswordResponse.builder()

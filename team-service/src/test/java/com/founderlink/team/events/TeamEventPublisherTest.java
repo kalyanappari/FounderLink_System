@@ -1,7 +1,6 @@
 package com.founderlink.team.events;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -10,6 +9,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -20,104 +21,63 @@ class TeamEventPublisherTest {
     private RabbitTemplate rabbitTemplate;
 
     @InjectMocks
-    private TeamEventPublisher teamEventPublisher;
+    private TeamEventPublisher publisher;
 
-    private static final String EXCHANGE = "founderlink.exchange";
-    private static final String INVITE_ROUTING_KEY = "team.invite.sent";
-    private static final String ACCEPTED_ROUTING_KEY = "team.member.accepted";
-    private static final String REJECTED_ROUTING_KEY = "team.member.rejected";
+    private static final String EXCHANGE = "test.exchange";
+    private static final String INVITE_RK = "invite.rk";
+    private static final String ACC_RK = "acc.rk";
+    private static final String REJ_RK = "rej.rk";
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(teamEventPublisher, "exchange", EXCHANGE);
-        ReflectionTestUtils.setField(teamEventPublisher, "teamInviteRoutingKey", INVITE_ROUTING_KEY);
-        ReflectionTestUtils.setField(teamEventPublisher, "teamAcceptedRoutingKey", ACCEPTED_ROUTING_KEY);
-        ReflectionTestUtils.setField(teamEventPublisher, "teamRejectedRoutingKey", REJECTED_ROUTING_KEY);
+        ReflectionTestUtils.setField(publisher, "exchange", EXCHANGE);
+        ReflectionTestUtils.setField(publisher, "teamInviteRoutingKey", INVITE_RK);
+        ReflectionTestUtils.setField(publisher, "teamAcceptedRoutingKey", ACC_RK);
+        ReflectionTestUtils.setField(publisher, "teamRejectedRoutingKey", REJ_RK);
     }
 
     @Test
-    @DisplayName("publishTeamInviteEvent - publishes event successfully")
     void publishTeamInviteEvent_Success() {
-        TeamInviteEvent event = new TeamInviteEvent(1L, 100L, "CTO");
-
-        teamEventPublisher.publishTeamInviteEvent(event);
-
-        verify(rabbitTemplate, times(1)).convertAndSend(
-                eq(EXCHANGE),
-                eq(INVITE_ROUTING_KEY),
-                eq(event)
-        );
+        TeamInviteEvent event = new TeamInviteEvent(1L, 200L, "CTO");
+        publisher.publishTeamInviteEvent(event);
+        verify(rabbitTemplate).convertAndSend(eq(EXCHANGE), eq(INVITE_RK), eq(event));
     }
 
     @Test
-    @DisplayName("publishTeamMemberAcceptedEvent - publishes event successfully")
+    void publishTeamInviteEvent_Failure() {
+        doThrow(new RuntimeException("AMQP error")).when(rabbitTemplate).convertAndSend(anyString(), anyString(), any(Object.class));
+        assertThatThrownBy(() -> publisher.publishTeamInviteEvent(new TeamInviteEvent()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Failed to publish");
+    }
+
+    @Test
     void publishTeamMemberAcceptedEvent_Success() {
-        TeamMemberAcceptedEvent event = new TeamMemberAcceptedEvent(
-                1L, 101L, 5L, 300L, "CTO"
-        );
-
-        teamEventPublisher.publishTeamMemberAcceptedEvent(event);
-
-        verify(rabbitTemplate, times(1)).convertAndSend(
-                eq(EXCHANGE),
-                eq(ACCEPTED_ROUTING_KEY),
-                eq(event)
-        );
+        TeamMemberAcceptedEvent event = new TeamMemberAcceptedEvent(1L, 100L, 5L, 200L, "CTO");
+        publisher.publishTeamMemberAcceptedEvent(event);
+        verify(rabbitTemplate).convertAndSend(eq(EXCHANGE), eq(ACC_RK), eq(event));
     }
 
     @Test
-    @DisplayName("publishTeamMemberRejectedEvent - publishes event successfully")
+    void publishTeamMemberAcceptedEvent_Failure() {
+        doThrow(new RuntimeException("AMQP error")).when(rabbitTemplate).convertAndSend(anyString(), anyString(), any(Object.class));
+        assertThatThrownBy(() -> publisher.publishTeamMemberAcceptedEvent(new TeamMemberAcceptedEvent()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Failed to publish");
+    }
+
+    @Test
     void publishTeamMemberRejectedEvent_Success() {
-        TeamMemberRejectedEvent event = new TeamMemberRejectedEvent(
-                1L, 101L, 5L, 300L, "CTO"
-        );
-
-        teamEventPublisher.publishTeamMemberRejectedEvent(event);
-
-        verify(rabbitTemplate, times(1)).convertAndSend(
-                eq(EXCHANGE),
-                eq(REJECTED_ROUTING_KEY),
-                eq(event)
-        );
+        TeamMemberRejectedEvent event = new TeamMemberRejectedEvent(1L, 100L, 5L, 200L, "CTO");
+        publisher.publishTeamMemberRejectedEvent(event);
+        verify(rabbitTemplate).convertAndSend(eq(EXCHANGE), eq(REJ_RK), eq(event));
     }
 
     @Test
-    @DisplayName("publishTeamInviteEvent - handles exception gracefully")
-    void publishTeamInviteEvent_HandlesException() {
-        TeamInviteEvent event = new TeamInviteEvent(1L, 100L, "CTO");
-        doThrow(new RuntimeException("RabbitMQ connection failed"))
-                .when(rabbitTemplate).convertAndSend(eq(EXCHANGE), eq(INVITE_ROUTING_KEY), eq(event));
-
-        teamEventPublisher.publishTeamInviteEvent(event);
-
-        verify(rabbitTemplate, times(1)).convertAndSend(eq(EXCHANGE), eq(INVITE_ROUTING_KEY), eq(event));
-    }
-
-    @Test
-    @DisplayName("publishTeamMemberAcceptedEvent - handles exception gracefully")
-    void publishTeamMemberAcceptedEvent_HandlesException() {
-        TeamMemberAcceptedEvent event = new TeamMemberAcceptedEvent(
-                1L, 101L, 5L, 300L, "CTO"
-        );
-        doThrow(new RuntimeException("RabbitMQ connection failed"))
-                .when(rabbitTemplate).convertAndSend(eq(EXCHANGE), eq(ACCEPTED_ROUTING_KEY), eq(event));
-
-        teamEventPublisher.publishTeamMemberAcceptedEvent(event);
-
-        verify(rabbitTemplate, times(1)).convertAndSend(eq(EXCHANGE), eq(ACCEPTED_ROUTING_KEY), eq(event));
-    }
-
-    @Test
-    @DisplayName("publishTeamMemberRejectedEvent - handles exception gracefully")
-    void publishTeamMemberRejectedEvent_HandlesException() {
-        TeamMemberRejectedEvent event = new TeamMemberRejectedEvent(
-                1L, 101L, 5L, 300L, "CTO"
-        );
-        doThrow(new RuntimeException("RabbitMQ connection failed"))
-                .when(rabbitTemplate).convertAndSend(eq(EXCHANGE), eq(REJECTED_ROUTING_KEY), eq(event));
-
-        teamEventPublisher.publishTeamMemberRejectedEvent(event);
-
-        verify(rabbitTemplate, times(1)).convertAndSend(eq(EXCHANGE), eq(REJECTED_ROUTING_KEY), eq(event));
+    void publishTeamMemberRejectedEvent_Failure() {
+        doThrow(new RuntimeException("AMQP error")).when(rabbitTemplate).convertAndSend(anyString(), anyString(), any(Object.class));
+        assertThatThrownBy(() -> publisher.publishTeamMemberRejectedEvent(new TeamMemberRejectedEvent()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Failed to publish");
     }
 }

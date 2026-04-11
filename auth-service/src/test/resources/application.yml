@@ -1,0 +1,42 @@
+spring:
+  cloud:
+    config:
+      enabled: false
+    discovery:
+      enabled: false
+  config:
+    import: "" # Disable config server import for tests
+  datasource:
+    url: jdbc:h2:mem:authdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  cache:
+    type: simple
+
+jwt:
+  secret: VGhpc0lzQVN0cm9uZ0pXVFNlY3JldEtleUZvclRlc3RzMTIzNDU2Nzg5MDEy
+
+resilience4j:
+  retry:
+    instances:
+      userServiceSync:
+        max-attempts: 3
+        wait-duration: 1ms
+        enable-exponential-backoff: false
+  circuitbreaker:
+    instances:
+      userServiceSync:
+        sliding-window-size: 10
+        minimum-number-of-calls: 10
+
+seed:
+  admin:
+    enabled: false
+    name: "Admin"
+    email: "admin@founderlink.com"
+    password: "StrongPassword1"

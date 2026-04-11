@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {
         "spring.data.redis.host=localhost",
         "spring.data.redis.port=6379",
-        "spring.cache.type=none",
+        "spring.cache.type=simple",
         "spring.datasource.url=jdbc:h2:mem:testdb",
         "spring.datasource.driver-class-name=org.h2.Driver",
         "spring.jpa.hibernate.ddl-auto=create-drop",
@@ -50,8 +50,14 @@ class WalletIntegrationTest {
     @MockBean
     private WalletTransactionRepository walletTransactionRepository;
 
-    @MockBean
+    @MockBean(name = "cacheManager")
     private CacheManager cacheManager;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        org.springframework.cache.Cache mockCache = org.mockito.Mockito.mock(org.springframework.cache.Cache.class);
+        when(cacheManager.getCache(any())).thenReturn(mockCache);
+    }
 
     @Test
     void createWalletE2E() throws Exception {
