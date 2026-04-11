@@ -43,7 +43,7 @@
       </div>
     } @else {
       <div class="payments-list">
-        @for (item of items(); track item.investment.id) {
+        @for (item of paginatedItems(); track item.investment.id) {
           <article class="payment-card">
             
             <div class="payment-info">
@@ -106,6 +106,13 @@
             
           </article>
         }
+
+        <app-pagination 
+          [totalItems]="items().length" 
+          [pageSize]="pageSize()" 
+          [currentPage]="currentPage()" 
+          (pageChange)="onPageChange($event)">
+        </app-pagination>
       </div>
     }
   }

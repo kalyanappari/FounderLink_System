@@ -8,14 +8,17 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @Query("SELECT m FROM Message m WHERE " +
            "(m.senderId = :user1 AND m.receiverId = :user2) OR " +
            "(m.senderId = :user2 AND m.receiverId = :user1) " +
-           "ORDER BY m.createdAt ASC")
-    List<Message> findConversation(@Param("user1") Long user1, @Param("user2") Long user2);
+           "ORDER BY m.createdAt DESC")
+    Page<Message> findConversation(@Param("user1") Long user1, @Param("user2") Long user2, Pageable pageable);
 
     @Query("SELECT DISTINCT CASE WHEN m.senderId = :userId THEN m.receiverId ELSE m.senderId END " +
            "FROM Message m WHERE m.senderId = :userId OR m.receiverId = :userId")

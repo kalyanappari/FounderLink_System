@@ -143,7 +143,7 @@
     </div>
   } @else {
     <div class="startup-list">
-      @for (s of startups(); track s.id) {
+      @for (s of paginatedStartups(); track s.id) {
         <div class="startup-item">
           <div class="si-left">
             <div class="si-avatar">{{ s.name[0].toUpperCase() }}</div>
@@ -178,5 +178,12 @@
         </div>
       }
     </div>
+
+    <app-pagination 
+      [totalItems]="startups().length" 
+      [pageSize]="pageSize()" 
+      [currentPage]="currentPage()" 
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
   }
 }

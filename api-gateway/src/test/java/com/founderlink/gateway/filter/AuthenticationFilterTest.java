@@ -9,6 +9,7 @@ import com.founderlink.gateway.service.RouteValidator;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -20,6 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -158,6 +160,114 @@ class AuthenticationFilterTest {
 
         assertThat(chainedExchange.get()).isSameAs(exchange);
         verifyNoSecurityInteractions();
+    }
+
+    @Test
+    void bypassesAuthenticationForOptionsRequest() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.method(HttpMethod.OPTIONS, "/teams/invite").build()
+        );
+        AtomicReference<ServerWebExchange> chainedExchange = new AtomicReference<>();
+        GatewayFilterChain chain = chained -> {
+            chainedExchange.set(chained);
+            return Mono.empty();
+        };
+
+        filter.filter(exchange, chain).block();
+
+        // OPTIONS bypasses everything — isSecured and JWT are never called
+        assertThat(chainedExchange.get()).isSameAs(exchange);
+        verify(routeValidator, never()).isSecured(any());
+        verifyNoSecurityInteractions();
+    }
+
+    @Test
+    void returnsUnauthorizedWhenAuthorizationSchemeIsNotBearer() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("/teams/invite")
+                        .header("Authorization", "Basic dXNlcjpwYXNz")
+                        .build()
+        );
+        GatewayFilterChain chain = mock(GatewayFilterChain.class);
+        when(routeValidator.isSecured(exchange.getRequest())).thenReturn(true);
+
+        filter.filter(exchange, chain).block();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        verify(chain, never()).filter(any(ServerWebExchange.class));
+        verify(jwtService, never()).authenticate(anyString());
+    }
+
+    @Test
+    void returnsUnauthorizedWhenBearerTokenIsBlankAfterPrefix() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("/teams/invite")
+                        .header("Authorization", "Bearer   ")
+                        .build()
+        );
+        GatewayFilterChain chain = mock(GatewayFilterChain.class);
+        when(routeValidator.isSecured(exchange.getRequest())).thenReturn(true);
+
+        filter.filter(exchange, chain).block();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        verify(chain, never()).filter(any(ServerWebExchange.class));
+        verify(jwtService, never()).authenticate(anyString());
+    }
+
+    @Test
+    void returnsInternalServerErrorOnUnexpectedException() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("/teams/invite")
+                        .header("Authorization", "Bearer good-token")
+                        .build()
+        );
+        GatewayFilterChain chain = mock(GatewayFilterChain.class);
+        when(routeValidator.isSecured(exchange.getRequest())).thenReturn(true);
+        when(jwtService.authenticate("good-token"))
+                .thenThrow(new RuntimeException("Unexpected internal failure"));
+
+        filter.filter(exchange, chain).block();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        verify(chain, never()).filter(any(ServerWebExchange.class));
+    }
+
+    @Test
+    void processesSecuredRequestWhenTokenIsRealJwtFormat() {
+        // Build an actual Base64url.Base64url.Base64url JWT so parts.length == 3 in the debug decode block
+        // jwtService is still mocked so authentication succeeds without real parsing
+        String fakeJwt =
+                "eyJhbGciOiJIUzI1NiJ9" + // header
+                ".eyJzdWIiOiJmb3VuZGVyLTEiLCJyb2xlIjoiRk9VTkRFUiJ9" + // payload
+                ".SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";     // signature
+
+        MockServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("/users/42")
+                        .header("Authorization", "Bearer " + fakeJwt)
+                        .build()
+        );
+        MockServerWebExchange mutatedExchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("/users/42")
+                        .header("X-User-Id", "founder-1")
+                        .header("X-User-Role", "ROLE_FOUNDER")
+                        .build()
+        );
+        AuthenticatedUser user = new AuthenticatedUser("founder-1", Role.FOUNDER);
+        AtomicReference<ServerWebExchange> chainedExchange = new AtomicReference<>();
+        GatewayFilterChain chain = chained -> {
+            chainedExchange.set(chained);
+            return Mono.empty();
+        };
+
+        when(routeValidator.isSecured(exchange.getRequest())).thenReturn(true);
+        when(jwtService.authenticate(fakeJwt)).thenReturn(user);
+        when(headerService.applyAuthenticationHeaders(exchange, user)).thenReturn(mutatedExchange);
+
+        filter.filter(exchange, chain).block();
+
+        // The 3-part debug decode branch is hit; request continues to chain
+        assertThat(chainedExchange.get()).isSameAs(mutatedExchange);
     }
 
     private void verifyNoSecurityInteractions() {

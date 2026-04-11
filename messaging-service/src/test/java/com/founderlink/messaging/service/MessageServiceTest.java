@@ -24,6 +24,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import com.founderlink.messaging.dto.PagedResponse;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -124,6 +130,49 @@ class MessageServiceTest {
         verify(messageRepository, never()).save(any());
     }
 
+    @Test
+    @DisplayName("sendMessage - throws when receiver is not found")
+    void sendMessage_WhenReceiverIsNull_ThrowsException() {
+        when(userServiceClient.getUserById(100L)).thenReturn(senderDTO);
+        when(userServiceClient.getUserById(200L)).thenReturn(null);
+
+        assertThatThrownBy(() -> messageCommandService.sendMessage(validRequest))
+                .isInstanceOf(InvalidMessageException.class)
+                .hasMessageContaining("does not exist");
+
+        verify(messageRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("sendMessage - handles null sender name gracefully")
+    void sendMessage_WhenSenderNameIsNull() {
+        UserDTO namelessSender = new UserDTO(1L, 100L, null, "sender@test.com");
+        when(userServiceClient.getUserById(100L)).thenReturn(namelessSender);
+        when(userServiceClient.getUserById(200L)).thenReturn(receiverDTO);
+        when(messageRepository.saveAndFlush(any(Message.class))).thenReturn(message1);
+
+        MessageResponseDTO result = messageCommandService.sendMessage(validRequest);
+
+        assertThat(result).isNotNull();
+        verify(messageEventPublisher).publishMessageSent(message1.getId(), 100L, 200L, "Someone");
+    }
+
+    @Test
+    @DisplayName("sendMessage - prevents exception propagation when event publisher fails")
+    void sendMessage_WhenPublisherFails_ContinuesNormally() {
+        when(userServiceClient.getUserById(100L)).thenReturn(senderDTO);
+        when(userServiceClient.getUserById(200L)).thenReturn(receiverDTO);
+        when(messageRepository.saveAndFlush(any(Message.class))).thenReturn(message1);
+        
+        doThrow(new RuntimeException("RabbitMQ Down"))
+            .when(messageEventPublisher).publishMessageSent(any(), any(), any(), any());
+
+        MessageResponseDTO result = messageCommandService.sendMessage(validRequest);
+
+        assertThat(result).isNotNull();
+        verify(messageRepository).saveAndFlush(any(Message.class));
+    }
+
     // --- sendMessageFallback test ---
 
     @Test
@@ -142,24 +191,24 @@ class MessageServiceTest {
     @Test
     @DisplayName("getConversation - returns conversation between two users")
     void getConversation_ReturnsMessages() {
-        when(messageRepository.findConversation(100L, 200L))
-                .thenReturn(Arrays.asList(message1, message2));
+        when(messageRepository.findConversation(eq(100L), eq(200L), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Arrays.asList(message1, message2)));
 
-        List<MessageResponseDTO> result = messageQueryService.getConversation(100L, 200L);
+        PagedResponse<MessageResponseDTO> result = messageQueryService.getConversation(100L, 200L, PageRequest.of(0, 10));
 
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).getContent()).isEqualTo("Hello from sender!");
-        assertThat(result.get(1).getContent()).isEqualTo("Hello back from receiver!");
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getContent()).isEqualTo("Hello from sender!");
+        assertThat(result.getContent().get(1).getContent()).isEqualTo("Hello back from receiver!");
     }
 
     @Test
     @DisplayName("getConversation - returns empty list when no messages")
     void getConversation_WhenNoMessages_ReturnsEmptyList() {
-        when(messageRepository.findConversation(100L, 300L)).thenReturn(List.of());
+        when(messageRepository.findConversation(eq(100L), eq(300L), any(Pageable.class))).thenReturn(Page.empty());
 
-        List<MessageResponseDTO> result = messageQueryService.getConversation(100L, 300L);
+        PagedResponse<MessageResponseDTO> result = messageQueryService.getConversation(100L, 300L, PageRequest.of(0, 10));
 
-        assertThat(result).isEmpty();
+        assertThat(result.getContent()).isEmpty();
     }
 
     // --- getConversationPartners tests ---
@@ -204,10 +253,10 @@ class MessageServiceTest {
     @Test
     @DisplayName("getConversationFallback - returns empty list")
     void getConversationFallback_ReturnsEmptyList() {
-        List<MessageResponseDTO> result = messageQueryService.getConversationFallback(
-                100L, 200L, new RuntimeException("fail"));
+        PagedResponse<MessageResponseDTO> result = messageQueryService.getConversationFallback(
+                100L, 200L, PageRequest.of(0, 10), new RuntimeException("fail"));
 
-        assertThat(result).isEmpty();
+        assertThat(result.getContent()).isEmpty();
     }
 
     @Test

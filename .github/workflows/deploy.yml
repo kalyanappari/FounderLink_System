@@ -1,0 +1,153 @@
+name: FounderLink CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - development
+
+jobs:
+  detect-changes:
+    name: Detect Changed Services
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.filter.outputs.changes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          base: ${{ github.ref_name }}
+          filters: |
+            auth-service: ['auth-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
+            user-service: ['user-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
+            startup-service: ['startup-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
+            investment-service: ['investment-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
+            team-service: ['team-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
+            messaging-service: ['messaging-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
+            notification-service: ['notification-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
+            payment-service: ['payment-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
+            wallet-service: ['wallet-service/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
+            api-gateway: ['api-gateway/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
+            config-server: ['config-server/**', 'docker-compose.infra.yml', '.github/workflows/deploy.yml']
+            eureka-server: ['eureka-server/**', 'docker-compose.infra.yml', '.github/workflows/deploy.yml']
+            founderlink-frontend: ['founderlink-frontend/**', 'docker-compose.services.yml', '.github/workflows/deploy.yml']
+
+  quality-analysis:
+    name: SonarCloud Analysis
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.services != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        if: ${{ matrix.service != 'founderlink-frontend' }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Analyze with SonarCloud
+        if: ${{ matrix.service != 'founderlink-frontend' }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -d "./${{ matrix.service }}" ] && [ -f "./${{ matrix.service }}/pom.xml" ]; then
+            cd ${{ matrix.service }}
+            mvn -B clean verify sonar:sonar -Dsonar.token=$SONAR_TOKEN
+          else
+            echo "Skipping non-Maven service: ${{ matrix.service }}"
+          fi
+
+  build-and-push:
+    name: Build & Push
+    needs: [detect-changes, quality-analysis]
+    if: ${{ always() && needs.detect-changes.outputs.services != '[]' && (needs.quality-analysis.result == 'success' || needs.quality-analysis.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR Login
+        run: |
+          echo "${{ secrets.ACR_PASSWORD }}" | docker login ${{ secrets.ACR_LOGIN_SERVER }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
+
+      - name: Build and Push Service
+        run: |
+          TAG=$(echo ${{ github.sha }} | cut -c1-7)
+          IMAGE_NAME=${{ secrets.ACR_LOGIN_SERVER }}/${{ matrix.service }}:$TAG
+          LATEST_IMAGE=${{ secrets.ACR_LOGIN_SERVER }}/${{ matrix.service }}:latest
+          
+          if [ "${{ matrix.service }}" == "founderlink-frontend" ]; then
+            docker build \
+              --build-arg RAZORPAY_KEY=${{ secrets.RAZORPAY_KEY_ID }} \
+              -t $IMAGE_NAME \
+              -t $LATEST_IMAGE \
+              ./${{ matrix.service }}
+          else
+            docker build -t $IMAGE_NAME -t $LATEST_IMAGE ./${{ matrix.service }}
+          fi
+          
+          docker push $IMAGE_NAME
+          docker push $LATEST_IMAGE
+
+  deploy:
+    name: Deploy to Azure VM
+    needs: [detect-changes, build-and-push]
+    if: ${{ needs.detect-changes.outputs.services != '[]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/FounderLink_System
+            
+            # 1. Force sync with GitHub
+            git fetch origin
+            git reset --hard origin/${{ github.ref_name }}
+            git checkout ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
+            
+            export TAG=$(echo ${{ github.sha }} | cut -c1-7)
+            export ACR_LOGIN_SERVER=${{ secrets.ACR_LOGIN_SERVER }}
+            
+            # 2. Login to ACR on VM
+            echo "${{ secrets.ACR_PASSWORD }}" | docker login $ACR_LOGIN_SERVER -u ${{ secrets.ACR_USERNAME }} --password-stdin
+            
+            # 3. Pull and Up services one-by-one to avoid cross-file lookup issues
+            SERVICES=$(echo '${{ needs.detect-changes.outputs.services }}' | jq -r '.[]')
+            
+            for s in $SERVICES; do
+              echo "Updating service: $s"
+              docker-compose -f docker-compose.infra.yml -f docker-compose.services.yml pull $s
+              docker-compose -f docker-compose.infra.yml -f docker-compose.services.yml up -d --no-deps $s
+            done
+            
+            # 4. Persist variables for manual usage
+            sed -i "s|^TAG=.*|TAG=latest|" .env || echo "TAG=latest" >> .env
+            sed -i "s|^ACR_LOGIN_SERVER=.*|ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER|" .env || echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> .env
+            echo "✅ Deployment complete. .env updated with TAG=latest for manual usage."
+            
+            docker system prune -f

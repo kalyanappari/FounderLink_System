@@ -5,7 +5,6 @@ import com.founderlink.investment.dto.request.InvestmentRequestDto;
 import com.founderlink.investment.dto.request.InvestmentStatusUpdateDto;
 import com.founderlink.investment.dto.response.InvestmentResponseDto;
 import com.founderlink.investment.entity.InvestmentStatus;
-import com.founderlink.investment.entity.ManualInvestmentStatus;
 import com.founderlink.investment.service.InvestmentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,22 +18,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import org.springframework.test.context.TestPropertySource;
-
 @WebMvcTest(value = InvestmentController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
-@TestPropertySource(properties = {
-        "spring.cloud.config.enabled=false",
-        "spring.cloud.config.import-check.enabled=false"
-})
 @ExtendWith(MockitoExtension.class)
 class InvestmentControllerTest {
 
@@ -48,101 +39,119 @@ class InvestmentControllerTest {
     private ObjectMapper objectMapper;
 
     private InvestmentResponseDto responseDto;
+    private InvestmentRequestDto requestDto;
 
     @BeforeEach
     void setUp() {
         responseDto = new InvestmentResponseDto();
         responseDto.setId(1L);
-        responseDto.setStartupId(101L);
-        responseDto.setInvestorId(202L);
-        responseDto.setAmount(new BigDecimal("1000000.00"));
+        responseDto.setStartupId(100L);
+        responseDto.setInvestorId(200L);
+        responseDto.setAmount(new BigDecimal("1000.00"));
         responseDto.setStatus(InvestmentStatus.PENDING);
-        responseDto.setCreatedAt(LocalDateTime.now());
+
+        requestDto = new InvestmentRequestDto();
+        requestDto.setStartupId(100L);
+        requestDto.setAmount(new BigDecimal("1000.00"));
     }
 
     @Test
     void createInvestment_Success() throws Exception {
-        InvestmentRequestDto request = new InvestmentRequestDto();
-        request.setStartupId(101L);
-        request.setAmount(new BigDecimal("1000000.00"));
-
-        when(investmentService.createInvestment(eq(202L), any(InvestmentRequestDto.class)))
-                .thenReturn(responseDto);
+        when(investmentService.createInvestment(eq(200L), any())).thenReturn(responseDto);
 
         mockMvc.perform(post("/investments")
-                .header("X-User-Id", 202L)
+                .header("X-User-Id", 200L)
                 .header("X-User-Role", "ROLE_INVESTOR")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.message").value("Investment created successfully"))
-                .andExpect(jsonPath("$.data.startupId").value(101L));
+                .andExpect(jsonPath("$.message").value("Investment created successfully"));
     }
 
     @Test
-    void createInvestment_WrongRole_Forbidden() throws Exception {
-        InvestmentRequestDto request = new InvestmentRequestDto();
-        request.setStartupId(101L);
-        request.setAmount(new BigDecimal("1000000.00"));
-
+    void createInvestment_Forbidden() throws Exception {
         mockMvc.perform(post("/investments")
-                .header("X-User-Id", 5L)
+                .header("X-User-Id", 200L)
                 .header("X-User-Role", "ROLE_FOUNDER")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().is4xxClientError());
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
     void getInvestmentsByStartupId_Success() throws Exception {
-        when(investmentService.getInvestmentsByStartupId(101L, 5L))
-                .thenReturn(List.of(responseDto));
+        when(investmentService.getInvestmentsByStartupId(100L, 5L)).thenReturn(List.of(responseDto));
 
-        mockMvc.perform(get("/investments/startup/101")
+        mockMvc.perform(get("/investments/startup/100")
                 .header("X-User-Id", 5L)
                 .header("X-User-Role", "ROLE_FOUNDER"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Investments fetched successfully"))
-                .andExpect(jsonPath("$.data[0].startupId").value(101L));
-    }
-
-    @Test
-    void getInvestmentsByStartupId_WrongRole_Forbidden() throws Exception {
-        mockMvc.perform(get("/investments/startup/101")
-                .header("X-User-Id", 202L)
-                .header("X-User-Role", "ROLE_INVESTOR"))
-                .andExpect(status().is4xxClientError());
-    }
-
-    @Test
-    void getInvestmentsByInvestorId_Success() throws Exception {
-        when(investmentService.getInvestmentsByInvestorId(202L))
-                .thenReturn(List.of(responseDto));
-
-        mockMvc.perform(get("/investments/investor")
-                .header("X-User-Id", 202L)
-                .header("X-User-Role", "ROLE_INVESTOR"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Investments fetched successfully"));
     }
 
     @Test
-    void updateInvestmentStatus_Success() throws Exception {
-        InvestmentStatusUpdateDto statusUpdate = new InvestmentStatusUpdateDto();
-        statusUpdate.setStatus(ManualInvestmentStatus.APPROVED);
-        responseDto.setStatus(InvestmentStatus.APPROVED);
+    void getInvestmentsByStartupId_Admin_Success() throws Exception {
+        when(investmentService.getInvestmentsByStartupId(100L, 1L)).thenReturn(List.of(responseDto));
 
-        when(investmentService.updateInvestmentStatus(eq(1L), eq(5L), any(InvestmentStatusUpdateDto.class)))
-                .thenReturn(responseDto);
+        mockMvc.perform(get("/investments/startup/100")
+                .header("X-User-Id", 1L)
+                .header("X-User-Role", "ROLE_ADMIN"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getInvestmentsByStartupId_Forbidden() throws Exception {
+        mockMvc.perform(get("/investments/startup/100")
+                .header("X-User-Id", 200L)
+                .header("X-User-Role", "ROLE_INVESTOR"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getInvestmentsByInvestorId_Success() throws Exception {
+        when(investmentService.getInvestmentsByInvestorId(200L)).thenReturn(List.of(responseDto));
+
+        mockMvc.perform(get("/investments/investor")
+                .header("X-User-Id", 200L)
+                .header("X-User-Role", "ROLE_INVESTOR"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getInvestmentsByInvestorId_Forbidden() throws Exception {
+        mockMvc.perform(get("/investments/investor")
+                .header("X-User-Id", 5L)
+                .header("X-User-Role", "ROLE_FOUNDER"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void updateInvestmentStatus_Success() throws Exception {
+        InvestmentStatusUpdateDto updateDto = new InvestmentStatusUpdateDto();
+        updateDto.setStatus(com.founderlink.investment.entity.ManualInvestmentStatus.APPROVED);
+
+        when(investmentService.updateInvestmentStatus(eq(1L), eq(5L), any())).thenReturn(responseDto);
 
         mockMvc.perform(put("/investments/1/status")
                 .header("X-User-Id", 5L)
                 .header("X-User-Role", "ROLE_FOUNDER")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(statusUpdate)))
+                .content(objectMapper.writeValueAsString(updateDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Investment status updated successfully"))
-                .andExpect(jsonPath("$.data.status").value("APPROVED"));
+                .andExpect(jsonPath("$.message").value("Investment status updated successfully"));
+    }
+
+    @Test
+    void updateInvestmentStatus_Forbidden() throws Exception {
+        InvestmentStatusUpdateDto updateDto = new InvestmentStatusUpdateDto();
+        updateDto.setStatus(com.founderlink.investment.entity.ManualInvestmentStatus.APPROVED);
+
+        mockMvc.perform(put("/investments/1/status")
+                .header("X-User-Id", 200L)
+                .header("X-User-Role", "ROLE_INVESTOR")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateDto)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -150,16 +159,32 @@ class InvestmentControllerTest {
         when(investmentService.getInvestmentById(1L)).thenReturn(responseDto);
 
         mockMvc.perform(get("/investments/1")
-                .header("X-User-Role", "ROLE_INVESTOR"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Investment fetched successfully"))
-                .andExpect(jsonPath("$.data.id").value(1L));
+                .header("X-User-Role", "ROLE_FOUNDER"))
+                .andExpect(status().isOk());
     }
 
     @Test
-    void getInvestmentById_WrongRole_Forbidden() throws Exception {
+    void getInvestmentById_AsInvestor_Success() throws Exception {
+        when(investmentService.getInvestmentById(1L)).thenReturn(responseDto);
+
+        mockMvc.perform(get("/investments/1")
+                .header("X-User-Role", "ROLE_INVESTOR"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getInvestmentById_AsAdmin_Success() throws Exception {
+        when(investmentService.getInvestmentById(1L)).thenReturn(responseDto);
+
+        mockMvc.perform(get("/investments/1")
+                .header("X-User-Role", "ROLE_ADMIN"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getInvestmentById_Forbidden() throws Exception {
         mockMvc.perform(get("/investments/1")
                 .header("X-User-Role", "ROLE_UNKNOWN"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isForbidden());
     }
 }

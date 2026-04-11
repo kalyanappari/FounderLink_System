@@ -59,6 +59,13 @@
           <div class="empty-state">No ventures found in the dynamic directory.</div>
         }
       </div>
+
+      <app-pagination 
+        [totalItems]="totalElements()" 
+        [pageSize]="pageSize()" 
+        [currentPage]="currentPage()" 
+        (pageChange)="onPageChange($event)">
+      </app-pagination>
     }
   </section>
 </div>

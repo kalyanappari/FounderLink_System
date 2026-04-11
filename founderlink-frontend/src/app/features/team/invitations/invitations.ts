@@ -1,13 +1,15 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { TeamService } from '../../../core/services/team.service';
 import { StartupService } from '../../../core/services/startup.service';
 import { InvitationResponse, InvitationStatus } from '../../../models';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-invitations',
-  imports: [CommonModule],
+  standalone: true,
+  imports: [CommonModule, PaginationComponent],
   templateUrl: './invitations.html',
   styleUrl: './invitations.css'
 })
@@ -19,11 +21,39 @@ export class InvitationsComponent implements OnInit {
   successMsg  = signal('');
   startupNames = signal<Map<number, string>>(new Map());
 
+  // Pagination State - Pending
+  currentPagePending = signal(1);
+  pageSizePending = signal(5);
+
+  // Pagination State - Responded
+  currentPageResponded = signal(1);
+  pageSizeResponded = signal(5);
+
+  paginatedPending = computed(() => {
+    const list = this.pending();
+    const start = (this.currentPagePending() - 1) * this.pageSizePending();
+    return list.slice(start, start + this.pageSizePending());
+  });
+
+  paginatedResponded = computed(() => {
+    const list = this.responded();
+    const start = (this.currentPageResponded() - 1) * this.pageSizeResponded();
+    return list.slice(start, start + this.pageSizeResponded());
+  });
+
   constructor(
     public authService: AuthService,
     private teamService: TeamService,
     private startupService: StartupService
   ) {}
+
+  onPageChangePending(page: number): void {
+    this.currentPagePending.set(page);
+  }
+
+  onPageChangeResponded(page: number): void {
+    this.currentPageResponded.set(page);
+  }
 
   ngOnInit(): void { this.loadInvitations(); }
 

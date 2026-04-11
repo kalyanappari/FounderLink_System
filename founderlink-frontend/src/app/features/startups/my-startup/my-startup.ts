@@ -1,13 +1,15 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { StartupService } from '../../../core/services/startup.service';
 import { StartupResponse, StartupRequest, StartupStage } from '../../../models';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-my-startup',
-  imports: [CommonModule, ReactiveFormsModule],
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, PaginationComponent],
   templateUrl: './my-startup.html',
   styleUrl: './my-startup.css'
 })
@@ -18,6 +20,15 @@ export class MyStartupComponent implements OnInit {
   deleting   = signal<number | null>(null);
   errorMsg   = signal('');
   successMsg = signal('');
+
+  // Pagination State
+  currentPage = signal(1);
+  pageSize = signal(8);
+
+  paginatedStartups = computed(() => {
+    const start = (this.currentPage() - 1) * this.pageSize();
+    return this.startups().slice(start, start + this.pageSize());
+  });
 
   showForm   = signal(false);
   editingId  = signal<number | null>(null);
@@ -43,6 +54,11 @@ export class MyStartupComponent implements OnInit {
       fundingGoal:      [null, [Validators.required, Validators.min(1000)]],
       stage:            ['', Validators.required]
     });
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   ngOnInit(): void { this.loadStartups(); }

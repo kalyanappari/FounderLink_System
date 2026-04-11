@@ -65,7 +65,7 @@ class WalletControllerTest {
     }
 
     @Test
-    void getWallet() throws Exception {
+    void getWallet_Success() throws Exception {
         Long startupId = 1L;
         WalletResponseDto responseDto = new WalletResponseDto(1L, startupId, BigDecimal.valueOf(500), null, null);
 
@@ -76,5 +76,27 @@ class WalletControllerTest {
                 .andExpect(jsonPath("$.message").value("Wallet retrieved successfully"))
                 .andExpect(jsonPath("$.data.startupId").value(startupId))
                 .andExpect(jsonPath("$.data.balance").value(500));
+    }
+
+    @Test
+    void getWallet_NotFound() throws Exception {
+        Long startupId = 1L;
+        when(walletService.getWalletByStartupId(startupId)).thenThrow(new com.founderlink.wallet.exception.WalletNotFoundException("Not found"));
+
+        mockMvc.perform(get("/wallets/{startupId}", startupId))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void depositFunds_NotFound() throws Exception {
+        WalletDepositRequestDto request = new WalletDepositRequestDto(
+                123L, 1L, BigDecimal.valueOf(100), 456L, "idem-key");
+        
+        when(walletService.depositFunds(any())).thenThrow(new com.founderlink.wallet.exception.WalletNotFoundException("Not found"));
+
+        mockMvc.perform(post("/wallets/deposit")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
     }
 }

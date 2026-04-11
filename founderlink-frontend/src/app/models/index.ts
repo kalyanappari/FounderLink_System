@@ -21,6 +21,11 @@ export interface ApiEnvelope<T> {
   success: boolean;
   data: T | null;
   error: string | null;
+  totalElements?: number;
+  totalPages?: number;
+  pageNumber?: number;
+  pageSize?: number;
+  isLast?: boolean;
 }
 
 /** Raw backend wrapped response shape  { message, data } */

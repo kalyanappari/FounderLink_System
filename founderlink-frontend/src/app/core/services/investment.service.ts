@@ -10,7 +10,7 @@ import { normalizeWrapped, normalizeError } from './api-normalizer';
 export class InvestmentService {
   private readonly api = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /** Investor: create a new investment */
   create(req: InvestmentRequest): Observable<ApiEnvelope<InvestmentResponse>> {

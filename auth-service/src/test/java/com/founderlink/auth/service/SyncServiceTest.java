@@ -33,24 +33,7 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest(
         classes = SyncServiceTest.TestApplication.class,
-        webEnvironment = SpringBootTest.WebEnvironment.NONE,
-        properties = {
-                "spring.cloud.config.enabled=false",
-                "eureka.client.enabled=false",
-                "spring.config.import=",
-                "resilience4j.retry.instances.userServiceSync.max-attempts=3",
-                "resilience4j.retry.instances.userServiceSync.wait-duration=1ms",
-                "resilience4j.retry.instances.userServiceSync.enable-exponential-backoff=true",
-                "resilience4j.retry.instances.userServiceSync.exponential-backoff-multiplier=2",
-                "resilience4j.retry.instances.userServiceSync.retry-exceptions[0]=com.founderlink.auth.exception.UserServiceUnavailableException",
-                "resilience4j.circuitbreaker.instances.userServiceSync.sliding-window-type=COUNT_BASED",
-                "resilience4j.circuitbreaker.instances.userServiceSync.sliding-window-size=10",
-                "resilience4j.circuitbreaker.instances.userServiceSync.minimum-number-of-calls=10",
-                "resilience4j.circuitbreaker.instances.userServiceSync.permitted-number-of-calls-in-half-open-state=1",
-                "resilience4j.circuitbreaker.instances.userServiceSync.wait-duration-in-open-state=60s",
-                "resilience4j.circuitbreaker.instances.userServiceSync.failure-rate-threshold=50",
-                "resilience4j.circuitbreaker.instances.userServiceSync.record-exceptions[0]=com.founderlink.auth.exception.UserServiceUnavailableException"
-        }
+        webEnvironment = SpringBootTest.WebEnvironment.NONE
 )
 class SyncServiceTest {
 
@@ -134,6 +117,15 @@ class SyncServiceTest {
         assertThatThrownBy(() -> syncService.syncUser(user))
                 .isInstanceOf(UserServiceUnavailableException.class);
         verify(userClient, never()).createUser(any());
+    }
+
+    @Test
+    void syncUserFallbackShouldPropagateServiceClientException() {
+        com.founderlink.auth.exception.UserServiceClientException clientEx =
+                new com.founderlink.auth.exception.UserServiceClientException("UserClient#createUser", 400, "Bad Request");
+
+        assertThatThrownBy(() -> syncService.syncUserFallback(user, clientEx))
+                .isSameAs(clientEx);
     }
 
     @EnableAutoConfiguration(exclude = {

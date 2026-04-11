@@ -69,6 +69,15 @@
             @if (messages().length === 0) {
               <p class="empty-messages">No messages yet. Start the conversation!</p>
             } @else {
+              <!-- Load older messages button -->
+              @if (messages().length < totalMessages()) {
+                <div class="load-older-container">
+                  <button class="btn btn-ghost btn-sm" (click)="loadOlderMessages()" [disabled]="loadingOlder()">
+                    {{ loadingOlder() ? 'Loading...' : 'Load older messages' }}
+                  </button>
+                </div>
+              }
+
               @for (msg of messages(); track msg.id) {
                 <div class="message" [class.sent]="isCurrentUser(msg.senderId)" [class.received]="!isCurrentUser(msg.senderId)">
                   <div class="message-content">

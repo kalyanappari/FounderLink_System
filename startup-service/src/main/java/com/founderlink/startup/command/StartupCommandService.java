@@ -35,7 +35,7 @@ public class StartupCommandService {
      */
     @Caching(evict = {
         @CacheEvict(value = "allStartups",        allEntries = true),
-        @CacheEvict(value = "startupsByFounder",  key = "#founderId"),
+        @CacheEvict(value = "startupsByFounder",  allEntries = true),
         @CacheEvict(value = "searchStartups",     allEntries = true)
     })
     public StartupResponseDto createStartup(Long founderId, StartupRequestDto requestDto) {
@@ -58,7 +58,7 @@ public class StartupCommandService {
     @Caching(evict = {
         @CacheEvict(value = "startupById",       key = "#id"),
         @CacheEvict(value = "allStartups",       allEntries = true),
-        @CacheEvict(value = "startupsByFounder", key = "#founderId"),
+        @CacheEvict(value = "startupsByFounder", allEntries = true),
         @CacheEvict(value = "searchStartups",    allEntries = true)
     })
     public StartupResponseDto updateStartup(Long id, Long founderId, StartupRequestDto requestDto) {
@@ -89,7 +89,7 @@ public class StartupCommandService {
     @Caching(evict = {
         @CacheEvict(value = "startupById",       key = "#id"),
         @CacheEvict(value = "allStartups",       allEntries = true),
-        @CacheEvict(value = "startupsByFounder", key = "#founderId"),
+        @CacheEvict(value = "startupsByFounder", allEntries = true),
         @CacheEvict(value = "searchStartups",    allEntries = true)
     })
     public void deleteStartup(Long id, Long founderId) {

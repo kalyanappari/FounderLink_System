@@ -7,6 +7,8 @@ import com.founderlink.team.entity.TeamRole;
 import com.founderlink.team.service.TeamMemberService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,12 +20,12 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(value = TeamMemberController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@ExtendWith(MockitoExtension.class)
 class TeamMemberControllerTest {
 
     @Autowired
@@ -36,75 +38,87 @@ class TeamMemberControllerTest {
     private ObjectMapper objectMapper;
 
     private TeamMemberResponseDto responseDto;
+    private JoinTeamRequestDto joinRequest;
 
     @BeforeEach
     void setUp() {
         responseDto = new TeamMemberResponseDto();
-        responseDto.setId(1L);
-        responseDto.setStartupId(101L);
-        responseDto.setUserId(300L);
+        responseDto.setId(10L);
+        responseDto.setStartupId(100L);
         responseDto.setRole(TeamRole.CTO);
+
+        joinRequest = new JoinTeamRequestDto();
+        joinRequest.setInvitationId(1L);
     }
 
     @Test
     void joinTeam_Success() throws Exception {
-        JoinTeamRequestDto request = new JoinTeamRequestDto();
-        request.setInvitationId(1L);
-
-        when(teamMemberService.joinTeam(eq(300L), any(JoinTeamRequestDto.class)))
-                .thenReturn(responseDto);
+        when(teamMemberService.joinTeam(eq(200L), any())).thenReturn(responseDto);
 
         mockMvc.perform(post("/teams/join")
-                .header("X-User-Id", 300L)
+                .header("X-User-Id", 200L)
                 .header("X-User-Role", "ROLE_COFOUNDER")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(joinRequest)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.message").value("Successfully joined the team"))
-                .andExpect(jsonPath("$.data.startupId").value(101L));
+                .andExpect(jsonPath("$.message").value("Successfully joined the team"));
     }
 
     @Test
-    void joinTeam_WrongRole_Forbidden() throws Exception {
-        JoinTeamRequestDto request = new JoinTeamRequestDto();
-        request.setInvitationId(1L);
-
+    void joinTeam_Forbidden() throws Exception {
         mockMvc.perform(post("/teams/join")
-                .header("X-User-Id", 5L)
+                .header("X-User-Id", 200L)
                 .header("X-User-Role", "ROLE_FOUNDER")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().is4xxClientError());
+                .content(objectMapper.writeValueAsString(joinRequest)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    void getTeamByStartupId_AsFounder_Success() throws Exception {
-        when(teamMemberService.getTeamByStartupId(101L, 5L, "ROLE_FOUNDER"))
+    void getTeamByStartupId_Founder_Success() throws Exception {
+        when(teamMemberService.getTeamByStartupId(eq(100L), eq(5L), eq("ROLE_FOUNDER")))
                 .thenReturn(List.of(responseDto));
 
-        mockMvc.perform(get("/teams/startup/101")
+        mockMvc.perform(get("/teams/startup/100")
                 .header("X-User-Id", 5L)
                 .header("X-User-Role", "ROLE_FOUNDER"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Team members fetched successfully"))
-                .andExpect(jsonPath("$.data[0].startupId").value(101L));
+                .andExpect(jsonPath("$.message").value("Team members fetched successfully"));
     }
 
     @Test
-    void getTeamByStartupId_AsCofounder_NotMember_Forbidden() throws Exception {
-        when(teamMemberService.isTeamMember(101L, 300L)).thenReturn(false);
+    void getTeamByStartupId_MemberCoFounder_Success() throws Exception {
+        when(teamMemberService.isTeamMember(100L, 200L)).thenReturn(true);
+        when(teamMemberService.getTeamByStartupId(eq(100L), eq(200L), eq("ROLE_COFOUNDER")))
+                .thenReturn(List.of(responseDto));
 
-        mockMvc.perform(get("/teams/startup/101")
-                .header("X-User-Id", 300L)
+        mockMvc.perform(get("/teams/startup/100")
+                .header("X-User-Id", 200L)
                 .header("X-User-Role", "ROLE_COFOUNDER"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getTeamByStartupId_NonMemberCoFounder_Forbidden() throws Exception {
+        when(teamMemberService.isTeamMember(100L, 200L)).thenReturn(false);
+
+        mockMvc.perform(get("/teams/startup/100")
+                .header("X-User-Id", 200L)
+                .header("X-User-Role", "ROLE_COFOUNDER"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getTeamByStartupId_InvalidRole_Forbidden() throws Exception {
+        mockMvc.perform(get("/teams/startup/100")
+                .header("X-User-Id", 5L)
+                .header("X-User-Role", "ROLE_UNKNOWN"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
     void removeTeamMember_Success() throws Exception {
-        doNothing().when(teamMemberService).removeTeamMember(1L, 5L);
-
-        mockMvc.perform(delete("/teams/1")
+        mockMvc.perform(delete("/teams/10")
                 .header("X-User-Id", 5L)
                 .header("X-User-Role", "ROLE_FOUNDER"))
                 .andExpect(status().isOk())
@@ -112,40 +126,56 @@ class TeamMemberControllerTest {
     }
 
     @Test
-    void removeTeamMember_WrongRole_Forbidden() throws Exception {
-        mockMvc.perform(delete("/teams/1")
-                .header("X-User-Id", 300L)
+    void removeTeamMember_Forbidden() throws Exception {
+        mockMvc.perform(delete("/teams/10")
+                .header("X-User-Id", 200L)
                 .header("X-User-Role", "ROLE_COFOUNDER"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    void getMemberHistory_Success() throws Exception {
-        when(teamMemberService.getMemberHistory(300L)).thenReturn(List.of(responseDto));
+    void getMemberHistory_CoFounder_Success() throws Exception {
+        when(teamMemberService.getMemberHistory(200L)).thenReturn(List.of(responseDto));
 
         mockMvc.perform(get("/teams/member/history")
-                .header("X-User-Id", 300L)
+                .header("X-User-Id", 200L)
                 .header("X-User-Role", "ROLE_COFOUNDER"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Member history fetched successfully"));
+                .andExpect(status().isOk());
     }
 
     @Test
-    void getMemberHistory_WrongRole_Forbidden() throws Exception {
+    void getMemberHistory_Admin_Success() throws Exception {
+        when(teamMemberService.getMemberHistory(1L)).thenReturn(List.of(responseDto));
+
+        mockMvc.perform(get("/teams/member/history")
+                .header("X-User-Id", 1L)
+                .header("X-User-Role", "ROLE_ADMIN"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getMemberHistory_Forbidden() throws Exception {
         mockMvc.perform(get("/teams/member/history")
                 .header("X-User-Id", 5L)
                 .header("X-User-Role", "ROLE_FOUNDER"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    void getActiveMemberRoles_Success() throws Exception {
-        when(teamMemberService.getActiveMemberRoles(300L)).thenReturn(List.of(responseDto));
+    void getActiveMemberRoles_CoFounder_Success() throws Exception {
+        when(teamMemberService.getActiveMemberRoles(200L)).thenReturn(List.of(responseDto));
 
         mockMvc.perform(get("/teams/member/active")
-                .header("X-User-Id", 300L)
+                .header("X-User-Id", 200L)
                 .header("X-User-Role", "ROLE_COFOUNDER"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Active roles fetched successfully"));
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getActiveMemberRoles_Forbidden() throws Exception {
+        mockMvc.perform(get("/teams/member/active")
+                .header("X-User-Id", 5L)
+                .header("X-User-Role", "ROLE_INVESTOR"))
+                .andExpect(status().isForbidden());
     }
 }

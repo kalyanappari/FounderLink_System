@@ -27,6 +27,7 @@ import java.util.HexFormat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -128,6 +129,51 @@ class RefreshTokenServiceTest {
         assertThat(replacementToken.getExpiryDate()).isEqualTo(Instant.now(clock).plus(Duration.ofDays(30)));
         assertThat(replacementToken.getToken()).hasSize(64);
         assertThat(replacementToken.getToken()).isNotEqualTo(currentToken.getToken());
+    }
+
+    @Test
+    void createTokenShouldEvictOldestWhenMaxSessionsExceeded() {
+        Long userId = 101L;
+        when(refreshTokenRepository.countByUserIdAndRevokedFalse(userId)).thenReturn(5L);
+        RefreshToken oldest = RefreshToken.builder()
+                .id(1L)
+                .userId(userId)
+                .revoked(false)
+                .token("oldest-hash")
+                .build();
+        when(refreshTokenRepository.findOldestActiveToken(userId)).thenReturn(Optional.of(oldest));
+
+        String newToken = refreshTokenService.createToken(userId);
+
+        assertThat(newToken).isNotBlank();
+        verify(refreshTokenRepository).save(argThat(t -> t.isRevoked() && t.getId().equals(1L)));
+        verify(refreshTokenRepository, times(2)).save(any(RefreshToken.class));
+    }
+
+    @Test
+    void revokeTokenShouldThrowWhenAlreadyRevoked() {
+        String rawToken = "already-revoked-token";
+        RefreshToken token = RefreshToken.builder()
+                .revoked(true)
+                .userId(1L)
+                .token(hash(rawToken))
+                .build();
+        when(refreshTokenRepository.findByTokenForUpdate(token.getToken())).thenReturn(Optional.of(token));
+
+        assertThrows(RevokedRefreshTokenException.class, () -> refreshTokenService.revokeToken(rawToken));
+    }
+
+    @Test
+    void validateTokenShouldThrowWhenTokenNotFound() {
+        when(refreshTokenRepository.findByToken(any())).thenReturn(Optional.empty());
+        assertThrows(com.founderlink.auth.exception.InvalidRefreshTokenException.class, 
+                () -> refreshTokenService.validateToken("non-existent"));
+    }
+
+    @Test
+    void validateTokenShouldThrowWhenTokenIsMissing() {
+        assertThrows(com.founderlink.auth.exception.InvalidRefreshTokenException.class, 
+                () -> refreshTokenService.validateToken("   "));
     }
 
     private String hash(String token) {

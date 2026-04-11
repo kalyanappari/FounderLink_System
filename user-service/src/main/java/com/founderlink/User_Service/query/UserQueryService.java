@@ -36,29 +36,26 @@ public class UserQueryService {
     }
 
     /**
-     * QUERY: Get all users.
-     * Single shared cache entry — invalidated on any write.
+     * QUERY: Get all users with pagination and optional search.
      */
-    @Cacheable(value = "allUsers", key = "'all'")
-    public List<UserResponseDto> getAllUsers() {
-        log.info("QUERY - getAllUsers (cache miss, hitting DB)");
-        return repository.findAll()
-                .stream()
-                .map(u -> modelMapper.map(u, UserResponseDto.class))
-                .collect(Collectors.toList());
+    @Cacheable(value = "usersPaged", key = "'all-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + (#search != null ? #search : '')")
+    public com.founderlink.User_Service.dto.PagedResponse<UserResponseDto> getAllUsers(String search, org.springframework.data.domain.Pageable pageable) {
+        log.info("QUERY - getAllUsers paged (cache miss, hitting DB)");
+        return searchUsers(null, search, pageable);
     }
 
     /**
-     * QUERY: Get users filtered by role.
-     * Cache key = role name.
+     * QUERY: Get users filtered by role with pagination and optional search.
      */
-    @Cacheable(value = "usersByRole", key = "#role.name()")
-    public List<UserResponseDto> getUsersByRole(Role role) {
-        log.info("QUERY - getUsersByRole: role={} (cache miss, hitting DB)", role);
-        return repository.findByRole(role)
-                .stream()
-                .map(u -> modelMapper.map(u, UserResponseDto.class))
-                .collect(Collectors.toList());
+    @Cacheable(value = "usersByRolePaged", key = "#role.name() + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + (#search != null ? #search : '')")
+    public com.founderlink.User_Service.dto.PagedResponse<UserResponseDto> getUsersByRole(Role role, String search, org.springframework.data.domain.Pageable pageable) {
+        log.info("QUERY - getUsersByRole paged: role={} (cache miss, hitting DB)", role);
+        return searchUsers(role, search, pageable);
+    }
+
+    private com.founderlink.User_Service.dto.PagedResponse<UserResponseDto> searchUsers(Role role, String search, org.springframework.data.domain.Pageable pageable) {
+        org.springframework.data.domain.Page<com.founderlink.User_Service.entity.User> page = repository.searchUsers(role, search, pageable);
+        return com.founderlink.User_Service.dto.PagedResponse.of(page.map(u -> modelMapper.map(u, UserResponseDto.class)));
     }
 
     /**

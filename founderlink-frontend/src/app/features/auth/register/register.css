@@ -349,3 +349,10 @@ form {
     padding: 2rem 1.25rem;
   }
 }
+
+@media (max-width: 480px) {
+  .role-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}

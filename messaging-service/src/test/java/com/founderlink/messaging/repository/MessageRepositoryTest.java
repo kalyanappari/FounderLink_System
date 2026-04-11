@@ -10,6 +10,9 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
@@ -53,29 +56,29 @@ class MessageRepositoryTest {
     @Test
     @DisplayName("findConversation - returns messages between two users in order")
     void findConversation_ReturnsBidirectionalMessages() {
-        List<Message> conversation = messageRepository.findConversation(100L, 200L);
+        Page<Message> conversation = messageRepository.findConversation(100L, 200L, PageRequest.of(0, 10));
 
-        assertThat(conversation).hasSize(3);
-        assertThat(conversation.get(0).getContent()).isEqualTo("Hey, are you interested in our startup?");
-        assertThat(conversation.get(1).getContent()).isEqualTo("Yes! Tell me more about the equity split.");
-        assertThat(conversation.get(2).getContent()).isEqualTo("We offer 10% for early team members.");
+        assertThat(conversation.getContent()).hasSize(3);
+        assertThat(conversation.getContent().get(0).getContent()).isEqualTo("We offer 10% for early team members.");
+        assertThat(conversation.getContent().get(1).getContent()).isEqualTo("Yes! Tell me more about the equity split.");
+        assertThat(conversation.getContent().get(2).getContent()).isEqualTo("Hey, are you interested in our startup?");
     }
 
     @Test
     @DisplayName("findConversation - works regardless of parameter order")
     void findConversation_SymmetricParameterOrder() {
-        List<Message> conversation1 = messageRepository.findConversation(100L, 200L);
-        List<Message> conversation2 = messageRepository.findConversation(200L, 100L);
+        Page<Message> conversation1 = messageRepository.findConversation(100L, 200L, PageRequest.of(0, 10));
+        Page<Message> conversation2 = messageRepository.findConversation(200L, 100L, PageRequest.of(0, 10));
 
-        assertThat(conversation1).hasSameSizeAs(conversation2);
+        assertThat(conversation1.getContent()).hasSameSizeAs(conversation2.getContent());
     }
 
     @Test
     @DisplayName("findConversation - returns empty for non-existent conversation")
     void findConversation_WhenNoMessages_ReturnsEmpty() {
-        List<Message> conversation = messageRepository.findConversation(200L, 300L);
+        Page<Message> conversation = messageRepository.findConversation(200L, 300L, PageRequest.of(0, 10));
 
-        assertThat(conversation).isEmpty();
+        assertThat(conversation.getContent()).isEmpty();
     }
 
     @Test

@@ -5,7 +5,7 @@ import { map, catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiEnvelope, ApiResponse, StartupRequest, StartupResponse } from '../../models';
-import { normalizeWrapped, normalizeError } from './api-normalizer';
+import { normalizeWrapped, normalizeError, normalizePage } from './api-normalizer';
 
 @Injectable({ providedIn: 'root' })
 export class StartupService {
@@ -13,21 +13,22 @@ export class StartupService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(): Observable<ApiEnvelope<StartupResponse[]>> {
-    return this.http.get<ApiResponse<StartupResponse[]>>(`${this.api}/startup`).pipe(
-      map(normalizeWrapped),
+  getAll(page: number = 0, size: number = 10): Observable<ApiEnvelope<StartupResponse[]>> {
+    const params = new HttpParams().set('page', page).set('size', size);
+    return this.http.get<any>(`${this.api}/startup`, { params }).pipe(
+      map(res => normalizePage<StartupResponse>(res)),
       catchError(err => throwError(() => normalizeError(err)))
     );
   }
 
-  search(filters: { industry?: string; stage?: string; minFunding?: number; maxFunding?: number }): Observable<ApiEnvelope<StartupResponse[]>> {
-    let params = new HttpParams();
+  search(filters: { industry?: string; stage?: string; minFunding?: number; maxFunding?: number }, page: number = 0, size: number = 10): Observable<ApiEnvelope<StartupResponse[]>> {
+    let params = new HttpParams().set('page', page).set('size', size);
     if (filters.industry)  params = params.set('industry', filters.industry);
     if (filters.stage)     params = params.set('stage', filters.stage);
     if (filters.minFunding != null) params = params.set('minFunding', filters.minFunding);
     if (filters.maxFunding != null) params = params.set('maxFunding', filters.maxFunding);
-    return this.http.get<ApiResponse<StartupResponse[]>>(`${this.api}/startup/search`, { params }).pipe(
-      map(normalizeWrapped),
+    return this.http.get<any>(`${this.api}/startup/search`, { params }).pipe(
+      map(res => normalizePage<StartupResponse>(res)),
       catchError(err => throwError(() => normalizeError(err)))
     );
   }
@@ -39,9 +40,10 @@ export class StartupService {
     );
   }
 
-  getMyStartups(): Observable<ApiEnvelope<StartupResponse[]>> {
-    return this.http.get<ApiResponse<StartupResponse[]>>(`${this.api}/startup/founder`).pipe(
-      map(normalizeWrapped),
+  getMyStartups(page: number = 0, size: number = 10): Observable<ApiEnvelope<StartupResponse[]>> {
+    const params = new HttpParams().set('page', page).set('size', size);
+    return this.http.get<any>(`${this.api}/startup/founder`, { params }).pipe(
+      map(res => normalizePage<StartupResponse>(res)),
       catchError(err => throwError(() => normalizeError(err)))
     );
   }

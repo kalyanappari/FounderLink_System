@@ -380,6 +380,23 @@
   box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
 }
 
+.member-card.historical-seat {
+  background: rgba(239, 68, 68, 0.03);
+  border-left: 4px solid #ef4444;
+  opacity: 0.9;
+}
+
+.member-card.historical-seat:hover {
+  background: rgba(239, 68, 68, 0.06);
+  opacity: 1;
+}
+
+.badge-historical {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
 .member-card.pipeline-card {
   background: rgba(245, 158, 11, 0.03);
   border-left: 4px solid #f59e0b;

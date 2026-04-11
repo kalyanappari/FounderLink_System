@@ -14,6 +14,9 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.founderlink.messaging.dto.PagedResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class MessageQueryService {
@@ -40,22 +43,23 @@ public class MessageQueryService {
 
     /**
      * QUERY: Get full conversation between two users.
-     * Cache key = sorted user pair to avoid duplicate entries for (1,2) vs (2,1).
+     * Cache key = sorted user pair + page configs.
      */
     @CircuitBreaker(name = "messagingService", fallbackMethod = "getConversationFallback")
     @Retry(name = "messagingService")
     @Cacheable(value = "conversation",
-               key = "(#user1 < #user2 ? #user1 + '_' + #user2 : #user2 + '_' + #user1)")
-    public List<MessageResponseDTO> getConversation(Long user1, Long user2) {
+               key = "(#user1 < #user2 ? #user1 + '_' + #user2 : #user2 + '_' + #user1) + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
+    public PagedResponse<MessageResponseDTO> getConversation(Long user1, Long user2, Pageable pageable) {
         log.info("QUERY - getConversation: user1={}, user2={} (cache miss, hitting DB)", user1, user2);
-        return messageRepository.findConversation(user1, user2).stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+        Page<Message> page = messageRepository.findConversation(user1, user2, pageable);
+        return PagedResponse.of(page.map(this::mapToResponseDTO));
     }
 
-    public List<MessageResponseDTO> getConversationFallback(Long user1, Long user2, Throwable throwable) {
+    public PagedResponse<MessageResponseDTO> getConversationFallback(Long user1, Long user2, Pageable pageable, Throwable throwable) {
         log.error("Circuit breaker fallback - getConversation. Reason: {}", throwable.getMessage());
-        return Collections.emptyList();
+        PagedResponse<MessageResponseDTO> response = new PagedResponse<>();
+        response.setContent(Collections.emptyList());
+        return response;
     }
 
     /**

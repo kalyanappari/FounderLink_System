@@ -37,11 +37,21 @@ export class DashboardComponent {
     public themeService: ThemeService,
     private router: Router
   ) {
+    // Mobile-first defaults: close sidebar on small screens
+    if (window.innerWidth <= 768) {
+      this.sidebarOpen.set(false);
+    }
+
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {
         const path = e.urlAfterRedirects.split('?')[0];
         this.pageTitle.set(this.titleMap[path] ?? 'Dashboard');
+        
+        // Auto-close sidebar on mobile after navigation
+        if (window.innerWidth <= 768) {
+          this.sidebarOpen.set(false);
+        }
       });
   }
 

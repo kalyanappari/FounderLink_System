@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base-layout :: layout('Security Authorization', 'Authorization Required', ~{::email_content})}">
+<body>
+    <div th:fragment="email_content">
+        <p>A secure action was initiated on your account. To verify your identity, please enter the authorization code provided below in the system terminal.</p>
+
+        <table class="form-table">
+            <tr class="form-row">
+                <td class="label">Initiated For</td>
+                <td class="value" th:text="${userName}">User</td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Authorization Code</td>
+                <td class="value">
+                    <span style="font-size: 24px; font-weight: 800; letter-spacing: 0.1em; color: #6366f1;" th:text="${pin}">000000</span>
+                </td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Token Expiration</td>
+                <td class="value">5 Minutes</td>
+            </tr>
+        </table>
+
+        <p style="margin-top: 30px; font-size: 14px; color: #64748b;">If you did not authorize this action, please ignore this request. Your credentials remain protected.</p>
+    </div>
+</body>
+</html>

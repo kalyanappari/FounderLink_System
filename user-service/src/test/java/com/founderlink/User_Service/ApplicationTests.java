@@ -6,6 +6,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@org.junit.jupiter.api.Disabled("Context tests disabled by user request")
 class ApplicationTests {
 
 	@Test

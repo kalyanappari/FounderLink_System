@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base-layout :: layout('Ecosystem Update', 'New Venture Opportunity', ~{::email_content})}">
+<body>
+    <div th:fragment="email_content">
+        <p>A new startup has recently joined the FounderLink ecosystem. Review the venture details below to see if it aligns with your investment strategy.</p>
+
+        <table class="form-table">
+            <tr class="form-row">
+                <td class="label">Venture Name</td>
+                <td class="value"><strong th:text="${startupName}">Acme Corp</strong></td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Industry</td>
+                <td class="value" th:text="${industry}">Technology</td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Funding Goal</td>
+                <td class="value" th:text="${fundingGoal}">$1,000,000</td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Venture ID</td>
+                <td class="value" th:text="${startupId}">#12345</td>
+            </tr>
+        </table>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="https://founderlink.tech/dashboard" class="button">View Venture Details</a>
+        </div>
+
+        <p style="margin-top: 40px; font-size: 14px; color: #64748b;">You are receiving this because you are registered as an Investor on the FounderLink platform.</p>
+    </div>
+</body>
+</html>

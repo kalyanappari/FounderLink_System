@@ -47,18 +47,21 @@ public class StartupServiceImpl implements StartupService {
     }
 
     @Override
-    public List<StartupResponseDto> getAllStartups() {
-        return queryService.getAllStartups();
+    public com.founderlink.startup.dto.response.PagedResponse<StartupResponseDto> getAllStartups(int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        return queryService.getAllStartups(pageable);
     }
 
     @Override
-    public List<StartupResponseDto> getStartupsByFounderId(Long founderId) {
-        return queryService.getStartupsByFounderId(founderId);
+    public com.founderlink.startup.dto.response.PagedResponse<StartupResponseDto> getStartupsByFounderId(Long founderId, int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        return queryService.getStartupsByFounderId(founderId, pageable);
     }
 
     @Override
-    public List<StartupResponseDto> searchStartups(String industry, StartupStage stage,
-                                                    BigDecimal minFunding, BigDecimal maxFunding) {
-        return queryService.searchStartups(industry, stage, minFunding, maxFunding);
+    public com.founderlink.startup.dto.response.PagedResponse<StartupResponseDto> searchStartups(String industry, StartupStage stage,
+                                                    BigDecimal minFunding, BigDecimal maxFunding, int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        return queryService.searchStartups(industry, stage, minFunding, maxFunding, pageable);
     }
 }

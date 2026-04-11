@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base-layout :: layout('Human Resources', 'Team Update', ~{::email_content})}">
+<body>
+    <div th:fragment="email_content">
+        <p>A strategic recruitment update has been logged for your venture. The current status of the collaboration request is detailed below.</p>
+
+        <table class="form-table">
+            <tr class="form-row">
+                <td class="label">Primary Founder</td>
+                <td class="value" th:text="${founderName}">Founder</td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Candidate Name</td>
+                <td class="value" th:text="${memberName}">Member</td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Provisioned Role</td>
+                <td class="value" th:text="${role}">Role</td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Current Status</td>
+                <td class="value">
+                    <span class="badge" th:style="${status == 'ACCEPTED' ? 'background: #dcfce7; color: #166534;' : 'background: #fef2f2; color: #991b1b;'}" th:text="${status}">ACCEPTED</span>
+                </td>
+            </tr>
+        </table>
+
+        <div style="text-align: center; margin-top: 35px;">
+            <a href="https://founderlink.tech/dashboard/team" class="button">Manage Team Structure</a>
+        </div>
+    </div>
+</body>
+</html>

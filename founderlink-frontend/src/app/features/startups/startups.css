@@ -67,11 +67,22 @@
   background-repeat: no-repeat;
   background-position: right 0.875rem center;
   background-size: 1rem;
+  background-color: var(--white);
 }
 
 .filter-select option {
-  background: var(--white);
-  color: var(--text-primary);
+  background-color: #1a1a2e; /* Solid dark background */
+  color: #ffffff;
+}
+
+:host-context(.crystal-mode) .filter-select {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+:host-context(.crystal-mode) .filter-select option {
+  background-color: #ffffff;
+  color: #0f172a;
 }
 
 .filter-input {

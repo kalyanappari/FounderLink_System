@@ -69,7 +69,7 @@
 </div>
 } @else {
 <div class="startup-grid">
-  @for (s of allStartups(); track s.id) {
+  @for (s of paginatedStartups(); track s.id) {
   <div class="startup-card" [routerLink]="['/startup', s.id]">
 
     <div class="sc-header">
@@ -114,6 +114,13 @@
   </div>
   }
 </div>
+
+<app-pagination 
+  [totalItems]="allStartups().length" 
+  [pageSize]="pageSize()" 
+  [currentPage]="currentPage()" 
+  (pageChange)="onPageChange($event)">
+</app-pagination>
 }
 
 <!-- Invest Modal (RESTORED) -->

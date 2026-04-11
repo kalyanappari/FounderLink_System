@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base-layout :: layout('Onboarding Portal', 'Welcome to FounderLink', ~{::email_content})}">
+<body>
+    <div th:fragment="email_content">
+        <p>Your strategic account has been provisioned. Below is a summary of your profile details and next steps to activate your presence in the ecosystem.</p>
+
+        <table class="form-table">
+            <tr class="form-row">
+                <td class="label">User Name</td>
+                <td class="value" th:text="${userName}">John Doe</td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Assigned Role</td>
+                <td class="value">
+                    <span class="badge" th:text="${role}">FOUNDER</span>
+                </td>
+            </tr>
+            <tr class="form-row">
+                <td class="label">Account Status</td>
+                <td class="value">ACTIVE (Pending Profile Completion)</td>
+            </tr>
+        </table>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="https://founderlink.tech/dashboard" class="button">Access Platform</a>
+        </div>
+    </div>
+</body>
+</html>

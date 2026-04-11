@@ -23,6 +23,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import com.founderlink.notification.dto.PagedResponse;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
@@ -130,33 +136,33 @@ class NotificationServiceTest {
     @Test
     @DisplayName("getNotificationsByUser - returns all notifications")
     void getNotificationsByUser_ReturnsAll() {
-        when(notificationRepository.findByUserIdOrderByCreatedAtDesc(100L))
-                .thenReturn(Arrays.asList(unreadNotification, notification2, notification1));
+        when(notificationRepository.findByUserIdOrderByCreatedAtDesc(eq(100L), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Arrays.asList(unreadNotification, notification2, notification1)));
 
-        List<NotificationResponseDTO> result = notificationQueryService.getNotificationsByUser(100L);
+        PagedResponse<NotificationResponseDTO> result = notificationQueryService.getNotificationsByUser(100L, PageRequest.of(0, 10));
 
-        assertThat(result).hasSize(3);
-        assertThat(result.get(0).getType()).isEqualTo("TEAM_INVITE_SENT");
+        assertThat(result.getContent()).hasSize(3);
+        assertThat(result.getContent().get(0).getType()).isEqualTo("TEAM_INVITE_SENT");
     }
 
     @Test
     @DisplayName("getNotificationsByUser - returns empty for unknown user")
     void getNotificationsByUser_EmptyForUnknownUser() {
-        when(notificationRepository.findByUserIdOrderByCreatedAtDesc(999L))
-                .thenReturn(List.of());
+        when(notificationRepository.findByUserIdOrderByCreatedAtDesc(eq(999L), any(Pageable.class)))
+                .thenReturn(Page.empty());
 
-        List<NotificationResponseDTO> result = notificationQueryService.getNotificationsByUser(999L);
+        PagedResponse<NotificationResponseDTO> result = notificationQueryService.getNotificationsByUser(999L, PageRequest.of(0, 10));
 
-        assertThat(result).isEmpty();
+        assertThat(result.getContent()).isEmpty();
     }
 
     @Test
     @DisplayName("getNotificationsByUserFallback - returns empty list")
     void getNotificationsByUserFallback_ReturnsEmpty() {
-        List<NotificationResponseDTO> result = notificationQueryService.getNotificationsByUserFallback(
-                100L, new RuntimeException("fail"));
+        PagedResponse<NotificationResponseDTO> result = notificationQueryService.getNotificationsByUserFallback(
+                100L, PageRequest.of(0, 10), new RuntimeException("fail"));
 
-        assertThat(result).isEmpty();
+        assertThat(result.getContent()).isEmpty();
     }
 
     // --- getUnreadNotifications tests (Query side) ---
@@ -164,23 +170,23 @@ class NotificationServiceTest {
     @Test
     @DisplayName("getUnreadNotifications - returns only unread")
     void getUnreadNotifications_ReturnsOnlyUnread() {
-        when(notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(100L))
-                .thenReturn(List.of(unreadNotification));
+        when(notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(eq(100L), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(unreadNotification)));
 
-        List<NotificationResponseDTO> result = notificationQueryService.getUnreadNotifications(100L);
+        PagedResponse<NotificationResponseDTO> result = notificationQueryService.getUnreadNotifications(100L, PageRequest.of(0, 10));
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).isRead()).isFalse();
-        assertThat(result.get(0).getType()).isEqualTo("TEAM_INVITE_SENT");
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).isRead()).isFalse();
+        assertThat(result.getContent().get(0).getType()).isEqualTo("TEAM_INVITE_SENT");
     }
 
     @Test
     @DisplayName("getUnreadNotificationsFallback - returns empty list")
     void getUnreadNotificationsFallback_ReturnsEmpty() {
-        List<NotificationResponseDTO> result = notificationQueryService.getUnreadNotificationsFallback(
-                100L, new RuntimeException("fail"));
+        PagedResponse<NotificationResponseDTO> result = notificationQueryService.getUnreadNotificationsFallback(
+                100L, PageRequest.of(0, 10), new RuntimeException("fail"));
 
-        assertThat(result).isEmpty();
+        assertThat(result.getContent()).isEmpty();
     }
 
     // --- markAsRead tests (Command side) ---
@@ -251,7 +257,7 @@ class NotificationServiceTest {
     void notifyAllUsers_SendsNotificationToAllUsers() {
         UserDTO user1 = new UserDTO(1L, "Alice", "alice@test.com", "INVESTOR", null, null, null, null);
         UserDTO user2 = new UserDTO(2L, "Bob", "bob@test.com", "FOUNDER", null, null, null, null);
-        when(userServiceClient.getAllUsers()).thenReturn(List.of(user1, user2));
+        when(userServiceClient.getAllUsers(0, 10000)).thenReturn(com.founderlink.notification.dto.PagedResponse.<UserDTO>builder().content(List.of(user1, user2)).build());
         when(commandService.createNotification(anyLong(), anyString(), anyString()))
                 .thenReturn(NotificationResponseDTO.builder().build());
 
@@ -263,7 +269,7 @@ class NotificationServiceTest {
     @Test
     @DisplayName("notifyAllUsers - throws RuntimeException when userService fails")
     void notifyAllUsers_ThrowsWhenUserServiceFails() {
-        when(userServiceClient.getAllUsers()).thenThrow(new RuntimeException("Service unavailable"));
+        when(userServiceClient.getAllUsers(0, 10000)).thenThrow(new RuntimeException("Service unavailable"));
 
         assertThatThrownBy(() -> notificationService.notifyAllUsers("TYPE", "msg"))
                 .isInstanceOf(RuntimeException.class)
@@ -285,15 +291,15 @@ class NotificationServiceTest {
     void sendStartupCreatedEmailToAllInvestors_SendsBulkEmail() {
         UserDTO investor1 = new UserDTO(1L, "Alice", "alice@test.com", "INVESTOR", null, null, null, null);
         UserDTO investor2 = new UserDTO(2L, "Bob", "bob@test.com", "INVESTOR", null, null, null, null);
-        when(userServiceClient.getUsersByRole("INVESTOR")).thenReturn(List.of(investor1, investor2));
+        when(userServiceClient.getUsersByRole("INVESTOR", 0, 10000)).thenReturn(com.founderlink.notification.dto.PagedResponse.<UserDTO>builder().content(List.of(investor1, investor2)).build());
         when(commandService.createNotification(anyLong(), anyString(), anyString()))
                 .thenReturn(NotificationResponseDTO.builder().build());
 
         notificationService.sendStartupCreatedEmailToAllInvestors(1L, "TechStartup", "Tech", 500000.0);
 
-        verify(userServiceClient).getUsersByRole("INVESTOR");
-        verify(userServiceClient, never()).getAllUsers();
-        verify(emailService).sendBulkEmail(any(String[].class), anyString(), anyString());
+        verify(userServiceClient).getUsersByRole("INVESTOR", 0, 10000);
+        verify(userServiceClient, never()).getAllUsers(0, 10000);
+        verify(emailService).sendStartupAlertEmail(any(String[].class), eq("TechStartup"), eq("Tech"), eq("$500,000.00"), eq(1L));
         verify(commandService, times(2)).createNotification(anyLong(), anyString(), anyString());
     }
 
@@ -301,7 +307,7 @@ class NotificationServiceTest {
     @DisplayName("sendStartupCreatedEmailToAllInvestors - does not notify non-investor users")
     void sendStartupCreatedEmailToAllInvestors_DoesNotNotifyNonInvestors() {
         UserDTO investor = new UserDTO(1L, "Alice", "alice@test.com", "INVESTOR", null, null, null, null);
-        when(userServiceClient.getUsersByRole("INVESTOR")).thenReturn(List.of(investor));
+        when(userServiceClient.getUsersByRole("INVESTOR", 0, 10000)).thenReturn(com.founderlink.notification.dto.PagedResponse.<UserDTO>builder().content(List.of(investor)).build());
         when(commandService.createNotification(anyLong(), anyString(), anyString()))
                 .thenReturn(NotificationResponseDTO.builder().build());
 
@@ -313,11 +319,11 @@ class NotificationServiceTest {
     @Test
     @DisplayName("sendStartupCreatedEmailToAllInvestors - handles empty investor list")
     void sendStartupCreatedEmailToAllInvestors_NoUsers() {
-        when(userServiceClient.getUsersByRole("INVESTOR")).thenReturn(List.of());
+        when(userServiceClient.getUsersByRole("INVESTOR", 0, 10000)).thenReturn(com.founderlink.notification.dto.PagedResponse.<UserDTO>builder().content(List.of()).build());
 
         notificationService.sendStartupCreatedEmailToAllInvestors(1L, "TechStartup", "Tech", 500000.0);
 
-        verify(emailService).sendBulkEmail(any(String[].class), anyString(), anyString());
+        verify(emailService).sendStartupAlertEmail(any(String[].class), anyString(), anyString(), anyString(), anyLong());
         verify(commandService, never()).createNotification(anyLong(), anyString(), anyString());
     }
 
@@ -337,7 +343,7 @@ class NotificationServiceTest {
 
         notificationService.sendInvestmentInterestEmailToFounder(1L, 200L, "Bob");
 
-        verify(emailService).sendEmail(eq("alice@test.com"), anyString(), anyString());
+        verify(emailService).sendInvestmentApprovedEmail(eq("alice@test.com"), eq("Bob"), eq(1L), anyString());
         verify(commandService).createNotification(anyLong(), anyString(), anyString());
     }
 
@@ -356,8 +362,6 @@ class NotificationServiceTest {
         verify(commandService, never()).createNotification(anyLong(), anyString(), anyString());
     }
 
-    // --- sendInvestmentCreatedEmailToFounder tests (Facade) ---
-
     @Test
     @DisplayName("sendInvestmentCreatedEmailToFounder - sends email and notification to founder")
     void sendInvestmentCreatedEmailToFounder_SendsEmailToFounder() {
@@ -370,7 +374,7 @@ class NotificationServiceTest {
 
         notificationService.sendInvestmentCreatedEmailToFounder(1L, 100L, 200L, 50000.0);
 
-        verify(emailService).sendEmail(eq("alice@test.com"), anyString(), anyString());
+        verify(emailService).sendInvestmentApprovedEmail(eq("alice@test.com"), eq("Bob"), eq(1L), anyString());
         verify(commandService).createNotification(anyLong(), anyString(), anyString());
     }
 
@@ -397,7 +401,7 @@ class NotificationServiceTest {
 
         notificationService.sendTeamInviteEmail(1L, 300L, "CTO");
 
-        verify(emailService).sendEmail(eq("charlie@test.com"), anyString(), anyString());
+        verify(emailService).sendTeamInviteEmail(eq("charlie@test.com"), eq("Charlie"), eq("CTO"), eq(1L));
     }
 
     @Test
@@ -409,5 +413,428 @@ class NotificationServiceTest {
         notificationService.sendTeamInviteEmail(1L, 300L, "CTO");
 
         verify(emailService, never()).sendEmail(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("sendInvestmentInterestEmailToFounder - skips when startup is not found")
+    void sendInvestmentInterestEmailToFounder_SkipsWhenStartupNotFound() {
+        when(startupServiceClient.getStartupById(1L)).thenReturn(null);
+        notificationService.sendInvestmentInterestEmailToFounder(1L, 200L, "Bob");
+        verifyNoInteractions(userServiceClient, emailService, commandService);
+    }
+
+    @Test
+    @DisplayName("sendInvestmentInterestEmailToFounder - uses investor name fallback when provided name is blank")
+    void sendInvestmentInterestEmailToFounder_UsesNameFallback() {
+        StartupDTO startup = new StartupDTO(1L, "TechStartup", null, null, null, null, null, 100L);
+        UserDTO founder = new UserDTO(100L, "Alice", "alice@test.com", "FOUNDER", null, null, null, null);
+        UserDTO investor = new UserDTO(200L, "Bob", "bob@test.com", "INVESTOR", null, null, null, null);
+        
+        when(startupServiceClient.getStartupById(1L)).thenReturn(startup);
+        when(userServiceClient.getUserById(100L)).thenReturn(founder);
+        when(userServiceClient.getUserById(200L)).thenReturn(investor);
+        
+        notificationService.sendInvestmentInterestEmailToFounder(1L, 200L, ""); // Blank name
+        
+        verify(emailService).sendInvestmentApprovedEmail(any(), eq("Bob"), any(), any());
+    }
+
+    @Test
+    @DisplayName("sendTeamMemberAcceptedNotification - success")
+    void sendTeamMemberAcceptedNotification_Success() {
+        UserDTO founder = new UserDTO(100L, "Alice", "alice@test.com", "FOUNDER", null, null, null, null);
+        UserDTO member = new UserDTO(300L, "Charlie", "charlie@test.com", "COFOUNDER", null, null, null, null);
+        when(userServiceClient.getUserById(100L)).thenReturn(founder);
+        when(userServiceClient.getUserById(300L)).thenReturn(member);
+
+        notificationService.sendTeamMemberAcceptedNotification(1L, 100L, 300L, "CTO");
+
+        verify(emailService).sendTeamMemberAcceptedEmail(eq("alice@test.com"), eq("Alice"), eq("Charlie"), eq("CTO"), eq(1L));
+        verify(commandService).createNotification(eq(100L), eq("TEAM_MEMBER_ACCEPTED"), anyString());
+    }
+
+    @Test
+    @DisplayName("sendTeamMemberRejectedNotification - success")
+    void sendTeamMemberRejectedNotification_Success() {
+        UserDTO founder = new UserDTO(100L, "Alice", "alice@test.com", "FOUNDER", null, null, null, null);
+        when(userServiceClient.getUserById(100L)).thenReturn(founder);
+        when(userServiceClient.getUserById(300L)).thenReturn(null); // Unknown member
+
+        notificationService.sendTeamMemberRejectedNotification(1L, 100L, 300L, "CTO");
+
+        verify(emailService).sendTeamMemberRejectedEmail(eq("alice@test.com"), eq("Alice"), eq("A team member"), eq("CTO"), eq(1L));
+    }
+
+    @Test
+    @DisplayName("sendPaymentCompletedNotification - success")
+    void sendPaymentCompletedNotification_Success() {
+        UserDTO investor = new UserDTO(200L, "Bob", "bob@test.com", "INVESTOR", null, null, null, null);
+        UserDTO founder = new UserDTO(100L, "Alice", "alice@test.com", "FOUNDER", null, null, null, null);
+        when(userServiceClient.getUserById(200L)).thenReturn(investor);
+        when(userServiceClient.getUserById(100L)).thenReturn(founder);
+
+        notificationService.sendPaymentCompletedNotification(10L, 200L, 100L);
+
+        verify(emailService).sendPaymentCompletedEmail(eq("bob@test.com"), eq("Bob"), eq(10L), anyString());
+        verify(commandService, times(2)).createNotification(anyLong(), eq("PAYMENT_COMPLETED"), anyString());
+    }
+
+    @Test
+    @DisplayName("sendPaymentFailedNotification - success")
+    void sendPaymentFailedNotification_Success() {
+        UserDTO investor = new UserDTO(200L, "Bob", "bob@test.com", "INVESTOR", null, null, null, null);
+        when(userServiceClient.getUserById(200L)).thenReturn(investor);
+
+        notificationService.sendPaymentFailedNotification(10L, 200L, "Insufficient Funds");
+
+        verify(emailService).sendPaymentFailedEmail(eq("bob@test.com"), eq("Bob"), eq(10L), eq("Insufficient Funds"));
+    }
+
+    @Test
+    @DisplayName("sendInvestmentApprovedNotification - success")
+    void sendInvestmentApprovedNotification_Success() {
+        UserDTO investor = new UserDTO(200L, "Bob", "bob@test.com", "INVESTOR", null, null, null, null);
+        when(userServiceClient.getUserById(200L)).thenReturn(investor);
+
+        notificationService.sendInvestmentApprovedNotification(10L, 200L, 1L, "$50,000");
+
+        verify(emailService).sendInvestmentApprovedEmail(eq("bob@test.com"), eq("Bob"), eq(1L), eq("$50,000"));
+    }
+
+    @Test
+    @DisplayName("sendInvestmentRejectedNotification - success")
+    void sendInvestmentRejectedNotification_Success() {
+        UserDTO investor = new UserDTO(200L, "Bob", "bob@test.com", "INVESTOR", null, null, null, null);
+        when(userServiceClient.getUserById(200L)).thenReturn(investor);
+
+        notificationService.sendInvestmentRejectedNotification(10L, 200L, 1L, "$50,000", "Goal mismatch");
+
+        verify(emailService).sendInvestmentRejectedEmail(eq("bob@test.com"), eq("Bob"), eq(1L), eq("$50,000"), eq("Goal mismatch"));
+    }
+
+    @Test
+    @DisplayName("sendTeamMemberAcceptedNotification - handles exception")
+    void sendTeamMemberAcceptedNotification_HandlesException() {
+        doThrow(new RuntimeException("API error")).when(userServiceClient).getUserById(anyLong());
+        
+        notificationService.sendTeamMemberAcceptedNotification(1L, 100L, 300L, "CTO");
+        
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("notifyAllUsers - handles notification exception per user")
+    void notifyAllUsers_HandlesInnerException() {
+        UserDTO user1 = new UserDTO(1L, "Alice", "alice@test.com", "INVESTOR", null, null, null, null);
+        when(userServiceClient.getAllUsers(0, 10000)).thenReturn(com.founderlink.notification.dto.PagedResponse.<UserDTO>builder().content(List.of(user1)).build());
+        doThrow(new RuntimeException("Save error")).when(commandService).createNotification(anyLong(), anyString(), anyString());
+
+        notificationService.notifyAllUsers("TYPE", "msg");
+
+        verify(commandService).createNotification(anyLong(), anyString(), anyString());
+    }
+
+    // ── Targeted branch coverage tests ─────────────────────────────────────────
+
+    @Test
+    @DisplayName("sendStartupCreatedEmail - filters out investors with null emails")
+    void sendStartupCreatedEmail_FiltersNullEmails() {
+        UserDTO withEmail = new UserDTO(1L, "Alice", "alice@test.com", "INVESTOR", null, null, null, null);
+        UserDTO withoutEmail = new UserDTO(2L, "Bob", null, "INVESTOR", null, null, null, null);
+        UserDTO emptyEmail = new UserDTO(3L, "Carol", "", "INVESTOR", null, null, null, null);
+        when(userServiceClient.getUsersByRole("INVESTOR", 0, 10000))
+                .thenReturn(PagedResponse.<UserDTO>builder().content(List.of(withEmail, withoutEmail, emptyEmail)).build());
+        when(commandService.createNotification(anyLong(), anyString(), anyString()))
+                .thenReturn(NotificationResponseDTO.builder().build());
+
+        notificationService.sendStartupCreatedEmailToAllInvestors(1L, "TestStartup", "Tech", 100000.0);
+
+        // Only "alice@test.com" should be in the email array
+        verify(emailService).sendStartupAlertEmail(argThat(arr -> arr.length == 1 && "alice@test.com".equals(arr[0])),
+                eq("TestStartup"), eq("Tech"), anyString(), eq(1L));
+    }
+
+    @Test
+    @DisplayName("sendStartupCreatedEmail - catches exception from userServiceClient")
+    void sendStartupCreatedEmail_CatchesException() {
+        when(userServiceClient.getUsersByRole("INVESTOR", 0, 10000))
+                .thenThrow(new RuntimeException("Service down"));
+
+        notificationService.sendStartupCreatedEmailToAllInvestors(1L, "X", "Y", 1.0);
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("sendInvestmentInterest - startup founderId is null")
+    void sendInvestmentInterest_StartupFounderIdIsNull() {
+        StartupDTO startup = new StartupDTO(1L, "Test", null, null, null, null, null, null); // founderId = null
+        when(startupServiceClient.getStartupById(1L)).thenReturn(startup);
+
+        notificationService.sendInvestmentInterestEmailToFounder(1L, 200L, "Bob");
+
+        verifyNoInteractions(emailService);
+        verify(commandService, never()).createNotification(anyLong(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("sendInvestmentInterest - founder email is null")
+    void sendInvestmentInterest_FounderEmailIsNull() {
+        StartupDTO startup = new StartupDTO(1L, "Test", null, null, null, null, null, 100L);
+        UserDTO founder = new UserDTO(100L, "Alice", null, "FOUNDER", null, null, null, null); // email null
+        when(startupServiceClient.getStartupById(1L)).thenReturn(startup);
+        when(userServiceClient.getUserById(100L)).thenReturn(founder);
+        when(userServiceClient.getUserById(200L)).thenReturn(null);
+
+        notificationService.sendInvestmentInterestEmailToFounder(1L, 200L, "Bob");
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("sendInvestmentInterest - investorName null and investor null fallback to 'An investor'")
+    void sendInvestmentInterest_NullNameAndNullInvestorFallback() {
+        StartupDTO startup = new StartupDTO(1L, "Test", null, null, null, null, null, 100L);
+        UserDTO founder = new UserDTO(100L, "Alice", "alice@test.com", "FOUNDER", null, null, null, null);
+        when(startupServiceClient.getStartupById(1L)).thenReturn(startup);
+        when(userServiceClient.getUserById(100L)).thenReturn(founder);
+        when(userServiceClient.getUserById(200L)).thenReturn(null); // investor is null
+        when(commandService.createNotification(anyLong(), anyString(), anyString()))
+                .thenReturn(NotificationResponseDTO.builder().build());
+
+        notificationService.sendInvestmentInterestEmailToFounder(1L, 200L, null); // name is null
+
+        verify(emailService).sendInvestmentApprovedEmail(eq("alice@test.com"), eq("An investor"), eq(1L), anyString());
+    }
+
+    @Test
+    @DisplayName("sendInvestmentInterest - catches exception")
+    void sendInvestmentInterest_CatchesException() {
+        when(startupServiceClient.getStartupById(anyLong())).thenThrow(new RuntimeException("Error"));
+
+        notificationService.sendInvestmentInterestEmailToFounder(1L, 200L, "Bob");
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("sendInvestmentCreated - founder email null")
+    void sendInvestmentCreated_FounderEmailNull() {
+        UserDTO founder = new UserDTO(100L, "Alice", null, "FOUNDER", null, null, null, null);
+        when(userServiceClient.getUserById(100L)).thenReturn(founder);
+        when(userServiceClient.getUserById(200L)).thenReturn(null);
+
+        notificationService.sendInvestmentCreatedEmailToFounder(1L, 100L, 200L, 50000.0);
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("sendInvestmentCreated - investor null fallback to 'Unknown Investor'")
+    void sendInvestmentCreated_InvestorNullFallback() {
+        UserDTO founder = new UserDTO(100L, "Alice", "alice@test.com", "FOUNDER", null, null, null, null);
+        when(userServiceClient.getUserById(100L)).thenReturn(founder);
+        when(userServiceClient.getUserById(200L)).thenReturn(null);
+        when(commandService.createNotification(anyLong(), anyString(), anyString()))
+                .thenReturn(NotificationResponseDTO.builder().build());
+
+        notificationService.sendInvestmentCreatedEmailToFounder(1L, 100L, 200L, 50000.0);
+
+        verify(emailService).sendInvestmentApprovedEmail(eq("alice@test.com"), eq("Unknown Investor"), eq(1L), anyString());
+    }
+
+    @Test
+    @DisplayName("sendInvestmentCreated - catches exception")
+    void sendInvestmentCreated_CatchesException() {
+        when(userServiceClient.getUserById(anyLong())).thenThrow(new RuntimeException("Error"));
+
+        notificationService.sendInvestmentCreatedEmailToFounder(1L, 100L, 200L, 50000.0);
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("sendTeamInviteEmail - user is null")
+    void sendTeamInviteEmail_UserNull() {
+        when(userServiceClient.getUserById(300L)).thenReturn(null);
+
+        notificationService.sendTeamInviteEmail(1L, 300L, "CTO");
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("sendTeamInviteEmail - catches exception")
+    void sendTeamInviteEmail_CatchesException() {
+        when(userServiceClient.getUserById(anyLong())).thenThrow(new RuntimeException("Error"));
+
+        notificationService.sendTeamInviteEmail(1L, 300L, "CTO");
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("sendTeamMemberAccepted - accepted user null and founder name null fallbacks")
+    void sendTeamMemberAccepted_NullUserAndFounderNameFallbacks() {
+        UserDTO founder = new UserDTO(100L, null, "alice@test.com", "FOUNDER", null, null, null, null); // name null
+        when(userServiceClient.getUserById(100L)).thenReturn(founder);
+        when(userServiceClient.getUserById(300L)).thenReturn(null); // accepted user null
+        when(commandService.createNotification(anyLong(), anyString(), anyString()))
+                .thenReturn(NotificationResponseDTO.builder().build());
+
+        notificationService.sendTeamMemberAcceptedNotification(1L, 100L, 300L, "CTO");
+
+        verify(emailService).sendTeamMemberAcceptedEmail(eq("alice@test.com"), eq("Founder"), eq("A team member"), eq("CTO"), eq(1L));
+    }
+
+    @Test
+    @DisplayName("sendTeamMemberRejected - founder null → skip")
+    void sendTeamMemberRejected_FounderNull() {
+        when(userServiceClient.getUserById(100L)).thenReturn(null);
+        when(userServiceClient.getUserById(300L)).thenReturn(null);
+
+        notificationService.sendTeamMemberRejectedNotification(1L, 100L, 300L, "CTO");
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("sendTeamMemberRejected - founder name null fallback and rejected user null fallback")
+    void sendTeamMemberRejected_NameFallbacks() {
+        UserDTO founder = new UserDTO(100L, null, "alice@test.com", "FOUNDER", null, null, null, null);
+        when(userServiceClient.getUserById(100L)).thenReturn(founder);
+        when(userServiceClient.getUserById(300L)).thenReturn(null);
+        when(commandService.createNotification(anyLong(), anyString(), anyString()))
+                .thenReturn(NotificationResponseDTO.builder().build());
+
+        notificationService.sendTeamMemberRejectedNotification(1L, 100L, 300L, "CTO");
+
+        verify(emailService).sendTeamMemberRejectedEmail(eq("alice@test.com"), eq("Founder"), eq("A team member"), eq("CTO"), eq(1L));
+    }
+
+    @Test
+    @DisplayName("sendTeamMemberRejected - catches exception")
+    void sendTeamMemberRejected_CatchesException() {
+        when(userServiceClient.getUserById(anyLong())).thenThrow(new RuntimeException("Error"));
+
+        notificationService.sendTeamMemberRejectedNotification(1L, 100L, 300L, "CTO");
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("sendPaymentCompleted - investor null, founder null → neither block executes")
+    void sendPaymentCompleted_BothNull() {
+        when(userServiceClient.getUserById(200L)).thenReturn(null);
+        when(userServiceClient.getUserById(100L)).thenReturn(null);
+
+        notificationService.sendPaymentCompletedNotification(10L, 200L, 100L);
+
+        verifyNoInteractions(emailService);
+        verify(commandService, never()).createNotification(anyLong(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("sendPaymentCompleted - investor name null fallback, founder name null fallback")
+    void sendPaymentCompleted_NameNullFallbacks() {
+        UserDTO investor = new UserDTO(200L, null, "bob@test.com", "INVESTOR", null, null, null, null);
+        UserDTO founder = new UserDTO(100L, null, "alice@test.com", "FOUNDER", null, null, null, null);
+        when(userServiceClient.getUserById(200L)).thenReturn(investor);
+        when(userServiceClient.getUserById(100L)).thenReturn(founder);
+        when(commandService.createNotification(anyLong(), anyString(), anyString()))
+                .thenReturn(NotificationResponseDTO.builder().build());
+
+        notificationService.sendPaymentCompletedNotification(10L, 200L, 100L);
+
+        verify(emailService).sendPaymentCompletedEmail(eq("bob@test.com"), eq("Investor"), eq(10L), anyString());
+    }
+
+    @Test
+    @DisplayName("sendPaymentCompleted - catches exception")
+    void sendPaymentCompleted_CatchesException() {
+        when(userServiceClient.getUserById(anyLong())).thenThrow(new RuntimeException("Error"));
+
+        notificationService.sendPaymentCompletedNotification(10L, 200L, 100L);
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("sendPaymentFailed - investor name null fallback")
+    void sendPaymentFailed_InvestorNameNullFallback() {
+        UserDTO investor = new UserDTO(200L, null, "bob@test.com", "INVESTOR", null, null, null, null);
+        when(userServiceClient.getUserById(200L)).thenReturn(investor);
+        when(commandService.createNotification(anyLong(), anyString(), anyString()))
+                .thenReturn(NotificationResponseDTO.builder().build());
+
+        notificationService.sendPaymentFailedNotification(10L, 200L, "Card declined");
+
+        verify(emailService).sendPaymentFailedEmail(eq("bob@test.com"), eq("Investor"), eq(10L), eq("Card declined"));
+    }
+
+    @Test
+    @DisplayName("sendPaymentFailed - catches exception")
+    void sendPaymentFailed_CatchesException() {
+        when(userServiceClient.getUserById(anyLong())).thenThrow(new RuntimeException("Error"));
+
+        notificationService.sendPaymentFailedNotification(10L, 200L, "Reason");
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("sendInvestmentApproved - investor name null fallback")
+    void sendInvestmentApproved_InvestorNameNullFallback() {
+        UserDTO investor = new UserDTO(200L, null, "bob@test.com", "INVESTOR", null, null, null, null);
+        when(userServiceClient.getUserById(200L)).thenReturn(investor);
+        when(commandService.createNotification(anyLong(), anyString(), anyString()))
+                .thenReturn(NotificationResponseDTO.builder().build());
+
+        notificationService.sendInvestmentApprovedNotification(10L, 200L, 1L, "$50,000");
+
+        verify(emailService).sendInvestmentApprovedEmail(eq("bob@test.com"), eq("Investor"), eq(1L), eq("$50,000"));
+    }
+
+    @Test
+    @DisplayName("sendInvestmentApproved - catches exception")
+    void sendInvestmentApproved_CatchesException() {
+        when(userServiceClient.getUserById(anyLong())).thenThrow(new RuntimeException("Error"));
+
+        notificationService.sendInvestmentApprovedNotification(10L, 200L, 1L, "$50,000");
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("sendInvestmentRejected - investor name null fallback")
+    void sendInvestmentRejected_InvestorNameNullFallback() {
+        UserDTO investor = new UserDTO(200L, null, "bob@test.com", "INVESTOR", null, null, null, null);
+        when(userServiceClient.getUserById(200L)).thenReturn(investor);
+        when(commandService.createNotification(anyLong(), anyString(), anyString()))
+                .thenReturn(NotificationResponseDTO.builder().build());
+
+        notificationService.sendInvestmentRejectedNotification(10L, 200L, 1L, "$50,000", "Mismatch");
+
+        verify(emailService).sendInvestmentRejectedEmail(eq("bob@test.com"), eq("Investor"), eq(1L), eq("$50,000"), eq("Mismatch"));
+    }
+
+    @Test
+    @DisplayName("sendInvestmentRejected - investor null → skip")
+    void sendInvestmentRejected_InvestorNull() {
+        when(userServiceClient.getUserById(200L)).thenReturn(null);
+
+        notificationService.sendInvestmentRejectedNotification(10L, 200L, 1L, "$50,000", "Mismatch");
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @DisplayName("sendInvestmentRejected - catches exception")
+    void sendInvestmentRejected_CatchesException() {
+        when(userServiceClient.getUserById(anyLong())).thenThrow(new RuntimeException("Error"));
+
+        notificationService.sendInvestmentRejectedNotification(10L, 200L, 1L, "$50,000", "Reason");
+
+        verifyNoInteractions(emailService);
     }
 }

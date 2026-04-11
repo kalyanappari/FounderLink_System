@@ -7,6 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.List;
+import com.founderlink.notification.dto.PagedResponse;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -24,25 +28,43 @@ public class NotificationController {
     }
 
     @GetMapping("/{userId}")
-    @Operation(summary = "Get all notifications for a user", description = "Fetches all notifications for the specified user.")
+    @Operation(summary = "Get all notifications for a user", description = "Fetches paginated notifications for the specified user.")
     @ApiResponses(value = {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Notifications fetched successfully"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "User not found")
     })
-    public ResponseEntity<List<NotificationResponseDTO>> getNotifications(@PathVariable Long userId) {
-        log.info("GET /notifications/{} - fetching all notifications", userId);
-        return ResponseEntity.ok(notificationService.getNotificationsByUser(userId));
+    public ResponseEntity<PagedResponse<NotificationResponseDTO>> getNotifications(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("GET /notifications/{} - fetching all notifications. Page: {}, Size: {}", userId, page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(notificationService.getNotificationsByUser(userId, pageable));
     }
 
     @GetMapping("/{userId}/unread")
-    @Operation(summary = "Get unread notifications for a user", description = "Fetches all unread notifications for the specified user.")
+    @Operation(summary = "Get unread notifications for a user", description = "Fetches paginated unread notifications for the specified user.")
     @ApiResponses(value = {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Unread notifications fetched successfully"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "User not found")
     })
-    public ResponseEntity<List<NotificationResponseDTO>> getUnreadNotifications(@PathVariable Long userId) {
-        log.info("GET /notifications/{}/unread - fetching unread notifications", userId);
-        return ResponseEntity.ok(notificationService.getUnreadNotifications(userId));
+    public ResponseEntity<PagedResponse<NotificationResponseDTO>> getUnreadNotifications(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("GET /notifications/{}/unread - fetching unread notifications. Page: {}, Size: {}", userId, page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(notificationService.getUnreadNotifications(userId, pageable));
+    }
+
+    @GetMapping("/{userId}/unread/count")
+    @Operation(summary = "Get unread notification count", description = "Fetches total unread notifications count for the specified user.")
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Count fetched successfully")
+    })
+    public ResponseEntity<Long> getUnreadNotificationCount(@PathVariable Long userId) {
+        log.info("GET /notifications/{}/unread/count - fetching unread count", userId);
+        return ResponseEntity.ok(notificationService.getUnreadCount(userId));
     }
 
     @PutMapping("/{id}/read")

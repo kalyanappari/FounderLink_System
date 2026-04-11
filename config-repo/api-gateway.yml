@@ -322,6 +322,10 @@ rbac:
       roles: [FOUNDER, INVESTOR, COFOUNDER, ADMIN]
 
     - method: GET
+      path: /notifications/*/unread/count
+      roles: [FOUNDER, INVESTOR, COFOUNDER, ADMIN]
+
+    - method: GET
       path: /notifications/*/unread
       roles: [FOUNDER, INVESTOR, COFOUNDER, ADMIN]
 

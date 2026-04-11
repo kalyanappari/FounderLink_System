@@ -20,8 +20,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.founderlink.startup.dto.response.PagedResponse;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -79,31 +83,46 @@ class StartupControllerTest {
     }
 
     @Test
-    void createStartup_WrongRole_Forbidden() throws Exception {
+    void createStartup_Failure_Forbidden() throws Exception {
         mockMvc.perform(post("/startup")
-                .header("X-User-Id", 202L)
+                .header("X-User-Id", 5L)
                 .header("X-User-Role", "ROLE_INVESTOR")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isForbidden());
     }
 
     @Test
     void getAllStartups_Success() throws Exception {
-        when(startupService.getAllStartups()).thenReturn(List.of(responseDto));
+        PagedResponse<StartupResponseDto> mockPage = new PagedResponse<>();
+        mockPage.setContent(List.of(responseDto));
+        when(startupService.getAllStartups(anyInt(), anyInt())).thenReturn(mockPage);
 
-        mockMvc.perform(get("/startup")
-                .header("X-User-Role", "ROLE_INVESTOR"))
+        mockMvc.perform(get("/startup").header("X-User-Role", "ROLE_FOUNDER"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Startups fetched successfully"))
-                .andExpect(jsonPath("$.data[0].name").value("EduReach"));
+                .andExpect(jsonPath("$.content[0].name").value("EduReach"));
+
+        // Additional roles for branch coverage
+        mockMvc.perform(get("/startup").header("X-User-Role", "ROLE_INVESTOR")).andExpect(status().isOk());
+        mockMvc.perform(get("/startup").header("X-User-Role", "ROLE_COFOUNDER")).andExpect(status().isOk());
+        mockMvc.perform(get("/startup").header("X-User-Role", "ROLE_ADMIN")).andExpect(status().isOk());
+    }
+
+    @Test
+    void getAllStartups_Public_Success() throws Exception {
+        PagedResponse<StartupResponseDto> mockPage = new PagedResponse<>();
+        mockPage.setContent(List.of(responseDto));
+        when(startupService.getAllStartups(anyInt(), anyInt())).thenReturn(mockPage);
+
+        mockMvc.perform(get("/startup"))
+                .andExpect(status().isOk());
     }
 
     @Test
     void getAllStartups_WrongRole_Forbidden() throws Exception {
         mockMvc.perform(get("/startup")
                 .header("X-User-Role", "ROLE_UNKNOWN"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -128,14 +147,23 @@ class StartupControllerTest {
 
     @Test
     void getStartupsByFounder_Success() throws Exception {
-        when(startupService.getStartupsByFounderId(5L)).thenReturn(List.of(responseDto));
+        PagedResponse<StartupResponseDto> mockPage = new PagedResponse<>();
+        mockPage.setContent(List.of(responseDto));
+        when(startupService.getStartupsByFounderId(eq(5L), anyInt(), anyInt())).thenReturn(mockPage);
 
         mockMvc.perform(get("/startup/founder")
                 .header("X-User-Id", 5L)
                 .header("X-User-Role", "ROLE_FOUNDER"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Startups fetched successfully"))
-                .andExpect(jsonPath("$.data[0].founderId").value(5L));
+                .andExpect(jsonPath("$.content[0].founderId").value(5L));
+    }
+
+    @Test
+    void getStartupsByFounder_Forbidden() throws Exception {
+        mockMvc.perform(get("/startup/founder")
+                .header("X-User-Id", 5L)
+                .header("X-User-Role", "ROLE_INVESTOR"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -150,6 +178,16 @@ class StartupControllerTest {
                 .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Startup updated successfully"));
+    }
+
+    @Test
+    void updateStartup_Forbidden() throws Exception {
+        mockMvc.perform(put("/startup/1")
+                .header("X-User-Id", 5L)
+                .header("X-User-Role", "ROLE_INVESTOR")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -168,19 +206,41 @@ class StartupControllerTest {
         mockMvc.perform(delete("/startup/1")
                 .header("X-User-Id", 202L)
                 .header("X-User-Role", "ROLE_INVESTOR"))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isForbidden());
     }
 
     @Test
     void searchStartups_Success() throws Exception {
-        when(startupService.searchStartups("EdTech", StartupStage.MVP, null, null))
-                .thenReturn(List.of(responseDto));
+        PagedResponse<StartupResponseDto> mockPage = new PagedResponse<>();
+        mockPage.setContent(List.of(responseDto));
+        when(startupService.searchStartups(eq("EdTech"), eq(StartupStage.MVP), isNull(), isNull(), anyInt(), anyInt()))
+                .thenReturn(mockPage);
 
         mockMvc.perform(get("/startup/search")
                 .header("X-User-Role", "ROLE_INVESTOR")
                 .param("industry", "EdTech")
                 .param("stage", "MVP"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Startups fetched successfully"));
+                .andExpect(status().isOk());
+
+        // Additional roles for branch coverage
+        mockMvc.perform(get("/startup/search").header("X-User-Role", "ROLE_FOUNDER")).andExpect(status().isOk());
+        mockMvc.perform(get("/startup/search").header("X-User-Role", "ROLE_COFOUNDER")).andExpect(status().isOk());
+        mockMvc.perform(get("/startup/search").header("X-User-Role", "ROLE_ADMIN")).andExpect(status().isOk());
+    }
+
+    @Test
+    void searchStartups_Forbidden() throws Exception {
+        mockMvc.perform(get("/startup/search")
+                .header("X-User-Role", "ROLE_UNKNOWN"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void searchStartups_Public_Success() throws Exception {
+        PagedResponse<StartupResponseDto> mockPage = new PagedResponse<>();
+        when(startupService.searchStartups(any(), any(), any(), any(), anyInt(), anyInt())).thenReturn(mockPage);
+
+        mockMvc.perform(get("/startup/search"))
+                .andExpect(status().isOk());
     }
 }

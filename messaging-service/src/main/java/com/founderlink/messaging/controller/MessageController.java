@@ -10,6 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import com.founderlink.messaging.dto.PagedResponse;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -51,14 +54,18 @@ public class MessageController {
     }
 
     @GetMapping("/conversation/{user1}/{user2}")
-    @Operation(summary = "Get conversation between users", description = "Retrieves all messages exchanged between two users.")
+    @Operation(summary = "Get conversation between users", description = "Retrieves paginated messages exchanged between two users.")
     @ApiResponses(value = {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Conversation fetched successfully")
     })
-    public ResponseEntity<List<MessageResponseDTO>> getConversation(
-            @PathVariable Long user1, @PathVariable Long user2) {
-        log.info("GET /messages/conversation/{}/{} - getConversation", user1, user2);
-        return ResponseEntity.ok(messageService.getConversation(user1, user2));
+    public ResponseEntity<PagedResponse<MessageResponseDTO>> getConversation(
+            @PathVariable Long user1, 
+            @PathVariable Long user2,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        log.info("GET /messages/conversation/{}/{} - getConversation. Page: {}, Size: {}", user1, user2, page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(messageService.getConversation(user1, user2, pageable));
     }
 
     @GetMapping("/partners/{userId}")

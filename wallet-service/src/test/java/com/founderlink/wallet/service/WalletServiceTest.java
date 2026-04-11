@@ -130,4 +130,11 @@ class WalletServiceTest {
 
         assertEquals(BigDecimal.valueOf(500), balance);
     }
+
+    @Test
+    void getBalance_NotFound() {
+        when(walletRepository.findByStartupId(1L)).thenReturn(Optional.empty());
+
+        assertThrows(WalletNotFoundException.class, () -> walletQueryService.getBalance(1L));
+    }
 }
