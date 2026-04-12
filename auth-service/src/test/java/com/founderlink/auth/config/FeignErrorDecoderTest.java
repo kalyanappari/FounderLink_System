@@ -55,6 +55,30 @@ class FeignErrorDecoderTest {
         assertThat(exception.getMessage()).contains("method=UserClient#createUser").contains("status=502");
     }
 
+    @Test
+    void decodeShouldReturnConflictExceptionFor409() {
+        Exception exception = decoder.decode("UserClient#createUser", buildResponse(409, "Conflict"));
+
+        assertThat(exception).isInstanceOf(com.founderlink.auth.exception.UserServiceConflictException.class);
+        assertThat(exception.getMessage()).contains("method=UserClient#createUser").contains("status=409");
+    }
+
+    @Test
+    void decodeShouldReturnClientExceptionForUnknown4xxStatus() {
+        Exception exception = decoder.decode("UserClient#createUser", buildResponse(422, "Unprocessable Entity"));
+
+        assertThat(exception).isInstanceOf(UserServiceClientException.class);
+        assertThat(((UserServiceClientException) exception).getStatus()).isEqualTo(422);
+    }
+
+    @Test
+    void decodeShouldUseDefaultReasonWhenResponseReasonIsNull() {
+        Exception exception = decoder.decode("UserClient#createUser", buildResponse(400, null));
+
+        assertThat(exception).isInstanceOf(UserServiceBadRequestException.class);
+        assertThat(exception.getMessage()).contains("No reason provided");
+    }
+
     private Response buildResponse(int status, String reason) {
         Request request = Request.create(
                 Request.HttpMethod.POST,

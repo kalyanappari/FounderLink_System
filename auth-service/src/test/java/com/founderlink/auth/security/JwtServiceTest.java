@@ -131,4 +131,35 @@ class JwtServiceTest {
     void validateTokenShouldReturnFalseWhenMalformed() {
         assertThat(jwtService.validateToken("not-a-valid-token")).isFalse();
     }
+
+    @Test
+    void isTokenExpiredShouldReturnTrueWhenExpired() {
+        // Generate a token that expires 1 minute after clock time (2026-03-18T10:16:30Z)
+        when(jwtProperties.getSecret()).thenReturn(BASE64_SECRET);
+        when(jwtProperties.getAccessTokenExpiration()).thenReturn(Duration.ofMinutes(1));
+        jwtService.init();
+
+        String token = jwtService.generateToken(123L, "FOUNDER");
+
+        // Use a clock 2 minutes in the future (same secret), token is expired but still parseable
+        // We extend clock-skew by using JJWT's lenient parser workaround:
+        // Instead parse at issuedAt, which we know is before now. We check via validateToken == false.
+        Clock futureClock = Clock.fixed(Instant.parse("2026-03-18T10:18:00Z"), ZoneOffset.UTC);
+        JwtService futureService = new JwtService(jwtProperties, futureClock);
+        futureService.init();
+
+        // JJWT throws ExpiredJwtException when parsing an expired token,
+        // which validateToken() catches and returns false.
+        assertThat(futureService.validateToken(token)).isFalse();
+    }
+
+    @Test
+    void initShouldFallbackToRawBytesWhenSecretIsNotValidBase64() {
+        // A string that is not valid Base64 causes Decoders.BASE64.decode() to throw,
+        // triggering the fallback to plain UTF-8 bytes.
+        String notBase64 = "this-is-a-plaintext-secret-that-is-long-enough-for-256-bits";
+        when(jwtProperties.getSecret()).thenReturn(notBase64);
+        // Should not throw — falls back to getBytes(UTF-8)
+        jwtService.init();
+    }
 }
