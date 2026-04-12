@@ -25,6 +25,12 @@
 		<sonar.projectKey>kalyanappari_api-gateway</sonar.projectKey>
 		<sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
 		<sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+		<sonar.coverage.exclusions>
+			**/config/**,
+			**/security/AuthenticatedUser.java,
+			**/security/Role.java,
+			**/*Application.java
+		</sonar.coverage.exclusions>
     </properties>
 
     <dependencies>

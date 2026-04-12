@@ -94,4 +94,19 @@ class AdminSeederTest {
         verify(userRepository).saveAndFlush(any(User.class));
         verify(syncService).syncUser(any(User.class));
     }
+    @Test
+    void seedAdminShouldFailWhenSaveFails() {
+        when(userRepository.existsByEmail("admin@founderlink.com")).thenReturn(false);
+        when(passwordEncoder.encode("StrongPass1")).thenReturn("encoded-admin-password");
+        when(userRepository.saveAndFlush(any(User.class)))
+                .thenThrow(new RuntimeException("DB error"));
+
+        AdminSeedingException exception = assertThrows(
+                AdminSeedingException.class,
+                () -> adminSeeder.seedAdmin("Super Admin", "admin@founderlink.com", "StrongPass1")
+        );
+
+        assertThat(exception.getMessage()).isEqualTo("Failed to save admin in auth-service");
+        verify(syncService, never()).syncUser(any());
+    }
 }

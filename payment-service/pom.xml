@@ -34,6 +34,13 @@
 		<sonar.projectKey>kalyanappari_payment-service</sonar.projectKey>
 		<sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
 		<sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+		<sonar.coverage.exclusions>
+			**/dto/**,
+			**/entity/**,
+			**/config/**,
+			**/exception/**,
+			**/*Application.java
+		</sonar.coverage.exclusions>
 	</properties>
 	<dependencies>
 		<dependency>

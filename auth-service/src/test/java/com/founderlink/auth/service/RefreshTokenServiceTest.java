@@ -176,6 +176,75 @@ class RefreshTokenServiceTest {
                 () -> refreshTokenService.validateToken("   "));
     }
 
+    @Test
+    void revokeTokenShouldSucceedForValidActiveToken() {
+        String rawToken = "valid-active-token";
+        RefreshToken token = RefreshToken.builder()
+                .id(10L)
+                .revoked(false)
+                .userId(5L)
+                .token(hash(rawToken))
+                .build();
+        when(refreshTokenRepository.findByTokenForUpdate(token.getToken())).thenReturn(Optional.of(token));
+        when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        refreshTokenService.revokeToken(rawToken);
+
+        verify(refreshTokenRepository).save(refreshTokenCaptor.capture());
+        RefreshToken saved = refreshTokenCaptor.getValue();
+        assertThat(saved.isRevoked()).isTrue();
+        assertThat(saved.getRevokedAt()).isNotNull();
+    }
+
+    @Test
+    void createTokenShouldNotEvictWhenUnderMaxSessions() {
+        Long userId = 200L;
+        // Active count is below MAX_SESSIONS (5)
+        when(refreshTokenRepository.countByUserIdAndRevokedFalse(userId)).thenReturn(3L);
+        when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        String token = refreshTokenService.createToken(userId);
+
+        assertThat(token).isNotBlank();
+        // Should save exactly one new token, no eviction
+        verify(refreshTokenRepository, org.mockito.Mockito.times(1)).save(any(RefreshToken.class));
+        verify(refreshTokenRepository, org.mockito.Mockito.never()).findOldestActiveToken(any());
+    }
+
+    @Test
+    void rotateTokenShouldThrowWhenCurrentTokenIsRevoked() {
+        RefreshToken revokedToken = RefreshToken.builder()
+                .id(7L)
+                .token(hash("revoked-active-token"))
+                .userId(88L)
+                .expiryDate(Instant.parse("2026-03-19T10:15:30Z"))
+                .revoked(true)
+                .build();
+
+        when(refreshTokenRepository.findByTokenForUpdate(revokedToken.getToken()))
+                .thenReturn(Optional.of(revokedToken));
+
+        assertThrows(RevokedRefreshTokenException.class,
+                () -> refreshTokenService.rotateToken("revoked-active-token"));
+    }
+
+    @Test
+    void rotateTokenShouldThrowWhenCurrentTokenIsExpired() {
+        RefreshToken expiredToken = RefreshToken.builder()
+                .id(8L)
+                .token(hash("expired-active-token"))
+                .userId(99L)
+                .expiryDate(Instant.parse("2026-03-18T10:15:29Z")) // before clock
+                .revoked(false)
+                .build();
+
+        when(refreshTokenRepository.findByTokenForUpdate(expiredToken.getToken()))
+                .thenReturn(Optional.of(expiredToken));
+
+        assertThrows(com.founderlink.auth.exception.ExpiredRefreshTokenException.class,
+                () -> refreshTokenService.rotateToken("expired-active-token"));
+    }
+
     private String hash(String token) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

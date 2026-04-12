@@ -185,4 +185,24 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Password reset success"));
     }
+
+    @Test
+    void refreshShouldWorkWithCookie() throws Exception {
+        AuthResponse authResponse = AuthResponse.builder().token("new-at").build();
+        when(authService.refresh("rt-from-cookie")).thenReturn(new AuthSession(authResponse, "new-rt"));
+
+        mockMvc.perform(post("/auth/refresh")
+                        .cookie(new jakarta.servlet.http.Cookie("refresh_token", "rt-from-cookie"))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(cookie().value("refresh_token", "new-rt"));
+    }
+
+    @Test
+    void logoutShouldProceedGracefullyWhenNoTokenPresent() throws Exception {
+        // No cookie, no auth header — InvalidRefreshTokenException is caught silently in logout
+        mockMvc.perform(post("/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
 }
