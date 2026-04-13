@@ -28,13 +28,13 @@ public class UserCommandService {
     private final ModelMapper modelMapper;
 
     /**
-     * COMMAND: Sync user from auth-service (idempotent upsert).
+     * COMMAND: Sync user from auth-service.
      * Evicts userById and allUsers caches on write.
      */
     @Caching(evict = {
-        @CacheEvict(value = "userById",    key = "#dto.userId"),
-        @CacheEvict(value = "allUsers",    allEntries = true),
-        @CacheEvict(value = "usersByRole", allEntries = true)
+            @CacheEvict(value = "userById", key = "#dto.userId"),
+            @CacheEvict(value = "allUsers", allEntries = true),
+            @CacheEvict(value = "usersByRole", allEntries = true)
     })
     public UserResponseDto createUser(UserRequestAuthDto dto) {
         log.info("COMMAND - createUser: userId={}", dto.getUserId());
@@ -68,9 +68,9 @@ public class UserCommandService {
      * Evicts userById, allUsers, and usersByRole caches.
      */
     @Caching(evict = {
-        @CacheEvict(value = "userById",    key = "#id"),
-        @CacheEvict(value = "allUsers",    allEntries = true),
-        @CacheEvict(value = "usersByRole", allEntries = true)
+            @CacheEvict(value = "userById", key = "#id"),
+            @CacheEvict(value = "allUsers", allEntries = true),
+            @CacheEvict(value = "usersByRole", allEntries = true)
     })
     public UserResponseDto updateUser(Long id, UserRequestDto dto) {
         log.info("COMMAND - updateUser: userId={}", id);
@@ -78,11 +78,16 @@ public class UserCommandService {
         User user = repository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found."));
 
-        if (dto.getName() != null)           user.setName(dto.getName());
-        if (dto.getSkills() != null)         user.setSkills(dto.getSkills());
-        if (dto.getExperience() != null)     user.setExperience(dto.getExperience());
-        if (dto.getBio() != null)            user.setBio(dto.getBio());
-        if (dto.getPortfolioLinks() != null) user.setPortfolioLinks(dto.getPortfolioLinks());
+        if (dto.getName() != null)
+            user.setName(dto.getName());
+        if (dto.getSkills() != null)
+            user.setSkills(dto.getSkills());
+        if (dto.getExperience() != null)
+            user.setExperience(dto.getExperience());
+        if (dto.getBio() != null)
+            user.setBio(dto.getBio());
+        if (dto.getPortfolioLinks() != null)
+            user.setPortfolioLinks(dto.getPortfolioLinks());
         user.setUpdatedAt(LocalDateTime.now());
 
         return modelMapper.map(repository.save(user), UserResponseDto.class);
