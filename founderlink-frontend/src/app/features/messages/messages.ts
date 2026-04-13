@@ -108,7 +108,7 @@ export class MessagesComponent implements OnInit, OnDestroy, AfterViewChecked {
             } else {
               this.userService.getUser(targetUserId).subscribe({
                 next: (uenv) => {
-                  if (uenv.data) this.startConversationWith(uenv.data);
+                  if (uenv && uenv.data) this.startConversationWith(uenv.data);
                   this.loading.set(false);
                 },
                 error: () => this.loading.set(false)

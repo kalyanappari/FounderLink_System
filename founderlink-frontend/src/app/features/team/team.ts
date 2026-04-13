@@ -172,9 +172,11 @@ export class TeamComponent implements OnInit {
     // Prefetch all users to map names in the team members list
     this.userService.getAllUsers().subscribe({
       next: env => {
-        const map = new Map<number, string>();
-        env.data?.forEach(u => map.set(u.userId, u.name || u.email));
-        this.userNames.set(map);
+        this.userNames.update(existing => {
+          const map = new Map(existing);
+          env.data?.forEach(u => map.set(u.userId, u.name || u.email));
+          return map;
+        });
       }
     });
   }
@@ -302,13 +304,20 @@ export class TeamComponent implements OnInit {
     this.roleFilter.set(role);
     this.usersLoading.set(true);
     this.selectedUser.set(null);
+    this.errorMsg.set('');
     const obs$ = role
       ? this.userService.getUsersByRole(role)
       : this.userService.getAllUsers();
 
     obs$.subscribe({
-      next: env => { this.allUsers.set(env.data ?? []); this.usersLoading.set(false); },
-      error: () => { this.allUsers.set([]); this.usersLoading.set(false); }
+      next: env => {
+        this.allUsers.set(env.data ?? []);
+        this.usersLoading.set(false);
+      },
+      error: env => {
+        this.errorMsg.set(env.error ?? 'Failed to load users.');
+        this.usersLoading.set(false);
+      }
     });
   }
 
