@@ -39,11 +39,10 @@ public class StartupController {
 
         private final StartupService startupService;
 
-        // ─────────────────────────────────────────
         // CREATE STARTUP
         // POST /startup
         // Called by → FOUNDER
-        // ─────────────────────────────────────────
+
         @PostMapping
         @Operation(summary = "Create a new startup", description = "Creates a new startup. Only users with role FOUNDER can create startups.")
         @ApiResponses(value = {
@@ -75,10 +74,9 @@ public class StartupController {
                                                 response));
         }
 
-        // ─────────────────────────────────────────
         // GET ALL STARTUP
         // GET /startup
-        // ─────────────────────────────────────────
+
         @GetMapping
         @Operation(summary = "Get all startups", description = "Returns all startups. Accessible by INVESTOR, FOUNDER, COFOUNDER, ADMIN.")
         @ApiResponses(value = {
@@ -106,12 +104,11 @@ public class StartupController {
                 return ResponseEntity.ok(response);
         }
 
-        // ─────────────────────────────────────────
         // GET STARTUP BY ID
         // GET /startup/{id}
         // Called by → ALL + FeignClient
         // No role check needed
-        // ─────────────────────────────────────────
+
         @GetMapping("/{id}")
         @Operation(summary = "Get startup by ID", description = "Returns a single startup by its ID. No role check needed.")
         @ApiResponses(value = {
@@ -129,12 +126,10 @@ public class StartupController {
                                 .ok(response);
         }
 
-        // ─────────────────────────────────────────
         // GET STARTUP BY ID — FOR USERS
         // GET /startup/details/{id}
         // External use — returns ApiResponse
         // Called by Frontend
-        // ─────────────────────────────────────────
         @GetMapping("/details/{id}")
         @Operation(summary = "Get startup details by ID", description = "Returns startup details for external use.")
         @ApiResponses(value = {
@@ -154,11 +149,10 @@ public class StartupController {
                                                 response));
         }
 
-        // ─────────────────────────────────────────
         // GET STARTUPS BY FOUNDER
         // GET /startup/founder
         // Called by → FOUNDER
-        // ─────────────────────────────────────────
+
         @GetMapping("/founder")
         @Operation(summary = "Get startups by founder", description = "Returns all startups for a given founder. Only users with role FOUNDER can access.")
         @ApiResponses(value = {
@@ -185,11 +179,10 @@ public class StartupController {
                 return ResponseEntity.ok(response);
         }
 
-        // ─────────────────────────────────────────
         // UPDATE STARTUP
         // PUT /startup/{id}
         // Called by → FOUNDER
-        // ─────────────────────────────────────────
+
         @PutMapping("/{id}")
         @Operation(summary = "Update a startup", description = "Updates a startup. Only users with role FOUNDER can update startups.")
         @ApiResponses(value = {
@@ -221,11 +214,10 @@ public class StartupController {
                                                 response));
         }
 
-        // ─────────────────────────────────────────
         // DELETE STARTUP
         // DELETE /startup/{id}
         // Called by → FOUNDER
-        // ─────────────────────────────────────────
+
         @DeleteMapping("/{id}")
         @Operation(summary = "Delete a startup", description = "Deletes a startup. Only users with role FOUNDER can delete startups.")
         @ApiResponses(value = {
@@ -254,11 +246,10 @@ public class StartupController {
                                                 null));
         }
 
-        // ─────────────────────────────────────────
         // SEARCH STARTUPS
         // GET /startup/search
         // Called by → INVESTOR, FOUNDER, ADMIN
-        // ─────────────────────────────────────────
+        
         @GetMapping("/search")
         @Operation(summary = "Search startups", description = "Searches startups by industry, stage, and funding. Accessible by INVESTOR, FOUNDER, COFOUNDER, ADMIN.")
         @ApiResponses(value = {
