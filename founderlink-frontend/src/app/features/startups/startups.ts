@@ -17,6 +17,7 @@ import { PaginationComponent } from '../../shared/components/pagination/paginati
 })
 export class StartupsComponent implements OnInit {
   allStartups = signal<StartupResponse[]>([]);
+  totalElements = signal(0);
   loading     = signal(true);
   errorMsg    = signal('');
 
@@ -24,17 +25,13 @@ export class StartupsComponent implements OnInit {
   currentPage = signal(1);
   pageSize = signal(12);
 
-  // Filters
-  selectedStage    = '';
-  selectedIndustry = '';
-  minFunding       = '';
-  maxFunding       = '';
+  // Filters (Converted to signals for reactive effects)
+  searchQuery      = signal('');
+  selectedStage    = signal('');
+  selectedIndustry = signal('');
+  minFunding       = signal('');
+  maxFunding       = signal('');
   availableIndustries = signal<string[]>([]);
-
-  paginatedStartups = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize();
-    return this.allStartups().slice(start, start + this.pageSize());
-  });
 
   // Invest modal
   investModal   = signal<StartupResponse | null>(null);
@@ -54,11 +51,61 @@ export class StartupsComponent implements OnInit {
     private investmentService: InvestmentService,
     private router: Router
   ) {
-    // Reset to page 1 whenever results change
+    // RECTIVE AUTO-FETCH: Whenever filters or page changes, fetch from backend
     effect(() => {
-      this.allStartups();
-      this.currentPage.set(1);
-    }, { allowSignalWrites: true });
+      this.fetchFromBackend(
+        this.currentPage(),
+        this.pageSize(),
+        this.searchQuery(),
+        this.selectedStage(),
+        this.selectedIndustry(),
+        this.minFunding(),
+        this.maxFunding()
+      );
+    });
+  }
+
+  private fetchFromBackend(page: number, size: number, search: string, stage: string, industry: string, min: string, max: string): void {
+    this.loading.set(true);
+    this.errorMsg.set('');
+
+    // Backend is 0-indexed
+    const pageIndex = Math.max(0, page - 1);
+
+    const filters: any = {};
+    if (search)   filters.industry = search; 
+    if (stage)    filters.stage    = stage;
+    if (industry) filters.industry = industry;
+    if (min)      filters.minFunding = Number(min);
+    if (max)      filters.maxFunding = Number(max);
+
+    this.startupService.search(filters, pageIndex, size).subscribe({
+      next: env => { 
+        this.allStartups.set(env.data ?? []);
+        this.totalElements.set(env.totalElements || (env.data?.length || 0));
+        this.loading.set(false); 
+      },
+      error: env => { 
+        this.errorMsg.set(env.error ?? 'Failed to load startups.'); 
+        this.loading.set(false); 
+      }
+    });
+  }
+
+  ngOnInit(): void {
+    this.loadIndustries();
+  }
+
+  private loadIndustries(): void {
+    // One-time load of industries for the filter dropdown
+    if (this.availableIndustries().length === 0) {
+      this.startupService.getAll(0, 100).subscribe(res => {
+        if (res.data) {
+          const industries = [...new Set(res.data.map(s => s.industry))].sort();
+          this.availableIndustries.set(industries);
+        }
+      });
+    }
   }
 
   onPageChange(page: number): void {
@@ -66,51 +113,21 @@ export class StartupsComponent implements OnInit {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  ngOnInit(): void {
-    this.loadStartups();
-  }
-
-  loadStartups(): void {
-    this.loading.set(true);
-    this.errorMsg.set('');
-    this.startupService.getAll().subscribe({
-      next: env => { 
-        const startups = env.data ?? [];
-        this.allStartups.set(startups);
-        if (this.availableIndustries().length === 0) {
-          this.availableIndustries.set([...new Set(startups.map(s => s.industry))].sort());
-        }
-        this.loading.set(false); 
-      },
-      error: env => { this.errorMsg.set(env.error ?? 'Failed to load startups.'); this.loading.set(false); }
-    });
-  }
-
   applyFilters(): void {
-    this.loading.set(true);
-    this.errorMsg.set('');
-    const filters: any = {};
-    if (this.selectedStage)    filters.stage    = this.selectedStage;
-    if (this.selectedIndustry) filters.industry = this.selectedIndustry;
-    if (this.minFunding)       filters.minFunding = Number(this.minFunding);
-    if (this.maxFunding)       filters.maxFunding = Number(this.maxFunding);
-
-    this.startupService.search(filters).subscribe({
-      next: env => { this.allStartups.set(env.data ?? []); this.loading.set(false); },
-      error: env => { this.errorMsg.set(env.error ?? 'Search failed.'); this.loading.set(false); }
-    });
+    this.currentPage.set(1);
   }
 
   clearFilters(): void {
-    this.selectedStage = '';
-    this.selectedIndustry = '';
-    this.minFunding = '';
-    this.maxFunding = '';
-    this.loadStartups();
+    this.searchQuery.set('');
+    this.selectedStage.set('');
+    this.selectedIndustry.set('');
+    this.minFunding.set('');
+    this.maxFunding.set('');
+    this.currentPage.set(1);
   }
 
   get hasFilters(): boolean {
-    return !!(this.selectedStage || this.selectedIndustry || this.minFunding || this.maxFunding);
+    return !!(this.selectedStage() || this.selectedIndustry() || this.minFunding() || this.maxFunding());
   }
 
 

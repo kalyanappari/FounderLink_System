@@ -24,25 +24,27 @@
       <circle cx="11" cy="11" r="8" />
       <line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>
-    <input type="text" placeholder="Search startups..." class="search-input" (input)="applyFilters()" />
+    <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); applyFilters()" 
+      placeholder="Search startups..." class="search-input" />
   </div>
 
   <div class="filter-group">
-    <select [(ngModel)]="selectedStage" class="filter-select" (change)="applyFilters()">
+    <select [ngModel]="selectedStage()" (ngModelChange)="selectedStage.set($event); applyFilters()" class="filter-select">
       <option value="">Stage: All</option>
       @for (s of stages; track s) { <option [value]="s">{{ stageLabel(s) }}</option> }
     </select>
   </div>
 
   <div class="filter-group">
-    <select [(ngModel)]="selectedIndustry" class="filter-select" (change)="applyFilters()">
+    <select [ngModel]="selectedIndustry()" (ngModelChange)="selectedIndustry.set($event); applyFilters()" class="filter-select">
       <option value="">Sector: All</option>
       @for (ind of availableIndustries(); track ind) { <option [value]="ind">{{ ind }}</option> }
     </select>
   </div>
 
   <div class="filter-group" style="position:relative">
-    <input type="number" [(ngModel)]="minFunding" placeholder="Min (₹)" class="filter-input" (input)="applyFilters()" />
+    <input type="number" [ngModel]="minFunding()" (ngModelChange)="minFunding.set($event); applyFilters()" 
+      placeholder="Min (₹)" class="filter-input" />
   </div>
 
   @if (hasFilters) {
@@ -51,7 +53,7 @@
   </button>
   }
 
-  <span class="results-count">{{ allStartups().length }} found</span>
+  <span class="results-count">{{ totalElements() }} found</span>
 </section>
 
 <!-- Main Feed -->
@@ -69,7 +71,7 @@
 </div>
 } @else {
 <div class="startup-grid">
-  @for (s of paginatedStartups(); track s.id) {
+  @for (s of allStartups(); track s.id) {
   <div class="startup-card" [routerLink]="['/startup', s.id]">
 
     <div class="sc-header">
@@ -116,7 +118,7 @@
 </div>
 
 <app-pagination 
-  [totalItems]="allStartups().length" 
+  [totalItems]="totalElements()" 
   [pageSize]="pageSize()" 
   [currentPage]="currentPage()" 
   (pageChange)="onPageChange($event)">

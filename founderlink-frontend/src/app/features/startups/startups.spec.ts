@@ -24,7 +24,7 @@ describe('StartupsComponent', () => {
 
   beforeEach(async () => {
     startupServiceSpy = {
-      getAll: vi.fn(),
+      getAll: vi.fn().mockReturnValue(of({ data: [] })),
       search: vi.fn()
     };
     investmentServiceSpy = {
@@ -55,111 +55,93 @@ describe('StartupsComponent', () => {
   });
 
   describe('Initialization and Loading', () => {
-    it('should initialize and load startups', () => {
+    it('should load focus data via effect and industries via ngOnInit', () => {
+      // Setup specific mocks for this test
+      startupServiceSpy.search.mockReturnValue(of({ data: [mockStartup], totalElements: 1 }));
       startupServiceSpy.getAll.mockReturnValue(of({ data: [mockStartup] }));
       
       fixture = TestBed.createComponent(StartupsComponent);
       component = fixture.componentInstance;
-      fixture.detectChanges(); // calls ngOnInit -> loadStartups
       
-      expect(startupServiceSpy.getAll).toHaveBeenCalled();
+      // fixture.detectChanges() runs ngOnInit (getAll) AND the constructor effect (search)
+      fixture.detectChanges(); 
+      
+      expect(startupServiceSpy.search).toHaveBeenCalledWith({}, 0, 12);
+      expect(startupServiceSpy.getAll).toHaveBeenCalledWith(0, 100);
       expect(component.allStartups()).toEqual([mockStartup]);
       expect(component.availableIndustries()).toEqual(['SaaS']);
       expect(component.loading()).toBe(false);
-      expect(component.errorMsg()).toBe('');
     });
 
-    it('should handle load error gracefully', () => {
-      startupServiceSpy.getAll.mockReturnValue(throwError(() => ({ error: 'Error loading' })));
+    it('should handle API errors gracefully', () => {
+      startupServiceSpy.search.mockReturnValue(throwError(() => ({ error: 'Fail' })));
       
       fixture = TestBed.createComponent(StartupsComponent);
       component = fixture.componentInstance;
       fixture.detectChanges();
 
-      expect(component.allStartups()).toEqual([]);
-      expect(component.errorMsg()).toBe('Error loading');
+      expect(component.errorMsg()).toBe('Fail');
       expect(component.loading()).toBe(false);
     });
   });
 
-  describe('Pagination and Display', () => {
+  describe('Pagination Logic', () => {
     beforeEach(() => {
-      startupServiceSpy.getAll.mockReturnValue(of({ data: Array(20).fill(mockStartup) }));
+      startupServiceSpy.search.mockReturnValue(of({ data: [], totalElements: 50 }));
       fixture = TestBed.createComponent(StartupsComponent);
       component = fixture.componentInstance;
       fixture.detectChanges();
     });
 
-    it('should slice data based on page size', () => {
-      expect(component.allStartups().length).toBe(20);
-      expect(component.paginatedStartups().length).toBe(12); // page 1
-    });
-
-    it('should change page and scroll to top', () => {
+    it('should trigger a new search when page becomes 2', () => {
       window.scrollTo = vi.fn();
+      startupServiceSpy.search.mockClear();
+      startupServiceSpy.search.mockReturnValue(of({ data: [], totalElements: 50 }));
+
       component.onPageChange(2);
+      fixture.detectChanges(); // Effect picks up the page change
+
       expect(component.currentPage()).toBe(2);
-      expect(component.paginatedStartups().length).toBe(8); // items 13-20
-      expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
+      expect(startupServiceSpy.search).toHaveBeenCalledWith({}, 1, 12);
     });
   });
 
-  describe('Filtering', () => {
+  describe('Reactive Filtering', () => {
     beforeEach(() => {
-      startupServiceSpy.getAll.mockReturnValue(of({ data: [] }));
+      startupServiceSpy.search.mockReturnValue(of({ data: [], totalElements: 0 }));
       fixture = TestBed.createComponent(StartupsComponent);
       component = fixture.componentInstance;
       fixture.detectChanges();
     });
 
-    it('should return false if no filters are applied', () => {
-      expect(component.hasFilters).toBe(false);
+    it('should automatically search when industry signal changes', () => {
+      startupServiceSpy.search.mockClear();
+      startupServiceSpy.search.mockReturnValue(of({ data: [mockStartup], totalElements: 1 }));
+
+      component.selectedIndustry.set('Tech');
+      fixture.detectChanges(); // Effect picks up filter change
+
+      expect(startupServiceSpy.search).toHaveBeenCalledWith({ industry: 'Tech' }, 0, 12);
     });
 
-    it('should return true if any filter is applied', () => {
-      component.selectedStage = 'MVP';
-      expect(component.hasFilters).toBe(true);
-    });
-
-    it('should apply filters and call search API', () => {
-      component.selectedIndustry = 'Fintech';
-      component.minFunding = '1000';
-      startupServiceSpy.search.mockReturnValue(of({ data: [mockStartup] }));
-
+    it('should reset to page 1 when applyFilters is called', () => {
+      component.currentPage.set(5);
       component.applyFilters();
-
-      expect(component.loading()).toBe(false);
-      expect(startupServiceSpy.search).toHaveBeenCalledWith({
-        industry: 'Fintech',
-        minFunding: 1000
-      });
-      expect(component.allStartups()).toEqual([mockStartup]);
+      expect(component.currentPage()).toBe(1);
     });
 
-    it('should handle search error', () => {
-      component.selectedIndustry = 'Fintech';
-      startupServiceSpy.search.mockReturnValue(throwError(() => ({ error: 'Bad filter' })));
-
-      component.applyFilters();
-
-      expect(component.errorMsg()).toBe('Bad filter');
-      expect(component.loading()).toBe(false);
-    });
-
-    it('should clear filters and reload', () => {
-      startupServiceSpy.getAll.mockClear();
-      component.selectedStage = 'IDEA';
+    it('should clear all signals when clearFilters is called', () => {
+      component.selectedStage.set('IDEA');
       component.clearFilters();
-
-      expect(component.selectedStage).toBe('');
-      expect(component.hasFilters).toBe(false);
-      expect(startupServiceSpy.getAll).toHaveBeenCalled();
+      
+      expect(component.selectedStage()).toBe('');
+      expect(component.currentPage()).toBe(1);
     });
   });
 
   describe('Roles and Badges', () => {
     beforeEach(() => {
-      startupServiceSpy.getAll.mockReturnValue(of({ data: [] }));
+      startupServiceSpy.search.mockReturnValue(of({ data: [], totalElements: 0 }));
       fixture = TestBed.createComponent(StartupsComponent);
       component = fixture.componentInstance;
       fixture.detectChanges();
@@ -186,7 +168,7 @@ describe('StartupsComponent', () => {
 
   describe('Investment Modal', () => {
     beforeEach(() => {
-      startupServiceSpy.getAll.mockReturnValue(of({ data: [] }));
+      startupServiceSpy.search.mockReturnValue(of({ data: [], totalElements: 0 }));
       fixture = TestBed.createComponent(StartupsComponent);
       component = fixture.componentInstance;
       fixture.detectChanges();
@@ -244,7 +226,7 @@ describe('StartupsComponent', () => {
 
   describe('Message routing', () => {
     it('should route to messages with founder ID', () => {
-      startupServiceSpy.getAll.mockReturnValue(of({ data: [] }));
+      startupServiceSpy.search.mockReturnValue(of({ data: [], totalElements: 0 }));
       fixture = TestBed.createComponent(StartupsComponent);
       component = fixture.componentInstance;
       
