@@ -44,18 +44,18 @@ public class RazorpayService {
 
         log.info("Creating Razorpay order for investment: {}", investmentId);
 
-        // 🔒 Fetch payment (source of truth)
+        // Fetch payment (source of truth)
         Payment payment = paymentRepository.findByInvestmentId(investmentId)
                 .orElseThrow(() -> new PaymentNotFoundException(
                         "Payment not initialized for investment: " + investmentId));
 
-        // ❌ Prevent duplicate successful payment
+        // Prevent duplicate successful payment
         if (payment.getStatus() == PaymentStatus.SUCCESS) {
             throw new PaymentGatewayException(
                     "Payment already completed for investment: " + investmentId);
         }
 
-        // 🔁 Reuse existing order (idempotency)
+        // Reuse existing order (idempotency)
         if (payment.getStatus() == PaymentStatus.INITIATED
                 && payment.getRazorpayOrderId() != null) {
 
@@ -69,12 +69,12 @@ public class RazorpayService {
         }
 
         try {
-            // 💰 Convert amount safely (₹ → paise)
+            // Convert amount safely (₹ → paise)
             int amountInPaise = payment.getAmount()
                     .multiply(BigDecimal.valueOf(100))
                     .intValueExact();
 
-            // 🧾 Create Razorpay order
+            // Create Razorpay order
             JSONObject orderRequest = new JSONObject();
             orderRequest.put("amount", amountInPaise);
             orderRequest.put("currency", "INR");
@@ -85,7 +85,7 @@ public class RazorpayService {
 
             log.info("Razorpay order created: {}", orderId);
 
-            // 🧠 Update ONLY order-related fields (do NOT overwrite core data)
+            // Update ONLY order-related fields (do NOT overwrite core data)
             payment.setRazorpayOrderId(orderId);
             payment.setStatus(PaymentStatus.INITIATED);
             payment.setUpdatedAt(LocalDateTime.now());
@@ -110,23 +110,23 @@ public class RazorpayService {
 
         log.info("Confirming payment - orderId: {}, paymentId: {}", orderId, paymentId);
 
-        // 🔍 Fetch payment (source of truth)
+        // Fetch payment (source of truth)
         Payment payment = paymentRepository.findByRazorpayOrderId(orderId)
                 .orElseThrow(() -> new PaymentNotFoundException(
                         "Payment not found for order: " + orderId));
 
-        // 🔁 Idempotency: already processed
+        // Idempotency: already processed
         if (payment.getStatus() == PaymentStatus.SUCCESS) {
             log.info("Payment already confirmed for orderId: {}", orderId);
             return new ConfirmPaymentResponse("SUCCESS", payment.getInvestmentId());
         }
 
-        // ❌ Prevent invalid state transition
+        //  Prevent invalid state transition
         if (payment.getStatus() == PaymentStatus.FAILED) {
             throw new PaymentGatewayException("Cannot confirm a failed payment");
         }
 
-        // 🔐 Verify signature (Razorpay)
+        // Verify signature (Razorpay)
         try {
             JSONObject attributes = new JSONObject();
             attributes.put("razorpay_order_id", orderId);
@@ -147,7 +147,7 @@ public class RazorpayService {
             throw new PaymentGatewayException("Signature verification failed", e);
         }
 
-        // ✅ Update payment (single source of truth)
+        // Update payment (single source of truth)
         payment.setRazorpayPaymentId(paymentId);
         payment.setRazorpaySignature(signature);
         payment.setStatus(PaymentStatus.SUCCESS);
@@ -157,7 +157,7 @@ public class RazorpayService {
 
         log.info("Payment confirmed successfully for investment: {}", payment.getInvestmentId());
 
-        // 💰 Credit wallet (synchronous call)
+        //  Credit wallet (synchronous call)
         try {
             walletServiceClient.createWallet(payment.getStartupId());
             
@@ -180,7 +180,7 @@ public class RazorpayService {
                     payment.getStartupId(), e.getMessage(), e);
         }
 
-        // 📢 Publish event AFTER state update
+        // Publish event AFTER state update
         paymentResultEventPublisher.publishPaymentCompleted(
                 new PaymentCompletedEvent(
                         payment.getInvestmentId(),
