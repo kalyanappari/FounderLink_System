@@ -39,9 +39,9 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(summary = "Register a new user", description = "Creates a new user account and returns registration details.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "User registered successfully"),
-        @ApiResponse(responseCode = "400", description = "Validation failed — invalid request body"),
-        @ApiResponse(responseCode = "409", description = "Email already exists")
+            @ApiResponse(responseCode = "200", description = "User registered successfully"),
+            @ApiResponse(responseCode = "400", description = "Validation failed — invalid request body"),
+            @ApiResponse(responseCode = "409", description = "Email already exists")
     })
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
         RegisterResponse response = authService.register(request);
@@ -51,12 +51,12 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(summary = "Login user", description = "Authenticates a user and returns an authentication response.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "User logged in successfully"),
-        @ApiResponse(responseCode = "400", description = "Validation failed — invalid request body"),
-        @ApiResponse(responseCode = "401", description = "Invalid email or password")
+            @ApiResponse(responseCode = "200", description = "User logged in successfully"),
+            @ApiResponse(responseCode = "400", description = "Validation failed — invalid request body"),
+            @ApiResponse(responseCode = "401", description = "Invalid email or password")
     })
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request,
-                                              HttpServletResponse response) {
+            HttpServletResponse response) {
         var authSession = authService.login(request);
         addRefreshTokenCookie(response, authSession.refreshToken());
         return ResponseEntity.ok(authSession.authResponse());
@@ -65,9 +65,9 @@ public class AuthController {
     @PostMapping("/refresh")
     @Operation(summary = "Refresh authentication token", description = "Refreshes the authentication token using a valid refresh token.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
-        @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token"),
-        @ApiResponse(responseCode = "403", description = "Refresh token has been revoked")
+            @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
+            @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token"),
+            @ApiResponse(responseCode = "403", description = "Refresh token has been revoked")
     })
     public ResponseEntity<AuthResponse> refresh(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = resolveRefreshToken(request);
@@ -79,7 +79,7 @@ public class AuthController {
     @PostMapping("/logout")
     @Operation(summary = "Logout user", description = "Logs out the user and clears the refresh token cookie.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "User logged out successfully")
+            @ApiResponse(responseCode = "204", description = "User logged out successfully")
     })
     public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -152,9 +152,9 @@ public class AuthController {
     @PostMapping("/forgot-password")
     @Operation(summary = "Request password reset", description = "Sends a 6-digit PIN to the user's email for password reset.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "PIN sent successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid email format"),
-        @ApiResponse(responseCode = "401", description = "Email not found")
+            @ApiResponse(responseCode = "200", description = "PIN sent successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid email format"),
+            @ApiResponse(responseCode = "401", description = "Email not found")
     })
     public ResponseEntity<ForgotPasswordResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         ForgotPasswordResponse response = authService.forgotPassword(request.getEmail());
@@ -164,25 +164,23 @@ public class AuthController {
     @PostMapping("/reset-password")
     @Operation(summary = "Reset password with PIN", description = "Resets the user's password using the PIN sent to their email.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Password reset successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid PIN, expired PIN, or validation error"),
-        @ApiResponse(responseCode = "401", description = "User not found")
+            @ApiResponse(responseCode = "200", description = "Password reset successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid PIN, expired PIN, or validation error"),
+            @ApiResponse(responseCode = "401", description = "User not found")
     })
     public ResponseEntity<ResetPasswordResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         ResetPasswordResponse response = authService.resetPassword(
                 request.getEmail(),
                 request.getPin(),
-                request.getNewPassword()
-        );
+                request.getNewPassword());
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/verify-email")
-    @Operation(summary = "Verify email with OTP",
-               description = "Verifies a user's email address using the 6-digit OTP sent after registration.")
+    @Operation(summary = "Verify email with OTP", description = "Verifies a user's email address using the 6-digit OTP sent after registration.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Email verified successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid, expired, or already-used OTP")
+            @ApiResponse(responseCode = "200", description = "Email verified successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid, expired, or already-used OTP")
     })
     public ResponseEntity<Map<String, String>> verifyEmail(
             @Valid @RequestBody VerifyEmailRequest request) {
@@ -191,12 +189,11 @@ public class AuthController {
     }
 
     @PostMapping("/resend-verification")
-    @Operation(summary = "Resend email verification OTP",
-               description = "Generates and sends a fresh OTP to the user's email. "
-                           + "Previous OTPs are invalidated.")
+    @Operation(summary = "Resend email verification OTP", description = "Generates and sends a fresh OTP to the user's email. "
+            + "Previous OTPs are invalidated.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "OTP resent successfully"),
-        @ApiResponse(responseCode = "400", description = "Email already verified or not found")
+            @ApiResponse(responseCode = "200", description = "OTP resent successfully"),
+            @ApiResponse(responseCode = "400", description = "Email already verified or not found")
     })
     public ResponseEntity<Map<String, String>> resendVerification(
             @Valid @RequestBody ResendVerificationRequest request) {
@@ -207,19 +204,17 @@ public class AuthController {
     // ──────────────────────────────────────────
     // Google OAuth
     // ──────────────────────────────────────────
-
     /**
      * Step 1 — POST /auth/oauth/google
-     *
      * Verifies the Google ID token.
-     * • Existing user  → HTTP 200 + full AuthResponse (access token in body, refresh in cookie)
-     * • New user       → HTTP 202 + OAuthPendingResponse (oauthToken, email, name)
-     *                    Frontend navigates to /auth/oauth/role-picker
+     * • Existing user → HTTP 200 + full AuthResponse (access token in body, refresh
+     * in cookie)
+     * • New user → HTTP 202 + OAuthPendingResponse (oauthToken, email, name)
+     * Frontend navigates to /auth/oauth/role-picker
      */
     @PostMapping("/oauth/google")
-    @Operation(summary = "Sign in with Google",
-               description = "Verifies a Google ID Token. Returns a JWT for existing users (200) "
-                           + "or an OAuth pending token for new users (202).")
+    @Operation(summary = "Sign in with Google", description = "Verifies a Google ID Token. Returns a JWT for existing users (200) "
+            + "or an OAuth pending token for new users (202).")
     public ResponseEntity<?> googleOAuth(
             @Valid @RequestBody OAuthGoogleRequest request,
             HttpServletResponse response) {
@@ -242,8 +237,7 @@ public class AuthController {
      * Completes registration and returns a full JWT.
      */
     @PostMapping("/oauth/google/complete")
-    @Operation(summary = "Complete Google OAuth registration",
-               description = "Creates the user account with the selected role and returns a JWT.")
+    @Operation(summary = "Complete Google OAuth registration", description = "Creates the user account with the selected role and returns a JWT.")
     public ResponseEntity<AuthResponse> googleOAuthComplete(
             @Valid @RequestBody OAuthRoleRequest request,
             HttpServletResponse response) {

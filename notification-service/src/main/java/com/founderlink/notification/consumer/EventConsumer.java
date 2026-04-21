@@ -318,6 +318,9 @@ public class EventConsumer {
     public void handleEmailVerification(com.founderlink.notification.dto.EmailVerificationEvent event) {
         logger.info("Received EMAIL_VERIFICATION event for: {}", event.getEmail());
         try {
+            // Delay 1.5 seconds to prevent SMTP host from merging/dropping rapid-fire emails 
+            // when consecutive Welcome+OTP sequences launch together
+            Thread.sleep(1500);
             emailService.sendEmailVerificationOtpEmail(event.getEmail(), event.getName(), event.getOtp());
             logger.info("Email verification OTP sent to: {}", event.getEmail());
         } catch (Exception e) {

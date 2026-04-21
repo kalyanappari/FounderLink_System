@@ -1,4 +1,4 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, signal, OnInit, AfterViewInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -11,7 +11,7 @@ import { UserService } from '../../../core/services/user.service';
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, AfterViewInit {
   form: FormGroup;
   loading          = signal(false);
   googleLoading    = signal(false);
@@ -77,21 +77,27 @@ export class LoginComponent implements OnInit {
     this.router.navigate(['/auth/verify-email']);
   }
 
-  /** Triggers Google One-Tap / popup via the Google Identity Services library */
-  signInWithGoogle(): void {
+  ngAfterViewInit(): void {
+    this.renderGoogleButton();
+  }
+
+  private renderGoogleButton(): void {
     const google = (window as any).google;
     if (!google) {
-      this.errorMsg.set('Google Sign-In is not available. Please try refreshing the page.');
+      // If the script hasn't loaded yet, try again in 500ms
+      setTimeout(() => this.renderGoogleButton(), 500);
       return;
     }
-    this.googleLoading.set(true);
-    this.errorMsg.set('');
 
     google.accounts.id.initialize({
       client_id: (window as any).__GOOGLE_CLIENT_ID__ || '',
       callback: (response: any) => this.handleGoogleCallback(response)
     });
-    google.accounts.id.prompt();
+
+    google.accounts.id.renderButton(
+      document.getElementById('google-btn'),
+      { theme: 'outline', size: 'large', type: 'standard', width: '100%' }
+    );
   }
 
   private handleGoogleCallback(response: { credential: string }): void {
