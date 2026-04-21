@@ -74,7 +74,9 @@ eureka:
 #      investment: investment.queue
 #      team: team.queue
 #      messaging: messaging.queue
-#
+#      user-registered: user-registered-queue
+#      email-verification: email-verification-queue   # ← NEW: email OTP after registration
+
 #management:
 #   endpoints:
 #     web:

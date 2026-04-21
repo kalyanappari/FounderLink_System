@@ -246,39 +246,79 @@
     <!-- ── INVESTOR ── -->
     @if (user()?.role === 'INVESTOR') {
       <div class="role-section">
-        <p class="role-section-title">{{ isViewingOther() ? 'Their Investment Portfolio' : 'My Investment Portfolio' }}</p>
-        <div class="role-cards-row">
-          @if (myInvestments().length > 0) {
-            @for (inv of myInvestments(); track inv.id) {
-              <div class="card accent-green">
-                <div class="inv-header">
-                  <div>
-                    <p class="clabel" style="margin:0 0 .25rem">Startup #{{ inv.startupId }}</p>
-                    <p class="inv-amount">{{ formatCurrency(inv.amount) }}</p>
+
+        <!-- ─── Own portfolio: full investment cards with amounts ─── -->
+        @if (!isViewingOther()) {
+          <p class="role-section-title">My Investment Portfolio</p>
+          <div class="role-cards-row">
+            @if (myInvestments().length > 0) {
+              @for (inv of myInvestments(); track inv.id) {
+                <div class="card accent-green">
+                  <div class="inv-header">
+                    <div>
+                      <p class="clabel" style="margin:0 0 .25rem">Startup #{{ inv.startupId }}</p>
+                      <p class="inv-amount">{{ formatCurrency(inv.amount) }}</p>
+                    </div>
+                    <span class="status-pill"
+                      [style.background]="investmentStatusColor(inv.status) + '22'"
+                      [style.color]="investmentStatusColor(inv.status)"
+                      [style.borderColor]="investmentStatusColor(inv.status) + '55'"
+                      style="border:1px solid">
+                      {{ inv.status }}
+                    </span>
                   </div>
-                  <span class="status-pill"
-                    [style.background]="investmentStatusColor(inv.status) + '22'"
-                    [style.color]="investmentStatusColor(inv.status)"
-                    [style.borderColor]="investmentStatusColor(inv.status) + '55'"
-                    style="border:1px solid">
-                    {{ inv.status }}
-                  </span>
+                  <div class="inv-footer">
+                    <span class="inv-date">{{ inv.createdAt | date:'mediumDate' }}</span>
+                    <span class="empty-tag">ID #{{ inv.id }}</span>
+                  </div>
                 </div>
-                <div class="inv-footer">
-                  <span class="inv-date">{{ inv.createdAt | date:'mediumDate' }}</span>
-                  <span class="empty-tag">ID #{{ inv.id }}</span>
+              }
+            } @else {
+              <div class="card">
+                <div class="no-data">
+                  <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  <p>No investments in your portfolio yet. Explore startups to begin investing.</p>
                 </div>
               </div>
             }
-          } @else {
-            <div class="card">
-              <div class="no-data">
-                <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                <p>No investments in your portfolio yet. Explore startups to begin investing.</p>
+          </div>
+        }
+
+        <!-- ─── Cross-role view: count summary only — no amounts, no individual cards ─── -->
+        @if (isViewingOther()) {
+          <p class="role-section-title">Investment Track Record</p>
+          <div class="role-cards-row">
+            <div class="card accent-green" style="max-width:400px;">
+              <div class="inv-header" style="align-items:center;">
+                <div>
+                  <p class="clabel" style="margin:0 0 6px;">Completed Investments</p>
+                  <p class="inv-amount" style="font-size:2rem;line-height:1;">
+                    {{ activityCount() }}
+                  </p>
+                  <p style="margin:8px 0 0;font-size:13px;color:var(--muted);">
+                    {{ activityCount() === 1 ? 'deal closed' : 'deals successfully closed' }}
+                  </p>
+                </div>
+                <div class="stat-icon" style="width:52px;height:52px;flex-shrink:0;">
+                  <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                </div>
               </div>
+              @if (activityCount() === 0) {
+                <p style="margin:12px 0 0;font-size:13px;color:var(--muted);border-top:1px solid rgba(255,255,255,.08);padding-top:12px;">
+                  No completed investments recorded yet.
+                </p>
+              } @else {
+                <p style="margin:12px 0 0;font-size:13px;color:var(--muted);border-top:1px solid rgba(255,255,255,.08);padding-top:12px;">
+                  Investment amounts and deal details are private.
+                </p>
+              }
             </div>
-          }
-        </div>
+          </div>
+        }
+
       </div>
     }
 

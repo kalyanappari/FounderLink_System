@@ -24,4 +24,11 @@ public interface InvestmentService {
     InvestmentResponseDto markCompletedFromPayment(Long investmentId);
 
     InvestmentResponseDto markPaymentFailedFromPayment(Long investmentId);
+
+    /**
+     * Privacy-safe cross-role count.
+     * Returns only the number of COMPLETED investments for a given investor.
+     * No investment details or amounts are revealed — safe for FOUNDER access.
+     */
+    long countCompletedInvestmentsByInvestorId(Long investorId);
 }

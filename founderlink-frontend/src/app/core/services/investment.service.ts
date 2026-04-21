@@ -36,6 +36,17 @@ export class InvestmentService {
     );
   }
 
+  /**
+   * Founder cross-view: returns ONLY the count of COMPLETED investments for an investor.
+   * No investment details, amounts, or startup IDs are returned — privacy-safe.
+   */
+  getCompletedInvestmentCount(investorId: number): Observable<ApiEnvelope<{ count: number }>> {
+    return this.http.get<ApiResponse<{ count: number }>>(`${this.api}/investments/investor/${investorId}/completed-count`).pipe(
+      map(normalizeWrapped),
+      catchError(err => throwError(() => normalizeError(err)))
+    );
+  }
+
   /** Founder / Admin: get investments for a startup */
   getStartupInvestments(startupId: number): Observable<ApiEnvelope<InvestmentResponse[]>> {
     return this.http.get<ApiResponse<InvestmentResponse[]>>(`${this.api}/investments/startup/${startupId}`).pipe(

@@ -52,6 +52,7 @@ describe('StartupsComponent', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   describe('Initialization and Loading', () => {

@@ -130,4 +130,26 @@ class EmailServiceNewMethodsTest {
         emailService.sendEmail("test@test.com", "Subject", "Body", false);
         verify(mailSender, times(1)).send(mimeMessage);
     }
+
+    @Test
+    @DisplayName("sendEmailVerificationOtpEmail - sends OTP email successfully")
+    void sendEmailVerificationOtpEmail_Success() {
+        emailService.sendEmailVerificationOtpEmail("alice@test.com", "Alice", "483920");
+        verify(mailSender, times(1)).send(mimeMessage);
+    }
+
+    @Test
+    @DisplayName("sendEmailVerificationOtpEmail - handles mail sender exception without rethrowing")
+    void sendEmailVerificationOtpEmail_HandlesMailSenderException() {
+        doThrow(new org.springframework.mail.MailSendException("SMTP down"))
+                .when(mailSender).send(any(MimeMessage.class));
+
+        // EmailService catches exceptions internally — should not throw
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(
+                () -> emailService.sendEmailVerificationOtpEmail("alice@test.com", "Alice", "483920")
+        );
+
+        // send was still attempted
+        verify(mailSender, times(1)).send(mimeMessage);
+    }
 }

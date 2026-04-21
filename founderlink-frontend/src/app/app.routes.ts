@@ -22,6 +22,8 @@ export const routes: Routes = [
       { path: 'login',           loadComponent: () => import('./features/auth/login/login').then(m => m.LoginComponent) },
       { path: 'register',        loadComponent: () => import('./features/auth/register/register').then(m => m.RegisterComponent) },
       { path: 'forgot-password', loadComponent: () => import('./features/auth/forgot-password/forgot-password').then(m => m.ForgotPasswordComponent) },
+      { path: 'verify-email',    loadComponent: () => import('./features/auth/verify-email/verify-email').then(m => m.VerifyEmailComponent) },
+      { path: 'oauth-role',      loadComponent: () => import('./features/auth/oauth-role/oauth-role').then(m => m.OAuthRoleComponent) },
       { path: '', redirectTo: 'login', pathMatch: 'full' }
     ]
   },

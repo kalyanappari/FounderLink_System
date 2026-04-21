@@ -109,6 +109,19 @@ public class GlobalExceptionHandler {
                 request.getRequestURI());
     }
 
+    /**
+     * Thrown when a LOCAL user tries to login before verifying their email.
+     * Returns HTTP 403 with a specific errorCode field so the Angular frontend
+     * can detect it and redirect to /auth/verify-email instead of a generic error.
+     */
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<ApiError> handleEmailNotVerified(EmailNotVerifiedException ex, HttpServletRequest request) {
+        log.warn("Login attempt by unverified user. path={}", request.getRequestURI());
+        ApiError body = new ApiError(Instant.now(), HttpStatus.FORBIDDEN.value(),
+                ex.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleAll(Exception ex, HttpServletRequest request) {
 

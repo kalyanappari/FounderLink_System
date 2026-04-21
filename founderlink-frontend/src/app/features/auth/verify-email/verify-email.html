@@ -1,0 +1,131 @@
+<div class="auth-layout">
+
+  <!-- Left panel (brand) -->
+  <div class="auth-panel">
+    <div class="panel-content">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="brand-name">FounderLink</span>
+      </div>
+
+      <div class="panel-hero">
+        <div class="verify-icon-wrapper">
+          <div class="verify-icon">📧</div>
+        </div>
+        <h2>Check your inbox</h2>
+        <p>We sent a 6-digit verification code to <strong>{{ email() }}</strong>. Enter it below to activate your account.</p>
+      </div>
+
+      <div class="verify-steps">
+        <div class="step">
+          <div class="step-num done">✓</div>
+          <div>
+            <div class="step-title">Create account</div>
+            <div class="step-desc">Your details are saved</div>
+          </div>
+        </div>
+        <div class="step-line done"></div>
+        <div class="step active">
+          <div class="step-num active">2</div>
+          <div>
+            <div class="step-title">Verify email</div>
+            <div class="step-desc">Enter the OTP sent to you</div>
+          </div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div>
+            <div class="step-title">Start building</div>
+            <div class="step-desc">Access your dashboard</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel (form) -->
+  <div class="auth-form-panel">
+    <div class="auth-form-wrap">
+
+      <div class="form-header">
+        <h1>Verify your email</h1>
+        <p>Code expires in <strong>10 minutes</strong></p>
+      </div>
+
+      <!-- Success banner -->
+      @if (successMsg()) {
+        <div class="alert alert-success">
+          <span>✓</span> {{ successMsg() }}
+        </div>
+      }
+
+      <!-- Error banner -->
+      @if (errorMsg()) {
+        <div class="alert alert-error">
+          <span>✕</span> {{ errorMsg() }}
+        </div>
+      }
+
+      <form (ngSubmit)="onSubmit()">
+
+        <div class="otp-label">Enter your 6-digit code</div>
+        <div class="otp-input-wrapper">
+          <input
+            id="otp-input"
+            type="text"
+            class="otp-input"
+            [(ngModel)]="otp"
+            name="otp"
+            maxlength="6"
+            autocomplete="one-time-code"
+            inputmode="numeric"
+            placeholder="000000"
+            [disabled]="loading()"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [class.loading]="loading()"
+          [disabled]="loading() || otp.length !== 6"
+          id="verify-email-submit">
+          @if (loading()) {
+            <span class="spinner"></span> Verifying...
+          } @else {
+            Verify Email →
+          }
+        </button>
+
+        <div class="resend-section">
+          <span class="resend-label">Didn't receive the code?</span>
+          <button
+            type="button"
+            class="resend-btn"
+            id="resend-otp-btn"
+            [disabled]="resendCooldown() > 0 || resending()"
+            (click)="resendOtp()">
+            @if (resendCooldown() > 0) {
+              Resend in {{ resendCooldown() }}s
+            } @else if (resending()) {
+              Sending...
+            } @else {
+              Resend code
+            }
+          </button>
+        </div>
+
+        <div class="auth-switch">
+          Wrong email? <a routerLink="/auth/register">Start over</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</div>

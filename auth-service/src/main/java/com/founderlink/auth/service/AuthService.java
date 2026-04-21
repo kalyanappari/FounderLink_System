@@ -5,7 +5,10 @@ import com.founderlink.auth.entity.PasswordResetPin;
 import com.founderlink.auth.entity.Role;
 import com.founderlink.auth.entity.User;
 import com.founderlink.auth.exception.*;
+import com.founderlink.auth.publisher.EmailVerificationEventPublisher;
 import com.founderlink.auth.publisher.PasswordResetEventPublisher;
+import com.founderlink.auth.publisher.UserRegisteredEventPublisher;
+import com.founderlink.auth.repository.EmailVerificationOtpRepository;
 import com.founderlink.auth.repository.PasswordResetPinRepository;
 import com.founderlink.auth.repository.UserRepository;
 import com.founderlink.auth.security.JwtService;
@@ -33,13 +36,15 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordResetPinRepository passwordResetPinRepository;
+    private final EmailVerificationOtpRepository emailVerificationOtpRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final AuthenticationManager authenticationManager;
     private final SyncService syncService;
     private final PasswordResetEventPublisher passwordResetEventPublisher;
-    private final com.founderlink.auth.publisher.UserRegisteredEventPublisher userRegisteredEventPublisher;
+    private final UserRegisteredEventPublisher userRegisteredEventPublisher;
+    private final EmailVerificationEventPublisher emailVerificationEventPublisher;
 
     private static final Set<Role> ALLOWED_SELF_ROLES = Set.of(
             Role.FOUNDER,
@@ -61,13 +66,16 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(requestedRole);
+        user.setEmailVerified(false);
+        user.setAuthProvider(com.founderlink.auth.entity.AuthProvider.LOCAL);
 
         User savedUser = userRepository.saveAndFlush(user);
         log.debug("User persisted in auth-service");
 
         syncService.syncUser(savedUser);
 
-        UserRegisteredEvent event = UserRegisteredEvent.builder()
+        // Publish welcome/sync event
+        com.founderlink.auth.dto.UserRegisteredEvent event = com.founderlink.auth.dto.UserRegisteredEvent.builder()
                 .userId(savedUser.getId())
                 .email(savedUser.getEmail())
                 .name(savedUser.getName())
@@ -75,10 +83,13 @@ public class AuthService {
                 .build();
         userRegisteredEventPublisher.publishUserRegisteredEvent(event);
 
+        // Generate OTP and publish email verification event
+        sendEmailVerificationOtp(savedUser.getEmail(), savedUser.getName());
+
         return RegisterResponse.builder()
                 .email(savedUser.getEmail())
                 .role(savedUser.getRole().name())
-                .message("User registered successfully")
+                .message("Registration successful! Please verify your email to activate your account.")
                 .build();
     }
 
@@ -106,12 +117,86 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 
+        // Block LOCAL users who haven't verified their email yet
+        if (!user.isEmailVerified() &&
+                user.getAuthProvider() == com.founderlink.auth.entity.AuthProvider.LOCAL) {
+            throw new com.founderlink.auth.exception.EmailNotVerifiedException(
+                    "Please verify your email before logging in. Check your inbox for the OTP.");
+        }
+
         String token = jwtService.generateToken(
                 user.getId(),
                 user.getRole().name());
         String refreshToken = refreshTokenService.createToken(user.getId());
 
         return new AuthSession(buildAuthResponse(user, token), refreshToken);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Email Verification
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Transactional
+    public void verifyEmail(String email, String otp) {
+        com.founderlink.auth.entity.EmailVerificationOtp record =
+                emailVerificationOtpRepository.findByEmailAndOtp(email, otp)
+                        .orElseThrow(() -> new com.founderlink.auth.exception.InvalidPasswordResetPinException(
+                                "Invalid OTP or email address"));
+
+        if (record.isUsed()) {
+            throw new com.founderlink.auth.exception.UsedPasswordResetPinException("OTP has already been used");
+        }
+        if (java.time.LocalDateTime.now().isAfter(record.getExpiryDate())) {
+            throw new com.founderlink.auth.exception.ExpiredPasswordResetPinException("OTP has expired. Request a new one.");
+        }
+
+        record.setUsed(true);
+        emailVerificationOtpRepository.save(record);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadCredentialsException("User not found"));
+        user.setEmailVerified(true);
+        userRepository.save(user);
+
+        log.info("Email verified successfully for: {}", email);
+    }
+
+    @Transactional
+    public void resendVerification(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadCredentialsException("No account found with that email"));
+
+        if (user.isEmailVerified()) {
+            throw new IllegalStateException("Email is already verified");
+        }
+
+        // Invalidate any existing OTPs for this email
+        emailVerificationOtpRepository.deleteByEmail(email);
+
+        sendEmailVerificationOtp(email, user.getName());
+        log.info("Resent email verification OTP to: {}", email);
+    }
+
+    /** Shared helper — generates OTP, persists it, and publishes the event. */
+    private void sendEmailVerificationOtp(String email, String name) {
+        String otp = generateSixDigitPin();
+
+        com.founderlink.auth.entity.EmailVerificationOtp otpRecord =
+                com.founderlink.auth.entity.EmailVerificationOtp.builder()
+                        .email(email)
+                        .otp(otp)
+                        .expiryDate(java.time.LocalDateTime.now().plusMinutes(10))
+                        .used(false)
+                        .build();
+        emailVerificationOtpRepository.save(otpRecord);
+
+        com.founderlink.auth.dto.EmailVerificationEvent verificationEvent =
+                com.founderlink.auth.dto.EmailVerificationEvent.builder()
+                        .email(email)
+                        .name(name)
+                        .otp(otp)
+                        .build();
+        emailVerificationEventPublisher.publishEmailVerificationEvent(verificationEvent);
     }
 
     public AuthSession refresh(String refreshToken) {

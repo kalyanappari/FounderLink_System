@@ -311,4 +311,23 @@ public class EventConsumer {
         logger.error("Fallback: Failed to send welcome email to {}. Reason: {}",
                 event.getEmail(), throwable.getMessage());
     }
+
+    @RabbitListener(queues = "${rabbitmq.queue.email-verification}")
+    @CircuitBreaker(name = "notificationService", fallbackMethod = "handleEmailVerificationFallback")
+    @Retry(name = "notificationService")
+    public void handleEmailVerification(com.founderlink.notification.dto.EmailVerificationEvent event) {
+        logger.info("Received EMAIL_VERIFICATION event for: {}", event.getEmail());
+        try {
+            emailService.sendEmailVerificationOtpEmail(event.getEmail(), event.getName(), event.getOtp());
+            logger.info("Email verification OTP sent to: {}", event.getEmail());
+        } catch (Exception e) {
+            logger.error("Error sending email verification OTP to {}: {}", event.getEmail(), e.getMessage());
+        }
+    }
+
+    public void handleEmailVerificationFallback(
+            com.founderlink.notification.dto.EmailVerificationEvent event, Throwable throwable) {
+        logger.error("Fallback: Failed to send email verification OTP to {}. Reason: {}",
+                event.getEmail(), throwable.getMessage());
+    }
 }

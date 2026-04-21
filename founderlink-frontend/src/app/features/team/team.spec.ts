@@ -55,6 +55,7 @@ describe('TeamComponent', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   describe('Founder Initialization', () => {

@@ -98,6 +98,24 @@ class RefreshTokenServiceTest {
     }
 
     @Test
+    void validateTokenShouldReturnTokenWhenValid() {
+        RefreshToken validToken = RefreshToken.builder()
+                .id(9L)
+                .token(hash("valid-token"))
+                .userId(100L)
+                .expiryDate(Instant.now(clock).plus(Duration.ofDays(1)))
+                .revoked(false)
+                .build();
+
+        when(refreshTokenRepository.findByToken(validToken.getToken())).thenReturn(Optional.of(validToken));
+
+        RefreshToken result = refreshTokenService.validateToken("valid-token");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(9L);
+    }
+
+    @Test
     void rotateTokenShouldRevokeCurrentTokenAndCreateReplacement() {
         RefreshToken currentToken = RefreshToken.builder()
                 .id(3L)
@@ -161,6 +179,29 @@ class RefreshTokenServiceTest {
         when(refreshTokenRepository.findByTokenForUpdate(token.getToken())).thenReturn(Optional.of(token));
 
         assertThrows(RevokedRefreshTokenException.class, () -> refreshTokenService.revokeToken(rawToken));
+    }
+
+    @Test
+    void revokeTokenShouldThrowWhenTokenNotFound() {
+        when(refreshTokenRepository.findByTokenForUpdate(any())).thenReturn(Optional.empty());
+        assertThrows(com.founderlink.auth.exception.InvalidRefreshTokenException.class, 
+                () -> refreshTokenService.revokeToken("non-existent"));
+    }
+
+    @Test
+    void rotateTokenShouldThrowWhenTokenNotFound() {
+        when(refreshTokenRepository.findByTokenForUpdate(any())).thenReturn(Optional.empty());
+        assertThrows(com.founderlink.auth.exception.InvalidRefreshTokenException.class, 
+                () -> refreshTokenService.rotateToken("non-existent"));
+    }
+
+    @Test
+    void createTokenShouldThrowIllegalStateExceptionWhenOldestTokenNotFound() {
+        Long userId = 101L;
+        when(refreshTokenRepository.countByUserIdAndRevokedFalse(userId)).thenReturn(5L);
+        when(refreshTokenRepository.findOldestActiveToken(userId)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalStateException.class, () -> refreshTokenService.createToken(userId));
     }
 
     @Test

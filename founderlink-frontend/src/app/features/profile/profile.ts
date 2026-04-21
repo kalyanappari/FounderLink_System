@@ -158,38 +158,19 @@ export class ProfileComponent implements OnInit {
 
     if (r === 'INVESTOR') {
       if (readOnly) {
+        // Cross-role view: only show the count of COMPLETED investments.
+        // We intentionally NEVER expose individual investment amounts or startup IDs
+        // to another role. myInvestments stays empty so no cards are ever rendered.
         const viewedId = this.viewedUserId()!;
-        this.activityLabel.set('Investments Made');
-        // Strategy 1: direct endpoint GET /investments/investor/{id}
-        // Strategy 2 (fallback): cascade all startups → getStartupInvestments → filter
-        this.investmentService.getByInvestorId(viewedId).subscribe({
+        this.activityLabel.set('Completed Investments');
+        this.myInvestments.set([]);
+        this.investmentService.getCompletedInvestmentCount(viewedId).subscribe({
           next: env => {
-            const items = env.data ?? [];
-            this.myInvestments.set(items);
-            this.activityCount.set(items.length);
+            this.activityCount.set(env.data?.count ?? 0);
           },
           error: () => {
-            // Fallback: cascade through all startups, catching individual 403s
-            this.startupService.getAll(0, 200).subscribe({
-              next: env => {
-                const startups = env.data ?? [];
-                if (startups.length === 0) return;
-                forkJoin(
-                  startups.map(s =>
-                    this.investmentService.getStartupInvestments(s.id).pipe(
-                      catchError(() => of({ success: false, data: [] as any[], error: null }))
-                    )
-                  )
-                ).subscribe({
-                  next: results => {
-                    const all = results.flatMap(r => r.data ?? []);
-                    const theirs = all.filter(i => i.investorId === viewedId);
-                    this.myInvestments.set(theirs);
-                    this.activityCount.set(theirs.length);
-                  }
-                });
-              }
-            });
+            // Endpoint unreachable (e.g. service down) — show 0 gracefully
+            this.activityCount.set(0);
           }
         });
       } else {

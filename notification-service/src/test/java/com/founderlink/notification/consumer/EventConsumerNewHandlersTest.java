@@ -253,11 +253,64 @@ class EventConsumerNewHandlersTest {
     @DisplayName("handleInvestmentRejectedFallback - logs without throwing")
     void handleInvestmentRejectedFallback_LogsWithoutThrowing() {
         InvestmentRejectedEvent event = new InvestmentRejectedEvent(
-                2L, 201L, 102L, 103L, new BigDecimal("75000"), "Not aligned"
+                2L, 201L, 102L, 103L, new java.math.BigDecimal("75000"), "Not aligned"
         );
 
         eventConsumer.handleInvestmentRejectedFallback(event, new RuntimeException("fail"));
 
         verifyNoInteractions(notificationService);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // handleEmailVerification  (new)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("handleEmailVerification - sends OTP email successfully")
+    void handleEmailVerification_Success() {
+        com.founderlink.notification.dto.EmailVerificationEvent event =
+                new com.founderlink.notification.dto.EmailVerificationEvent(
+                        "alice@founderlink.com", "Alice", "483920");
+
+        doNothing().when(emailService)
+                .sendEmailVerificationOtpEmail(anyString(), anyString(), anyString());
+
+        eventConsumer.handleEmailVerification(event);
+
+        verify(emailService, times(1))
+                .sendEmailVerificationOtpEmail(
+                        eq("alice@founderlink.com"), eq("Alice"), eq("483920"));
+    }
+
+    @Test
+    @DisplayName("handleEmailVerification - handles email service exception gracefully")
+    void handleEmailVerification_HandlesException() {
+        com.founderlink.notification.dto.EmailVerificationEvent event =
+                new com.founderlink.notification.dto.EmailVerificationEvent(
+                        "alice@founderlink.com", "Alice", "483920");
+
+        doThrow(new RuntimeException("SMTP unavailable"))
+                .when(emailService)
+                .sendEmailVerificationOtpEmail(anyString(), anyString(), anyString());
+
+        // Should not throw — exception is caught internally
+        eventConsumer.handleEmailVerification(event);
+
+        verify(emailService, times(1))
+                .sendEmailVerificationOtpEmail(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("handleEmailVerificationFallback - logs without throwing")
+    void handleEmailVerificationFallback_LogsWithoutThrowing() {
+        com.founderlink.notification.dto.EmailVerificationEvent event =
+                new com.founderlink.notification.dto.EmailVerificationEvent(
+                        "alice@founderlink.com", "Alice", "483920");
+
+        // Fallback should never interact with any service
+        eventConsumer.handleEmailVerificationFallback(event, new RuntimeException("circuit open"));
+
+        verifyNoInteractions(notificationService);
+        verifyNoInteractions(emailService);
     }
 }
