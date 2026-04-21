@@ -79,8 +79,15 @@ public class GoogleOAuthService {
             // ── Existing user: straight to JWT ──────────────────────────────────
             User user = existingUser.get();
             if (user.getProviderId() == null) {
+                log.info("Linking existing user {} to Google account ID: {}", email, sub);
                 user.setProviderId(sub);
-                userRepository.save(user);
+                try {
+                    userRepository.saveAndFlush(user);
+                } catch (Exception e) {
+                    log.error("Failed to link Google account for {}: {}", email, e.getMessage());
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, 
+                        "This Google account is already linked to another user profile.");
+                }
             }
             log.info("OAuth Google login: existing user {}", email);
             return buildLoginSession(user);        // returns AuthSession

@@ -19,6 +19,9 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
 
+    @Value("${spring.mail.username}")
+    private String fromEmail;
+
     public EmailService(JavaMailSender mailSender, TemplateEngine templateEngine) {
         this.mailSender = mailSender;
         this.templateEngine = templateEngine;
@@ -34,7 +37,7 @@ public class EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
-            helper.setFrom("noreply@founderlink.online", "FounderLink");
+            helper.setFrom(fromEmail, "FounderLink");
 
             mailSender.send(message);
             log.info("Email sent successfully to: {}", to);
