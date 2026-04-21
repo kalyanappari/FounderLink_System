@@ -113,7 +113,7 @@ class GoogleOAuthServiceTest {
         assertThat(session.refreshToken()).isEqualTo("rt-mock");
 
         // Verify providerId is set if it was null
-        verify(userRepository).save(existing);
+        verify(userRepository).saveAndFlush(existing);
         assertThat(existing.getProviderId()).isEqualTo("sub-123");
     }
 
