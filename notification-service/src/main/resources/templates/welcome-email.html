@@ -1,29 +1,94 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base-layout :: layout('Onboarding Portal', 'Welcome to FounderLink', ~{::email_content})}">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base-layout :: layout('Onboarding Portal', 'Welcome to FounderLink', ~{::email_content})}">
 <body>
-    <div th:fragment="email_content">
-        <p>Your strategic account has been provisioned. Below is a summary of your profile details and next steps to activate your presence in the ecosystem.</p>
+<div th:fragment="email_content">
 
-        <table class="form-table">
-            <tr class="form-row">
-                <td class="label">User Name</td>
-                <td class="value" th:text="${userName}">John Doe</td>
-            </tr>
-            <tr class="form-row">
-                <td class="label">Assigned Role</td>
-                <td class="value">
-                    <span class="badge" th:text="${role}">FOUNDER</span>
+    <!-- ── Intro ── -->
+    <p class="email-intro"
+       style="color:#475569;font-size:15px;line-height:1.7;margin:0 0 32px 0;">
+        Your strategic account has been provisioned on the FounderLink ecosystem. We're excited to have you on board.
+        Below is a summary of your account details and the next steps to complete your platform setup.
+    </p>
+
+    <!-- ── Account Summary Table ── -->
+    <table class="data-table" role="presentation"
+           style="width:100%;border-collapse:collapse;margin:0 0 32px 0;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
+        <thead>
+            <tr>
+                <td colspan="2"
+                    style="background:linear-gradient(135deg,#f8f7ff,#fdf4ff);padding:10px 16px;font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#7c3aed;border-bottom:1px solid #e2e8f0;">
+                    Account Information
                 </td>
             </tr>
-            <tr class="form-row">
-                <td class="label">Account Status</td>
-                <td class="value">ACTIVE (Pending Profile Completion)</td>
+        </thead>
+        <tbody>
+            <tr class="data-row">
+                <td class="col-label"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;width:38%;white-space:nowrap;">
+                    Full Name
+                </td>
+                <td class="col-value"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#0f172a;font-size:15px;font-weight:600;"
+                    th:text="${userName}">John Doe</td>
             </tr>
-        </table>
+            <tr class="data-row" style="background-color:#fafbff;">
+                <td class="col-label"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;width:38%;white-space:nowrap;background-color:#fafbff;">
+                    Assigned Role
+                </td>
+                <td class="col-value"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#0f172a;font-size:15px;font-weight:600;background-color:#fafbff;">
+                    <span class="badge badge-accent"
+                          style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;background:linear-gradient(135deg,#ede9fe,#fce7f3);color:#4c1d95;"
+                          th:text="${role}">FOUNDER</span>
+                </td>
+            </tr>
+            <tr class="data-row">
+                <td class="col-label"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:none;color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;width:38%;white-space:nowrap;">
+                    Account Status
+                </td>
+                <td class="col-value"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:none;color:#0f172a;font-size:15px;font-weight:600;">
+                    <span class="badge badge-warning"
+                          style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;background:linear-gradient(135deg,#fffbeb,#fde68a);color:#78350f;">
+                        Active · Pending Setup
+                    </span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
-        <div style="text-align: center; margin-top: 40px;">
-            <a href="https://founderlink.tech/dashboard" class="button">Access Platform</a>
-        </div>
+    <!-- ── Next Steps ── -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 24px 0;">
+        <tr>
+            <td style="background:linear-gradient(135deg,#f8f7ff,#eef2ff);border-left:4px solid #6366f1;border-radius:0 10px 10px 0;padding:16px 20px;">
+                <p style="margin:0;font-size:13px;font-weight:700;color:#4338ca;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;">
+                    Next Steps
+                </p>
+                <p style="margin:0;font-size:14px;color:#475569;line-height:1.6;">
+                    Complete your profile → Connect with co-founders &amp; investors → Launch your first venture.
+                </p>
+            </td>
+        </tr>
+    </table>
+
+    <!-- ── CTA ── -->
+    <div class="cta-wrapper" style="text-align:center;padding:20px 0 8px;">
+        <a href="https://founderlink.tech/dashboard"
+           class="cta-button"
+           style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);color:#ffffff !important;text-decoration:none !important;border-radius:10px;font-size:14px;font-weight:800;letter-spacing:0.04em;box-shadow:0 4px 20px rgba(99,102,241,0.35);">
+            Access Your Dashboard &rarr;
+        </a>
     </div>
+
+    <p class="email-note"
+       style="color:#94a3b8;font-size:13px;line-height:1.65;margin:24px 0 0;text-align:center;">
+        If you did not create this account, please disregard this email.<br>
+        Need help? Contact us at <a href="mailto:support@founderlink.tech" style="color:#6366f1;text-decoration:none;font-weight:600;">support@founderlink.tech</a>
+    </p>
+
+</div>
 </body>
 </html>

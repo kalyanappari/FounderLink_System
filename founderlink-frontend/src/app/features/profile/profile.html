@@ -1,145 +1,396 @@
-<div [ngClass]="['celestial-workspace', getRoleDisplay().aura]">
+<div class="profile-page">
+  <div class="page-inner">
 
-  @if (loading()) {
-    <div class="loading-overlay">
-      <div class="shimmer-pulse"></div>
-      <p>Synchronizing Profile Nexus...</p>
+    <!-- ── VIEW-OTHER BANNER (shown only when browsing another user's profile) ── -->
+    @if (isViewingOther()) {
+      <div class="view-other-bar">
+        <button class="btn-back" (click)="goBack()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Back
+        </button>
+        <span class="view-other-label">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Viewing {{ user()?.name ?? 'Profile' }}
+        </span>
+      </div>
+    }
+
+    <!-- ── HERO BANNER ── -->
+    <div class="hero-banner">
+      <div class="hero-avatar">
+        <img src="https://ui-avatars.com/api/?name={{user()?.name}}&background=random&size=160" alt="avatar">
+        <div class="online-dot"></div>
+      </div>
+
+      <div class="hero-info">
+        <span class="role-chip">{{ user()?.role?.replace('ROLE_', '') }}</span>
+        <h1 class="hero-name">{{ user()?.name }}</h1>
+        <p class="hero-email">{{ user()?.email }}</p>
+      </div>
+
+      @if (editingCard() !== 'personal' && !isViewingOther()) {
+        <button class="btn-edit-hero" (click)="startEditing('personal')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+      }
+
+      @if (editingCard() === 'personal') {
+        <div class="edit-section" style="flex:1 1 100%; width:100%">
+          <div class="f-field">
+            <label>Display Name</label>
+            <input type="text" [(ngModel)]="name" />
+          </div>
+          <div class="f-actions">
+            <button class="btn-save" (click)="saveCard('personal')" [disabled]="saving()">Save</button>
+            <button class="btn-cancel" (click)="cancelEditing()">Cancel</button>
+          </div>
+        </div>
+      }
     </div>
-  } @else {
-    <div class="zenith-bento-grid">
 
-      <!-- ── Identity Hero (FULL WIDTH - CELL 12) ── -->
-      <section class="celestial-cell cell-12 identity-hero">
-        <div class="hero-layout">
-          <div class="hero-avatar">
-            <div class="hero-orb-aura"></div>
-            <div class="hero-initials">
-              {{ user()?.name?.charAt(0)?.toUpperCase() || authService.email()?.charAt(0)?.toUpperCase() || 'U' }}
-            </div>
-          </div>
-          <div class="hero-intel">
-            <div class="role-pulse-badge" [style.backgroundColor]="getRoleDisplay().color">
-              {{ getRoleDisplay().icon }} {{ getRoleDisplay().label }}
-            </div>
-            <h1 class="hero-name">{{ user()?.name || 'Identity Not Synchronized' }}</h1>
-            <p class="hero-email">{{ user()?.email }}</p>
-          </div>
-          
-          <div class="hero-stats-actions">
-            <!-- Stats Module -->
-            <div class="hero-identity-stats">
-              <div class="stat-module">
-                <span class="sm-label">Account ID</span>
-                <span class="sm-value">#{{ user()?.userId }}</span>
-              </div>
-              <div class="stat-module">
-                <span class="sm-label">Node Status</span>
-                <span class="sm-value success">Active</span>
-              </div>
-            </div>
+    <!-- ── CORE IDENTITY BENTO ── -->
+    <div class="bento-core">
 
-            <!-- Utility Cluster (Redesigned) -->
-            <div class="hero-utility-cluster">
-              @if (!editing()) {
-                <button class="utility-anchor" (click)="toggleEdit()" title="Edit Profile">
-                  <svg class="anchor-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path></svg>
-                  <span class="anchor-text">Edit</span>
-                </button>
-                <div class="cluster-divider"></div>
-                <button class="utility-anchor danger" (click)="logout()" title="Sign Out">
-                  <svg class="anchor-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>
-                  <span class="anchor-text">Sign Out</span>
-                </button>
-              } @else {
-                <button class="utility-anchor success" (click)="saveProfile()" [disabled]="saving()">
-                  <svg class="anchor-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  <span class="anchor-text">{{ saving() ? 'Saving...' : 'Confirm' }}</span>
-                </button>
-                <div class="cluster-divider"></div>
-                <button class="utility-anchor ghost" (click)="toggleEdit()" [disabled]="saving()">
-                  <svg class="anchor-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                  <span class="anchor-text">Abort</span>
-                </button>
+      <!-- Professional Narrative -->
+      <section class="card bio-card">
+        <div class="clabel-row">
+          <p class="clabel" style="margin:0">Professional Narrative</p>
+          @if (editingCard() !== 'bio' && !isViewingOther()) {
+            <button class="btn-icon" (click)="startEditing('bio')">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+          }
+        </div>
+        @if (editingCard() !== 'bio') {
+          @if (user()?.bio) { <p class="bio-text">{{ user()!.bio }}</p> }
+          @else {
+            <p class="bio-empty">
+              {{ isViewingOther() ? 'No biography shared yet.' : 'Click edit to write your professional story…' }}
+            </p>
+          }
+        } @else {
+          <div class="f-field"><textarea [(ngModel)]="bio" rows="5" placeholder="Tell your story…"></textarea></div>
+          <div class="f-actions">
+            <button class="btn-save" (click)="saveCard('bio')" [disabled]="saving()">Save</button>
+            <button class="btn-cancel" (click)="cancelEditing()">Cancel</button>
+          </div>
+        }
+      </section>
+
+      <!-- Activity Stat -->
+      <section class="card stat-card">
+        <div class="stat-icon">
+          @if (user()?.role === 'FOUNDER') {
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          } @else if (user()?.role === 'INVESTOR') {
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          } @else if (user()?.role === 'COFOUNDER') {
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          } @else {
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          }
+        </div>
+        <div class="stat-body">
+          <p class="stat-label">{{ activityLabel() }}</p>
+
+          @if (!isViewingOther()) {
+            <div class="stat-number-row">
+              <span class="stat-number">{{ activityCount() }}</span>
+              @if (activityCount() > 0) {
+                <div class="stat-live">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                  Live
+                </div>
               }
             </div>
-          </div>
+          } @else {
+            <div class="stat-number-row">
+              <span class="stat-number">{{ activityCount() }}</span>
+              @if (activityCount() > 0) {
+                <div class="stat-live">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                  Live
+                </div>
+              }
+            </div>
+          }
         </div>
       </section>
 
-      <!-- ── Professional Summary (CELL 12) ── -->
-      <section class="celestial-cell cell-12 core-content">
-        <div class="cell-label">Professional Summary</div>
-        @if (editing()) {
-          <div class="form-matrix">
-            <div class="form-group">
-              <label>Full Name</label>
-              <input type="text" [(ngModel)]="name" class="zenith-input" placeholder="e.g. John Doe" />
+      <!-- Profile Sync — always show (computed from viewed user's loaded data) -->
+      <section class="card sync-card">
+        <div class="sync-header">
+          <p class="sync-title">Profile Sync</p>
+          <div class="sync-ring-wrap">
+            <svg viewBox="0 0 36 36">
+              <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="ring-fg"
+                [attr.stroke-dasharray]="completionPercentage() + ', 100'"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            </svg>
+            <span class="ring-label">{{ completionPercentage() }}%</span>
+          </div>
+        </div>
+
+        <div class="sync-checklist">
+          @for (item of completionItems(); track item.label) {
+            <div class="sync-row" [class.done]="item.completed" [class.todo]="!item.completed">
+              <div class="sync-check" [class.filled]="item.completed" [class.empty]="!item.completed">
+                @if (item.completed) {
+                  <svg width="10" height="10" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                }
+              </div>
+              <span class="sync-item-label">{{ item.label }}</span>
+              <span class="sync-badge" [class.badge-done]="item.completed" [class.badge-todo]="!item.completed">
+                {{ item.completed ? 'Done' : 'Pending' }}
+              </span>
             </div>
-            <div class="form-group">
-              <label>About Me / Bio</label>
-              <textarea [(ngModel)]="bio" class="zenith-textarea" placeholder="Describe your professional journey..." rows="4"></textarea>
-            </div>
-            <div class="form-group">
-              <label>Career Milestones / Experience</label>
-              <textarea [(ngModel)]="experience" class="zenith-textarea" placeholder="Describe your track record..." rows="4"></textarea>
-            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Technical Intel -->
+      <section class="card intel-card">
+        <div class="clabel-row">
+          <p class="clabel" style="margin:0">Technical Intel</p>
+          @if (editingCard() !== 'expertise' && !isViewingOther()) {
+            <button class="btn-icon" (click)="startEditing('expertise')">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+          }
+        </div>
+
+        @if (editingCard() !== 'expertise') {
+          <div class="intel-section">
+            <p class="intel-label">Operational Stack</p>
+            @if (skills.trim()) {
+              <div class="skill-cloud">
+                @for (s of skills.split(','); track s) {
+                  @if (s.trim()) { <span class="skill-tag">{{ s.trim() }}</span> }
+                }
+              </div>
+            } @else { <span class="empty-tag">No skills added yet</span> }
+          </div>
+          <div class="intel-section">
+            <p class="intel-label">Field Record</p>
+            @if (user()?.experience) { <p class="intel-value">{{ user()!.experience }}</p> }
+            @else { <span class="empty-tag">No experience added yet</span> }
+          </div>
+          <div class="intel-section">
+            <p class="intel-label">Portfolio Links</p>
+            @if (user()?.portfolioLinks) { <p class="intel-value">{{ user()!.portfolioLinks }}</p> }
+            @else { <span class="empty-tag">No links added yet</span> }
           </div>
         } @else {
-          <div class="intel-summary">
-            <div class="intel-item">
-              <p class="intel-text">{{ user()?.bio || 'You haven\'t synchronized your biography with the network yet.' }}</p>
-            </div>
-            <div class="intel-divider"></div>
-            <div class="intel-item">
-              <span class="im-label">Experience Intel</span>
-              <p class="intel-text">{{ user()?.experience || 'Professional track record is currently being verified.' }}</p>
-            </div>
+          <div class="f-field">
+            <label>Stack (comma-separated)</label>
+            <input type="text" [(ngModel)]="skills" placeholder="e.g. Angular, Java, AWS"/>
+          </div>
+          <div class="f-field">
+            <label>Field Record</label>
+            <textarea [(ngModel)]="experience" rows="3" placeholder="Your experience…"></textarea>
+          </div>
+          <div class="f-field">
+            <label>Portfolio / Social Links</label>
+            <input type="text" [(ngModel)]="portfolioLinks" placeholder="LinkedIn, GitHub, Website…"/>
+          </div>
+          <div class="f-actions">
+            <button class="btn-save" (click)="saveCard('expertise')" [disabled]="saving()">Save</button>
+            <button class="btn-cancel" (click)="cancelEditing()">Cancel</button>
           </div>
         }
       </section>
 
-      <!-- ── Capabilities & Skills (CELL 6) ── -->
-      <section class="celestial-cell cell-6 auxiliary-content">
-        <div class="cell-label">Capabilities & Skills</div>
-        @if (editing()) {
-          <div class="form-group">
-            <label>Expertise Tags (comma-separated)</label>
-            <input type="text" [(ngModel)]="skills" class="zenith-input" placeholder="e.g. Leadership, Angular, Finance" />
-          </div>
-        } @else {
-          <div class="capabilities-grid">
-            @for (skill of skillArray; track skill) {
-              <span class="capability-tag">{{ skill }}</span>
-            } @empty {
-              <p class="muted-intel">No capabilities discovered.</p>
+    </div><!-- /bento-core -->
+
+    <!-- ══════════════════════════════════════════════════════════════
+         ROLE-SPECIFIC SECTION
+    ══════════════════════════════════════════════════════════════ -->
+
+    <!-- ── FOUNDER ── -->
+    @if (user()?.role === 'FOUNDER') {
+      <div class="role-section">
+        <p class="role-section-title">{{ isViewingOther() ? "Their Startups" : "My Startups" }}</p>
+        <div class="role-cards-row">
+          @if (myStartups().length > 0) {
+            @for (startup of myStartups(); track startup.id) {
+              <div class="card startup-card accent-violet">
+                <p class="startup-card-name">{{ startup.name }}</p>
+                <p class="startup-card-desc">{{ startup.description }}</p>
+                <div class="startup-meta">
+                  <span class="startup-stage"
+                    [style.background]="stageColor(startup.stage) + '22'"
+                    [style.color]="stageColor(startup.stage)"
+                    [style.borderColor]="stageColor(startup.stage) + '44'"
+                    style="border:1px solid">
+                    {{ stageLabel(startup.stage) }}
+                  </span>
+                  <span class="startup-funding">{{ formatCurrency(startup.fundingGoal) }} goal</span>
+                  <span class="startup-industry">{{ startup.industry }}</span>
+                </div>
+              </div>
+            }
+          } @else {
+            <div class="card">
+              <div class="no-data">
+                <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                <p>No startups launched yet. Create your first startup to get started.</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── INVESTOR ── -->
+    @if (user()?.role === 'INVESTOR') {
+      <div class="role-section">
+        <p class="role-section-title">{{ isViewingOther() ? 'Their Investment Portfolio' : 'My Investment Portfolio' }}</p>
+        <div class="role-cards-row">
+          @if (myInvestments().length > 0) {
+            @for (inv of myInvestments(); track inv.id) {
+              <div class="card accent-green">
+                <div class="inv-header">
+                  <div>
+                    <p class="clabel" style="margin:0 0 .25rem">Startup #{{ inv.startupId }}</p>
+                    <p class="inv-amount">{{ formatCurrency(inv.amount) }}</p>
+                  </div>
+                  <span class="status-pill"
+                    [style.background]="investmentStatusColor(inv.status) + '22'"
+                    [style.color]="investmentStatusColor(inv.status)"
+                    [style.borderColor]="investmentStatusColor(inv.status) + '55'"
+                    style="border:1px solid">
+                    {{ inv.status }}
+                  </span>
+                </div>
+                <div class="inv-footer">
+                  <span class="inv-date">{{ inv.createdAt | date:'mediumDate' }}</span>
+                  <span class="empty-tag">ID #{{ inv.id }}</span>
+                </div>
+              </div>
+            }
+          } @else {
+            <div class="card">
+              <div class="no-data">
+                <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <p>No investments in your portfolio yet. Explore startups to begin investing.</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── COFOUNDER ── -->
+    @if (user()?.role === 'COFOUNDER') {
+      <div class="role-section">
+        <p class="role-section-title">{{ isViewingOther() ? 'Their Active Roles' : 'Active Roles' }}</p>
+        <div class="role-cards-row">
+          @if (myActiveRoles().length > 0) {
+            @for (role of myActiveRoles(); track role.id) {
+              <div class="card accent-amber">
+                <div class="clabel-row">
+                  <span class="role-badge-cf">
+                    <div class="active-dot"></div>
+                    {{ teamRoleLabel(role.role) }}
+                  </span>
+                </div>
+                <p class="role-startup-id">Startup <span>#{{ role.startupId }}</span></p>
+                <p class="role-joined">Joined {{ role.joinedAt | date:'mediumDate' }}</p>
+              </div>
+            }
+          } @else {
+            <div class="card">
+              <div class="no-data">
+                <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                <p>{{ isViewingOther() ? 'No active roles at this time.' : 'No active roles. Accept a team invitation to join a startup.' }}</p>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Role History: past (isActive=false) entries sourced from getUserTeamHistory on view-other -->
+        @if (pastRoleCount > 0) {
+          <p class="role-section-title" style="margin-top:1rem">
+            {{ isViewingOther() ? 'Previous Roles &amp; Experience' : 'Role History' }}
+          </p>
+          <div class="role-cards-row">
+            @for (role of myRoleHistory(); track role.id) {
+              @if (!role.isActive) {
+                <div class="card">
+                  <div class="clabel-row">
+                    <span class="role-badge-cf" style="background:rgba(255,255,255,.06);color:var(--muted)">
+                      {{ teamRoleLabel(role.role) }}
+                    </span>
+                    <span class="empty-tag">
+                      <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      Ended
+                    </span>
+                  </div>
+                  <p class="role-startup-id">Startup <span>#{{ role.startupId }}</span></p>
+                  <p class="role-joined">{{ role.joinedAt | date:'mediumDate' }} – {{ (role.leftAt | date:'mediumDate') ?? 'N/A' }}</p>
+                </div>
+              }
             }
           </div>
-        }
-      </section>
-
-      <!-- ── Dynamic Assets (CELL 6 - LINKS) ── -->
-      <section class="celestial-cell cell-6 auxiliary-content">
-        <div class="cell-label">Professional Assets</div>
-        @if (editing()) {
-          <div class="form-group">
-            <label>External Portfolio / LinkedIn URL</label>
-            <input type="text" [(ngModel)]="portfolioLinks" class="zenith-input" placeholder="https://linkedin.com/in/identity" />
-          </div>
-        } @else {
-          <div class="asset-list">
-            <div class="asset-item">
-              <span class="im-label">Primary Portfolio</span>
-              @if (user()?.portfolioLinks) {
-                <a [href]="user()?.portfolioLinks" target="_blank" class="asset-link">{{ user()?.portfolioLinks }}</a>
-              } @else {
-                <span class="muted-intel">No external assets linked.</span>
-              }
+        } @else if (isViewingOther()) {
+          <p class="role-section-title" style="margin-top:1rem">Previous Roles &amp; Experience</p>
+          <div class="role-cards-row">
+            <div class="card">
+              <div class="no-data">
+                <svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                <p>No past role history available for this co-founder.</p>
+              </div>
             </div>
           </div>
         }
-      </section>
+      </div>
+    }
 
-    </div>
-  }
+    <!-- ── ADMIN ── -->
+    @if (user()?.role === 'ADMIN') {
+      <div class="role-section">
+        <p class="role-section-title">Platform Overview</p>
+        <div class="role-cards-row">
 
+          @if (platformStats()) {
+            <div class="card accent-violet">
+              <p class="clabel">Ecosystem Breakdown</p>
+              <div class="admin-stats-grid">
+                <div class="admin-stat-item">
+                  <div class="admin-stat-num" style="color:#6366f1">{{ platformStats()!.founders }}</div>
+                  <div class="admin-stat-lbl">Founders</div>
+                </div>
+                <div class="admin-stat-item">
+                  <div class="admin-stat-num" style="color:#22c55e">{{ platformStats()!.investors }}</div>
+                  <div class="admin-stat-lbl">Investors</div>
+                </div>
+                <div class="admin-stat-item">
+                  <div class="admin-stat-num" style="color:#f59e0b">{{ platformStats()!.cofounders }}</div>
+                  <div class="admin-stat-lbl">Co-Founders</div>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="card">
+              <div class="no-data">
+                <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                <p>Loading platform statistics…</p>
+              </div>
+            </div>
+          }
+
+          <div class="card accent-blue">
+            <p class="clabel">Admin Access</p>
+            <div class="intel-section">
+              <p class="intel-value">Full platform management access. View all users, startups, investments, and system health from the Admin Dashboard.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    }
+
+  </div>
 </div>

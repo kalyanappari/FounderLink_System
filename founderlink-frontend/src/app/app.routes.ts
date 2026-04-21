@@ -55,7 +55,8 @@ export const routes: Routes = [
       { path: 'notifications',  loadComponent: () => import('./features/notifications/notifications').then(m => m.NotificationsComponent) },
 
       // Profile
-      { path: 'profile',     loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent) },
+      { path: 'profile',          loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent) },
+      { path: 'profile/:userId',   loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent) },
 
       // Admin Observability (Discovery)
       { path: 'admin/users',    loadComponent: () => import('./features/admin/user-explorer/user-explorer').then(m => m.UserExplorerComponent) },

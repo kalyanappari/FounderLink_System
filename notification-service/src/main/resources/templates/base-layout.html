@@ -1,53 +1,413 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { font-family: 'Inter', -apple-system, sans-serif; margin: 0; padding: 0; background-color: #f1f5f9; color: #1e293b; }
-        .email-container { width: 100%; table-layout: fixed; padding: 40px 10px; }
-        .email-card { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-spacing: 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .top-accent { height: 4px; background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%); }
-        .header { padding: 30px; text-align: center; border-bottom: 1px solid #f1f5f9; }
-        .header h1 { color: #0f172a; margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
-        .content { padding: 40px 30px; }
-        .form-title { color: #6366f1; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
-        .main-heading { color: #0f172a; font-size: 24px; font-weight: 700; margin-bottom: 24px; margin-top: 0; }
-        /* Form Table styling */
-        .form-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-        .form-row td { padding: 12px 0; border-bottom: 1px solid #f8fafc; vertical-align: top; }
-        .label { color: #64748b; font-size: 13px; font-weight: 600; width: 30%; }
-        .value { color: #1e293b; font-size: 15px; font-weight: 500; }
-        .footer { background-color: #f8fafc; padding: 30px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9; }
-        .button { display: inline-block; padding: 12px 24px; background-color: #6366f1; color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2); }
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; background: #e0e7ff; color: #4338ca; }
+    <meta name="x-apple-disable-message-reformatting">
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
+    <title>FounderLink</title>
+    <style type="text/css">
+        /* ===== RESET ===== */
+        * { box-sizing: border-box; }
+        body, html { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+        img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-collapse: collapse !important; }
+        a { -webkit-text-size-adjust: none; -ms-text-size-adjust: none; }
+
+        /* ===== APP-LEVEL (head-injected for Gmail / web clients) ===== */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f0c29;
+            background-image: linear-gradient(135deg, #0f0c29 0%, #1a1a3e 50%, #24243e 100%);
+            min-height: 100vh;
+        }
+
+        /* ——— Outer wrapper ——— */
+        .email-outer {
+            width: 100%;
+            padding: 48px 16px;
+            background-color: #0f0c29;
+            background-image: linear-gradient(135deg, #0f0c29 0%, #1a1a3e 50%, #24243e 100%);
+        }
+
+        /* ——— Card ——— */
+        .email-card {
+            width: 100%;
+            max-width: 620px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 1px rgba(99, 102, 241, 0.15),
+                0 20px 60px rgba(0, 0, 0, 0.45),
+                0 4px 16px rgba(99, 102, 241, 0.12);
+        }
+
+        /* ——— Top gradient accent bar ——— */
+        .accent-bar {
+            height: 5px;
+            background: linear-gradient(90deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+            line-height: 5px;
+            font-size: 1px;
+        }
+
+        /* ——— Header ——— */
+        .email-header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            padding: 32px 40px 28px;
+            text-align: center;
+        }
+        .brand-logo {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: #c7d2fe;
+            margin: 0 0 10px 0;
+        }
+        .brand-name {
+            display: block;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            color: #ffffff;
+            margin: 0;
+            line-height: 1.1;
+        }
+        .brand-name span {
+            background: linear-gradient(90deg, #a5b4fc, #e879f9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ——— Content area ——— */
+        .email-body {
+            background-color: #ffffff;
+            padding: 44px 40px 36px;
+        }
+
+        /* ——— Section badge (form type) ——— */
+        .section-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #ede9fe, #fce7f3);
+            color: #7c3aed;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        /* ——— Main heading ——— */
+        .email-heading {
+            color: #0f172a;
+            font-size: 26px;
+            font-weight: 800;
+            margin: 0 0 20px 0;
+            line-height: 1.25;
+            letter-spacing: -0.02em;
+        }
+
+        /* ——— Intro paragraph ——— */
+        .email-intro {
+            color: #475569;
+            font-size: 15px;
+            line-height: 1.7;
+            margin: 0 0 32px 0;
+        }
+
+        /* ——— Data table ——— */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 0 32px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .data-table thead tr td {
+            background: linear-gradient(135deg, #f8f7ff, #fdf4ff);
+            padding: 10px 16px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #7c3aed;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .data-row td {
+            padding: 14px 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .data-row:last-child td {
+            border-bottom: none;
+        }
+        .data-row:nth-child(even) td {
+            background-color: #fafbff;
+        }
+        .col-label {
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            width: 38%;
+            white-space: nowrap;
+        }
+        .col-value {
+            color: #0f172a;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        /* ——— Badge variants ——— */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            color: #4c1d95;
+        }
+        .badge-success {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            color: #14532d;
+        }
+        .badge-danger {
+            background: linear-gradient(135deg, #fef2f2, #fecaca);
+            color: #7f1d1d;
+        }
+        .badge-accent {
+            background: linear-gradient(135deg, #ede9fe, #fce7f3);
+            color: #7c3aed;
+        }
+        .badge-warning {
+            background: linear-gradient(135deg, #fffbeb, #fde68a);
+            color: #78350f;
+        }
+
+        /* ——— OTP code display ——— */
+        .otp-block {
+            text-align: center;
+            margin: 8px 0 24px;
+        }
+        .otp-code {
+            display: inline-block;
+            font-size: 40px;
+            font-weight: 900;
+            letter-spacing: 0.2em;
+            color: #4f46e5;
+            background: linear-gradient(135deg, #eef2ff, #f5f3ff);
+            border: 2px solid #c7d2fe;
+            border-radius: 14px;
+            padding: 18px 32px;
+            margin: 0 auto;
+        }
+        .otp-timer-text {
+            color: #94a3b8;
+            font-size: 13px;
+            margin: 10px 0 0;
+        }
+
+        /* ——— Amount display ——— */
+        .amount-highlight {
+            color: #4f46e5;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+        }
+
+        /* ——— CTA Button ——— */
+        .cta-wrapper {
+            text-align: center;
+            padding: 16px 0 8px;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 14px 36px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: #ffffff !important;
+            text-decoration: none !important;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.35);
+            -webkit-text-size-adjust: none;
+        }
+
+        /* ——— Divider ——— */
+        .email-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e2e8f0 20%, #e2e8f0 80%, transparent);
+            margin: 32px 0;
+            border: none;
+        }
+
+        /* ——— Disclaimer / note text ——— */
+        .email-note {
+            color: #94a3b8;
+            font-size: 13px;
+            line-height: 1.65;
+            margin: 24px 0 0;
+        }
+
+        /* ——— Footer ——— */
+        .email-footer {
+            background: linear-gradient(135deg, #f8f7ff, #fdf4ff);
+            border-top: 1px solid #e2e8f0;
+            padding: 28px 40px;
+            text-align: center;
+        }
+        .footer-brand {
+            color: #7c3aed;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin: 0 0 6px;
+        }
+        .footer-tagline {
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 0 0 12px;
+            line-height: 1.5;
+        }
+        .footer-copy {
+            color: #cbd5e1;
+            font-size: 11px;
+            margin: 0;
+        }
+        .footer-link {
+            color: #a5b4fc;
+            text-decoration: none;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media only screen and (max-width: 640px) {
+            .email-outer { padding: 20px 8px !important; }
+            .email-body { padding: 28px 20px 24px !important; }
+            .email-header { padding: 22px 20px 18px !important; }
+            .email-footer { padding: 20px !important; }
+            .email-heading { font-size: 22px !important; }
+            .col-label { width: 40% !important; font-size: 11px !important; }
+            .col-value { font-size: 14px !important; }
+            .otp-code { font-size: 30px !important; padding: 14px 20px !important; }
+            .cta-button { padding: 13px 24px !important; }
+        }
     </style>
 </head>
-<body>
-    <div class="email-container">
-        <table class="email-card" th:fragment="layout (title, subtitle, content)">
-            <tr><td class="top-accent"></td></tr>
-            <tr>
-                <td class="header">
-                    <h1>FounderLink</h1>
-                </td>
-            </tr>
-            <tr>
-                <td class="content">
-                    <div class="form-title" th:text="${title}">FORM TYPE</div>
-                    <h2 class="main-heading" th:text="${subtitle}">Main Heading</h2>
-                    <div th:replace="${content}">
-                        Content goes here
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td class="footer">
-                    <p style="margin: 0 0 8px 0;">&copy; 2026 FounderLink Ecosystem. All rights reserved.</p>
-                    <p style="margin: 0;">Securing the future of venture collaboration.</p>
-                </td>
-            </tr>
-        </table>
-    </div>
+<body style="margin:0;padding:0;background-color:#0f0c29;background-image:linear-gradient(135deg,#0f0c29 0%,#1a1a3e 50%,#24243e 100%);">
+
+<!--[if mso | IE]>
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#0f0c29;">
+<tr><td>
+<![endif]-->
+
+<div class="email-outer" style="width:100%;padding:48px 16px;background-color:#0f0c29;background-image:linear-gradient(135deg,#0f0c29 0%,#1a1a3e 50%,#24243e 100%);">
+
+    <!-- ══════════════════  CARD  ══════════════════ -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0"
+           class="email-card"
+           style="width:100%;max-width:620px;margin:0 auto;background-color:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.45),0 0 0 1px rgba(99,102,241,0.15);"
+           th:fragment="layout (title, subtitle, content)">
+
+        <!-- Accent bar -->
+        <tr>
+            <td class="accent-bar"
+                style="height:5px;background:linear-gradient(90deg,#6366f1 0%,#a855f7 50%,#ec4899 100%);line-height:5px;font-size:1px;">&nbsp;</td>
+        </tr>
+
+        <!-- Header -->
+        <tr>
+            <td class="email-header"
+                style="background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);padding:32px 40px 28px;text-align:center;">
+                <p class="brand-logo"
+                   style="display:inline-block;font-size:11px;font-weight:800;letter-spacing:0.25em;text-transform:uppercase;color:#c7d2fe;margin:0 0 10px 0;">
+                    Venture Platform
+                </p>
+                <h1 class="brand-name"
+                    style="display:block;font-size:28px;font-weight:900;letter-spacing:-0.03em;color:#ffffff;margin:0;line-height:1.1;">
+                    Founder<span style="color:#a5b4fc;">Link</span>
+                </h1>
+            </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+            <td class="email-body"
+                style="background-color:#ffffff;padding:44px 40px 36px;">
+
+                <!-- Section badge -->
+                <p class="section-badge"
+                   style="display:inline-block;padding:4px 12px;border-radius:20px;background:linear-gradient(135deg,#ede9fe,#fce7f3);color:#7c3aed;font-size:10px;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;margin:0 0 16px 0;"
+                   th:text="${title}">FORM TYPE</p>
+
+                <!-- Main heading -->
+                <h2 class="email-heading"
+                    style="color:#0f172a;font-size:26px;font-weight:800;margin:0 0 20px 0;line-height:1.25;letter-spacing:-0.02em;"
+                    th:text="${subtitle}">Main Heading</h2>
+
+                <!-- Dynamic content fragment -->
+                <div th:replace="${content}">
+                    Content goes here.
+                </div>
+
+            </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+            <td class="email-footer"
+                style="background:linear-gradient(135deg,#f8f7ff,#fdf4ff);border-top:1px solid #e2e8f0;padding:28px 40px;text-align:center;">
+                <p class="footer-brand"
+                   style="color:#7c3aed;font-size:13px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 6px;">
+                    FounderLink Ecosystem
+                </p>
+                <p class="footer-tagline"
+                   style="color:#94a3b8;font-size:12px;margin:0 0 14px;line-height:1.5;">
+                    Powering the future of venture collaboration
+                </p>
+                <p class="footer-copy"
+                   style="color:#cbd5e1;font-size:11px;margin:0;">
+                    &copy; 2026 FounderLink. All rights reserved. &nbsp;|&nbsp;
+                    <a href="https://founderlink.tech/privacy" class="footer-link"
+                       style="color:#a5b4fc;text-decoration:none;">Privacy Policy</a>
+                    &nbsp;|&nbsp;
+                    <a href="https://founderlink.tech/terms" class="footer-link"
+                       style="color:#a5b4fc;text-decoration:none;">Terms of Use</a>
+                </p>
+            </td>
+        </tr>
+
+    </table>
+    <!-- ══════════════════ /CARD ══════════════════ -->
+
+</div>
+
+<!--[if mso | IE]>
+</td></tr>
+</table>
+<![endif]-->
+
 </body>
 </html>

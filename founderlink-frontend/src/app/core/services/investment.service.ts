@@ -28,6 +28,14 @@ export class InvestmentService {
     );
   }
 
+  /** Admin / Founder cross-view: get all investments by a specific investor */
+  getByInvestorId(investorId: number): Observable<ApiEnvelope<InvestmentResponse[]>> {
+    return this.http.get<ApiResponse<InvestmentResponse[]>>(`${this.api}/investments/investor/${investorId}`).pipe(
+      map(normalizeWrapped),
+      catchError(err => throwError(() => normalizeError(err)))
+    );
+  }
+
   /** Founder / Admin: get investments for a startup */
   getStartupInvestments(startupId: number): Observable<ApiEnvelope<InvestmentResponse[]>> {
     return this.http.get<ApiResponse<InvestmentResponse[]>>(`${this.api}/investments/startup/${startupId}`).pipe(

@@ -106,6 +106,11 @@
               <td class="td-date">{{ inv.createdAt | date:'mediumDate' }}</td>
               <td>
                 <div class="action-btns">
+                  <button class="btn btn-outline btn-sm btn-icon-only"
+                    (click)="viewInvestorProfile(inv.investorId)"
+                    title="View Investor Profile">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
                   <button class="btn btn-outline btn-sm action-msg-btn"
                     (click)="messageInvestor(inv.investorId)">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>

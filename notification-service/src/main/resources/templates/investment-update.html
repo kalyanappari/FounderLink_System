@@ -1,37 +1,100 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base-layout :: layout('Financial Transaction', 'Investment Update', ~{::email_content})}">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base-layout :: layout('Financial Transaction', 'Investment Update', ~{::email_content})}">
 <body>
-    <div th:fragment="email_content">
-        <p>A new status update has been recorded for your investment transaction. Detailed metrics are provided in the summary below.</p>
+<div th:fragment="email_content">
 
-        <table class="form-table">
-            <tr class="form-row">
-                <td class="label">Reference ID</td>
-                <td class="value" th:text="${'#INV-' + investmentId}">#INV-0000</td>
-            </tr>
-            <tr class="form-row">
-                <td class="label">Legal Entity</td>
-                <td class="value" th:text="${userName}">User Name</td>
-            </tr>
-            <tr class="form-row">
-                <td class="label">Update Status</td>
-                <td class="value">
-                    <span class="badge" th:text="${message}">Update Message</span>
+    <!-- ── Intro ── -->
+    <p class="email-intro"
+       style="color:#475569;font-size:15px;line-height:1.7;margin:0 0 32px 0;">
+        A new status update has been recorded for your investment transaction on the FounderLink platform.
+        Full audit details are summarized below for your records.
+    </p>
+
+    <!-- ── Transaction Table ── -->
+    <table class="data-table" role="presentation"
+           style="width:100%;border-collapse:collapse;margin:0 0 32px 0;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
+        <thead>
+            <tr>
+                <td colspan="2"
+                    style="background:linear-gradient(135deg,#f8f7ff,#fdf4ff);padding:10px 16px;font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#7c3aed;border-bottom:1px solid #e2e8f0;">
+                    Transaction Summary
                 </td>
             </tr>
-            <tr class="form-row">
-                <td class="label">Verified Amount</td>
-                <td class="value" style="font-weight: 700; color: #6366f1;" th:text="${amount}">$0.00</td>
+        </thead>
+        <tbody>
+            <!-- Reference ID -->
+            <tr class="data-row">
+                <td class="col-label"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;width:38%;white-space:nowrap;">
+                    Reference ID
+                </td>
+                <td class="col-value"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#0f172a;font-size:15px;font-weight:700;font-family:monospace;"
+                    th:text="${'#INV-' + investmentId}">#INV-0000</td>
             </tr>
-            <tr class="form-row" th:if="${reason}">
-                <td class="label">Strategic Note</td>
-                <td class="value" style="font-style: italic; color: #64748b;" th:text="${reason}">Reason</td>
+            <!-- Legal Entity -->
+            <tr class="data-row" style="background-color:#fafbff;">
+                <td class="col-label"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;width:38%;white-space:nowrap;background-color:#fafbff;">
+                    Legal Entity
+                </td>
+                <td class="col-value"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#0f172a;font-size:15px;font-weight:600;background-color:#fafbff;"
+                    th:text="${userName}">User Name</td>
             </tr>
-        </table>
+            <!-- Update Status -->
+            <tr class="data-row">
+                <td class="col-label"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;width:38%;white-space:nowrap;">
+                    Update Status
+                </td>
+                <td class="col-value"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#0f172a;font-size:15px;font-weight:600;">
+                    <span class="badge badge-accent"
+                          style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;background:linear-gradient(135deg,#ede9fe,#fce7f3);color:#4c1d95;"
+                          th:text="${message}">Update Message</span>
+                </td>
+            </tr>
+            <!-- Verified Amount -->
+            <tr class="data-row" style="background-color:#fafbff;">
+                <td class="col-label"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;width:38%;white-space:nowrap;background-color:#fafbff;">
+                    Verified Amount
+                </td>
+                <td class="col-value amount-highlight"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#4f46e5;font-size:18px;font-weight:800;letter-spacing:-0.01em;background-color:#fafbff;"
+                    th:text="${amount}">$0.00</td>
+            </tr>
+            <!-- Strategic Note (conditional) -->
+            <tr class="data-row" th:if="${reason}">
+                <td class="col-label"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:none;color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;width:38%;white-space:nowrap;">
+                    Strategic Note
+                </td>
+                <td class="col-value"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:none;color:#64748b;font-size:14px;font-weight:500;font-style:italic;"
+                    th:text="${reason}">Reason</td>
+            </tr>
+        </tbody>
+    </table>
 
-        <div style="text-align: center; margin-top: 35px;">
-            <a th:href="@{https://founderlink.tech/dashboard/portfolio(id=${investmentId})}" class="button">Audit Transaction</a>
-        </div>
+    <!-- ── CTA ── -->
+    <div class="cta-wrapper" style="text-align:center;padding:8px 0 8px;">
+        <a th:href="@{https://founderlink.tech/dashboard/portfolio(id=${investmentId})}"
+           href="https://founderlink.tech/dashboard/portfolio"
+           class="cta-button"
+           style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);color:#ffffff !important;text-decoration:none !important;border-radius:10px;font-size:14px;font-weight:800;letter-spacing:0.04em;box-shadow:0 4px 20px rgba(99,102,241,0.35);">
+            Audit Full Transaction &rarr;
+        </a>
     </div>
+
+    <p class="email-note"
+       style="color:#94a3b8;font-size:13px;line-height:1.65;margin:24px 0 0;text-align:center;">
+        This is an automated financial notification from FounderLink.<br>
+        Questions? Reach us at <a href="mailto:support@founderlink.tech" style="color:#6366f1;text-decoration:none;font-weight:600;">support@founderlink.tech</a>
+    </p>
+
+</div>
 </body>
 </html>
