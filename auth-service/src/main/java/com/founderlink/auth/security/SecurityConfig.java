@@ -40,7 +40,12 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable);
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login", "/auth/refresh", "/auth/logout", "/auth/forgot-password", "/auth/reset-password").permitAll()
+                .requestMatchers(HttpMethod.POST,
+                        "/auth/register", "/auth/login", "/auth/refresh", "/auth/logout",
+                        "/auth/forgot-password", "/auth/reset-password",
+                        "/auth/verify-email", "/auth/resend-verification",
+                        "/auth/oauth/google", "/auth/oauth/google/complete"
+                ).permitAll()
                 // Allow unauthenticated access to Swagger/OpenAPI endpoints
                 .requestMatchers(
                         "/v3/api-docs",

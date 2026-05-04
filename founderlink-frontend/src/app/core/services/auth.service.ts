@@ -66,7 +66,43 @@ export class AuthService {
     return this.http.post(`${this.api}/auth/reset-password`, request);
   }
 
+  // ── Email Verification ──────────────────────────────────────────────────────
+
+  verifyEmail(email: string, otp: string): Observable<any> {
+    return this.http.post(`${this.api}/auth/verify-email`, { email, otp });
+  }
+
+  resendVerification(email: string): Observable<any> {
+    return this.http.post(`${this.api}/auth/resend-verification`, { email });
+  }
+
+  // ── Google OAuth ────────────────────────────────────────────────────────────
+
+  loginWithGoogle(idToken: string): Observable<any> {
+    return this.http.post(`${this.api}/auth/oauth/google`, { idToken }, {
+      withCredentials: true,
+      observe: 'response'      // need status code to distinguish 200 vs 202
+    });
+  }
+
+  /**
+   * Step 2 — called from the role-picker page after a new Google user selects a role.
+   * oauthToken: the short-lived token from the /auth/oauth/google 202 response.
+   */
+  completeOAuthRegistration(oauthToken: string, role: string): Observable<any> {
+    return this.http.post<any>(`${this.api}/auth/oauth/google/complete`, { oauthToken, role }, {
+      withCredentials: true
+    }).pipe(
+      tap(res => this.storeSession(res))
+    );
+  }
+
   private storeSession(res: AuthResponse): void {
+    this.storeSessionFromResponse(res);
+  }
+
+  /** Public alias used by OAuth flow where the response is handled externally. */
+  storeSessionFromResponse(res: AuthResponse): void {
     localStorage.setItem('token',  res.token);
     localStorage.setItem('userId', String(res.userId));
     localStorage.setItem('role',   res.role);

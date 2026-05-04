@@ -1,0 +1,138 @@
+/* ── Layout ─────────────────────────────────────────────────────── */
+.role-layout {
+  min-height: 100vh;
+  background: #0a0a0f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.role-layout::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -10%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(circle, rgba(99,102,241,.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+.role-layout::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  right: -10%;
+  width: 50%;
+  height: 50%;
+  background: radial-gradient(circle, rgba(168,85,247,.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.role-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 860px;
+}
+
+/* Brand */
+.role-header { margin-bottom: 2.5rem; }
+.brand { display: flex; align-items: center; gap: .75rem; }
+.brand-logo { width:38px; height:38px; background:rgba(99,102,241,.1); border:1px solid rgba(99,102,241,.2); border-radius:10px; display:flex; align-items:center; justify-content:center; }
+.brand-name { font-size:1.2rem; font-weight:700; color:white; letter-spacing:-.02em; }
+
+/* Welcome */
+.welcome-section { margin-bottom: 2rem; }
+.google-badge {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .35rem .9rem; border-radius: 20px;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+  font-size: .78rem; font-weight: 600; color: rgba(255,255,255,.7);
+  margin-bottom: 1.25rem;
+}
+.welcome-section h1 { font-size: 2rem; font-weight: 800; color: white; letter-spacing: -.03em; margin-bottom: .5rem; }
+.welcome-section p { font-size: .95rem; color: rgba(255,255,255,.6); line-height: 1.6; }
+
+/* Error */
+.alert-error {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .875rem 1rem; border-radius: 10px;
+  background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25);
+  color: #f87171; font-size: .875rem; font-weight: 500; margin-bottom: 1.5rem;
+}
+
+/* Role cards grid */
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.role-card {
+  position: relative;
+  padding: 1.75rem 1.5rem;
+  border-radius: 16px;
+  border: 2px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .2s, transform .15s, background .2s;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+.role-card:hover:not(.selected) {
+  border-color: rgba(255,255,255,.18);
+  transform: translateY(-2px);
+  background: rgba(255,255,255,.05);
+}
+.role-card.selected {
+  border-color: rgba(99,102,241,.6);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(99,102,241,.2);
+}
+
+.role-icon { font-size: 2.2rem; margin-bottom: .5rem; }
+.role-label { font-size: 1.05rem; font-weight: 700; color: white; }
+.role-desc { font-size: .82rem; color: rgba(255,255,255,.55); margin-bottom: .75rem; }
+
+.role-perks { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .35rem; }
+.role-perks li { font-size: .78rem; color: rgba(255,255,255,.55); }
+.role-card.selected .role-perks li { color: rgba(255,255,255,.75); }
+
+.selected-badge {
+  position: absolute;
+  top: .75rem; right: .75rem;
+  font-size: .7rem; font-weight: 700; letter-spacing: .06em;
+  padding: .2rem .6rem; border-radius: 20px;
+  background: rgba(99,102,241,.25); color: #a5b4fc;
+  border: 1px solid rgba(99,102,241,.4);
+}
+
+/* CTA */
+.btn-complete {
+  width: 100%; padding: 1rem;
+  border: none; border-radius: 12px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white; font-size: 1rem; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: .5rem;
+  transition: opacity .2s, transform .1s;
+}
+.btn-complete:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); }
+.btn-complete:disabled { opacity: .4; cursor: not-allowed; }
+.spinner { width:16px; height:16px; border:2px solid rgba(255,255,255,.3); border-top-color:white; border-radius:50%; animation:spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.switch-hint { text-align: center; font-size: .85rem; color: #64748b; margin-top: 1rem; }
+.switch-hint a { color: #6366f1; font-weight: 600; }
+.switch-hint a:hover { text-decoration: underline; }
+
+/* Responsive */
+@media (max-width: 680px) {
+  .roles-grid { grid-template-columns: 1fr; }
+  .welcome-section h1 { font-size: 1.5rem; }
+}

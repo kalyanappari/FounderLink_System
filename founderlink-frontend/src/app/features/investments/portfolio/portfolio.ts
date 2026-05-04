@@ -76,6 +76,13 @@ export class PortfolioComponent implements OnInit {
     }
   }
 
+  viewFounderProfile(startupId: number): void {
+    const founderId = this.founderIds().get(startupId);
+    if (founderId) {
+      this.router.navigate(['/dashboard/profile', founderId]);
+    }
+  }
+
   get filtered(): InvestmentResponse[] {
     return this.investments().filter(i => !this.filterStatus || i.status === this.filterStatus);
   }

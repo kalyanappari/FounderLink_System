@@ -88,9 +88,25 @@ export class TeamService {
     );
   }
 
+  /** Admin / cross-view: get active roles for a specific user */
+  getUserActiveRoles(userId: number): Observable<ApiEnvelope<TeamMemberResponse[]>> {
+    return this.http.get<ApiResponse<TeamMemberResponse[]>>(`${this.api}/teams/member/active/${userId}`).pipe(
+      map(normalizeWrapped),
+      catchError(err => throwError(() => normalizeError(err)))
+    );
+  }
+
   /** CoFounder / Admin: get full member history for current user */
   getMemberHistory(): Observable<ApiEnvelope<TeamMemberResponse[]>> {
     return this.http.get<ApiResponse<TeamMemberResponse[]>>(`${this.api}/teams/member/history`).pipe(
+      map(normalizeWrapped),
+      catchError(err => throwError(() => normalizeError(err)))
+    );
+  }
+
+  /** Admin / cross-view: get full member history for a specific user */
+  getUserTeamHistory(userId: number): Observable<ApiEnvelope<TeamMemberResponse[]>> {
+    return this.http.get<ApiResponse<TeamMemberResponse[]>>(`${this.api}/teams/member/history/${userId}`).pipe(
       map(normalizeWrapped),
       catchError(err => throwError(() => normalizeError(err)))
     );

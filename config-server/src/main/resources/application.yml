@@ -6,7 +6,7 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/aditya-7562/FounderLink_config
+          uri: https://github.com/kalyanappari/FounderLink_System_Config
 
 server:
   port: 8888

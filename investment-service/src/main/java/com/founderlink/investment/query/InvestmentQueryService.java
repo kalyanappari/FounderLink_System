@@ -78,6 +78,18 @@ public class InvestmentQueryService {
                 .collect(Collectors.toList());
     }
 
+    // ── countCompletedByInvestorId — privacy-safe cross-role count ────────────
+    // Returns only the count of COMPLETED investments; no amounts or details.
+    // Intended for FOUNDER cross-view of an investor's public profile.
+
+    @Cacheable(value = "completedCountByInvestor", key = "#investorId")
+    public long countCompletedByInvestorId(Long investorId) {
+        log.info("QUERY - countCompletedByInvestorId: {} (cache miss, hitting DB)", investorId);
+        return investmentRepository
+                .findByInvestorIdAndStatus(investorId, com.founderlink.investment.entity.InvestmentStatus.COMPLETED)
+                .size();
+    }
+
     // ── Private helper ───────────────────────────────────────────────────────
 
     private void verifyFounderOwnsStartup(Long startupId, Long founderId) {

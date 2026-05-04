@@ -3,6 +3,7 @@ package com.founderlink.auth.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.founderlink.auth.dto.LoginRequest;
 import com.founderlink.auth.dto.RegisterRequest;
+import com.founderlink.auth.entity.AuthProvider;
 import com.founderlink.auth.entity.Role;
 import com.founderlink.auth.entity.User;
 import com.founderlink.auth.exception.UserServiceUnavailableException;
@@ -54,6 +55,8 @@ class AuthFlowIntegrationTest {
         user.setEmail("alice@founderlink.com");
         user.setPassword(passwordEncoder.encode("StrongPass1"));
         user.setRole(Role.FOUNDER);
+        user.setEmailVerified(true);          // must be true — new login enforces this
+        user.setAuthProvider(AuthProvider.LOCAL);
         userRepository.save(user);
 
         LoginRequest request = new LoginRequest("alice@founderlink.com", "StrongPass1");
@@ -66,6 +69,25 @@ class AuthFlowIntegrationTest {
                 .andExpect(jsonPath("$.email").value("alice@founderlink.com"))
                 .andExpect(jsonPath("$.role").value("FOUNDER"))
                 .andExpect(jsonPath("$.token").isString());
+    }
+
+    @Test
+    void loginShouldReturn403WhenEmailNotVerified() throws Exception {
+        User user = new User();
+        user.setName("Bob Unverified");
+        user.setEmail("bob@founderlink.com");
+        user.setPassword(passwordEncoder.encode("StrongPass1"));
+        user.setRole(Role.FOUNDER);
+        user.setEmailVerified(false);         // not verified
+        user.setAuthProvider(AuthProvider.LOCAL);
+        userRepository.save(user);
+
+        LoginRequest request = new LoginRequest("bob@founderlink.com", "StrongPass1");
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
     }
 
     @Test

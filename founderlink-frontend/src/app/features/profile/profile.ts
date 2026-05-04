@@ -1,10 +1,18 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
-import { UserResponse, UserUpdateRequest } from '../../models';
+import {
+  UserResponse, UserUpdateRequest,
+  StartupResponse, InvestmentResponse, TeamMemberResponse
+} from '../../models';
+import { StartupService }    from '../../core/services/startup.service';
+import { InvestmentService } from '../../core/services/investment.service';
+import { TeamService }        from '../../core/services/team.service';
 
 @Component({
   selector: 'app-profile',
@@ -13,29 +21,68 @@ import { UserResponse, UserUpdateRequest } from '../../models';
   styleUrl: './profile.css'
 })
 export class ProfileComponent implements OnInit {
-  user      = signal<UserResponse | null>(null);
-  loading   = signal(true);
-  editing   = signal(false);
-  saving    = signal(false);
-  errorMsg  = signal('');
-  successMsg = signal('');
+  private route = inject(ActivatedRoute);
 
+  // ── View Mode ──
+  /** true  = viewing someone else's profile (read-only)
+   *  false = own profile (editable) */
+  isViewingOther = signal(false);
+  viewedUserId   = signal<number | null>(null);
+
+  // ── View State ──
+  loading    = signal(true);
+  saving     = signal(false);
+  errorMsg   = signal('');
+  successMsg = signal('');
+  editingCard = signal<string | null>(null);
+  user        = signal<UserResponse | null>(null);
+
+  // ── Ecosystem Activity ──
+  activityCount = signal(0);
+  activityLabel = signal('Activity');
+
+  // ── Role-specific Data ──
+  myStartups    = signal<StartupResponse[]>([]);
+  myInvestments = signal<InvestmentResponse[]>([]);
+  myActiveRoles = signal<TeamMemberResponse[]>([]);
+  myRoleHistory = signal<TeamMemberResponse[]>([]);
+  platformStats = signal<{ founders: number; investors: number; cofounders: number } | null>(null);
+
+  // ── Form Model (own profile only) ──
   name           = '';
+  email          = '';
+  bio            = '';
   skills         = '';
   experience     = '';
-  bio            = '';
   portfolioLinks = '';
 
   constructor(
-    public authService: AuthService,
-    private userService: UserService,
-    private router: Router
+    public  authService:       AuthService,
+    public  userService:       UserService,
+    private startupService:    StartupService,
+    private investmentService: InvestmentService,
+    private teamService:       TeamService,
+    private router:            Router
   ) {}
 
   ngOnInit(): void {
-    this.loadProfile();
+    // Check if a specific userId param was provided in the URL
+    const paramId = this.route.snapshot.paramMap.get('userId');
+    const myId    = this.authService.userId();
+
+    if (paramId && Number(paramId) !== myId) {
+      // Viewing someone else's profile
+      this.isViewingOther.set(true);
+      this.viewedUserId.set(Number(paramId));
+      this.loadUserById(Number(paramId));
+    } else {
+      // Own profile
+      this.isViewingOther.set(false);
+      this.loadProfile();
+    }
   }
 
+  // ── Load own profile ──
   loadProfile(): void {
     this.loading.set(true);
     const userId = this.authService.userId();
@@ -49,78 +96,258 @@ export class ProfileComponent implements OnInit {
         const u = env.data;
         this.user.set(u);
         if (u) {
-          this.name           = u.name ?? '';
-          this.skills         = u.skills ?? '';
-          this.experience     = u.experience ?? '';
-          this.bio            = u.bio ?? '';
+          this.name           = u.name           ?? '';
+          this.email          = u.email          ?? '';
+          this.skills         = u.skills         ?? '';
+          this.experience     = u.experience     ?? '';
+          this.bio            = u.bio            ?? '';
           this.portfolioLinks = u.portfolioLinks ?? '';
+          this.loadRoleData(u.role);
         }
         this.loading.set(false);
       },
-      error: () => {
-        this.errorMsg.set('Failed to load profile.');
-        this.loading.set(false);
-      }
+      error: () => { this.errorMsg.set('Failed to load profile.'); this.loading.set(false); }
     });
   }
 
-  toggleEdit(): void {
-    this.editing.update(v => !v);
-    if (!this.editing()) {
-      // Reset on cancel
-      const u = this.user();
-      if (u) {
-        this.name = u.name ?? ''; this.skills = u.skills ?? '';
-        this.experience = u.experience ?? ''; this.bio = u.bio ?? '';
-        this.portfolioLinks = u.portfolioLinks ?? '';
+  // ── Load another user's profile (read-only) ──
+  loadUserById(userId: number): void {
+    this.loading.set(true);
+    this.userService.getUser(userId).subscribe({
+      next: env => {
+        const u = env.data;
+        this.user.set(u);
+        if (u) {
+          // Populate read-only skill display
+          this.skills         = u.skills         ?? '';
+          this.experience     = u.experience     ?? '';
+          this.bio            = u.bio            ?? '';
+          this.portfolioLinks = u.portfolioLinks ?? '';
+          this.loadRoleData(u.role, true);
+        }
+        this.loading.set(false);
+      },
+      error: () => { this.errorMsg.set('Failed to load user profile.'); this.loading.set(false); }
+    });
+  }
+
+  private loadRoleData(role: string, readOnly = false): void {
+    const r = role?.replace('ROLE_', '');
+
+    if (r === 'FOUNDER') {
+      this.activityLabel.set('Startups Launched');
+      if (readOnly) {
+        // For read-only: fetch all startup and filter by this founder's id
+        const founderId = this.user()?.userId;
+        this.startupService.getAll(0, 50).subscribe({
+          next: env => {
+            const mine = (env.data ?? []).filter(s => s.founderId === founderId);
+            this.activityCount.set(mine.length);
+            this.myStartups.set(mine);
+          }
+        });
+      } else {
+        this.startupService.getMyStartups(0, 10).subscribe({
+          next: env => {
+            this.activityCount.set(env.totalElements ?? 0);
+            this.myStartups.set(env.data ?? []);
+          }
+        });
+      }
+    }
+
+    if (r === 'INVESTOR') {
+      if (readOnly) {
+        // Cross-role view: only show the count of COMPLETED investments.
+        // We intentionally NEVER expose individual investment amounts or startup IDs
+        // to another role. myInvestments stays empty so no cards are ever rendered.
+        const viewedId = this.viewedUserId()!;
+        this.activityLabel.set('Completed Investments');
+        this.myInvestments.set([]);
+        this.investmentService.getCompletedInvestmentCount(viewedId).subscribe({
+          next: env => {
+            this.activityCount.set(env.data?.count ?? 0);
+          },
+          error: () => {
+            // Endpoint unreachable (e.g. service down) — show 0 gracefully
+            this.activityCount.set(0);
+          }
+        });
+      } else {
+        this.activityLabel.set('Investments Active');
+        this.investmentService.getMyPortfolio().subscribe({
+          next: env => {
+            const items = env.data ?? [];
+            this.activityCount.set(items.length);
+            this.myInvestments.set(items);
+          }
+        });
+      }
+    }
+
+    if (r === 'COFOUNDER') {
+      if (readOnly) {
+        const viewedId = this.viewedUserId()!;
+        this.activityLabel.set('Active Roles');
+
+        // Active roles: direct endpoint first, fallback to cascade
+        this.teamService.getUserActiveRoles(viewedId).subscribe({
+          next: env => {
+            const roles = env.data ?? [];
+            this.myActiveRoles.set(roles);
+            this.activityCount.set(roles.length);
+          },
+          error: () => {
+            // Fallback: cascade all startups → getTeamMembers → filter active
+            this.startupService.getAll(0, 200).subscribe({
+              next: env => {
+                const startups = env.data ?? [];
+                if (startups.length === 0) return;
+                forkJoin(
+                  startups.map(s =>
+                    this.teamService.getTeamMembers(s.id).pipe(
+                      catchError(() => of({ success: false, data: [] as any[], error: null }))
+                    )
+                  )
+                ).subscribe({
+                  next: results => {
+                    const all = results.flatMap(r => r.data ?? []);
+                    const theirs = all.filter(m => m.userId === viewedId);
+                    const active = theirs.filter(m => m.isActive);
+                    this.myActiveRoles.set(active);
+                    this.activityCount.set(active.length);
+                  }
+                });
+              }
+            });
+          }
+        });
+
+        // Full history (active + past): direct endpoint
+        // getTeamMembers only returns active, so we MUST use history endpoint for full record
+        this.teamService.getUserTeamHistory(viewedId).subscribe({
+          next: env => this.myRoleHistory.set(env.data ?? []),
+          error: () => {
+            // History endpoint unavailable — history stays empty, show note in UI
+            this.myRoleHistory.set([]);
+          }
+        });
+      } else {
+        this.activityLabel.set('Active Roles');
+        this.teamService.getMyActiveRoles().subscribe({
+          next: env => {
+            const roles = env.data ?? [];
+            this.activityCount.set(roles.length);
+            this.myActiveRoles.set(roles);
+          }
+        });
+        this.teamService.getMemberHistory().subscribe({
+          next: env => this.myRoleHistory.set(env.data ?? [])
+        });
+      }
+    }
+
+    if (r === 'ADMIN') {
+      this.activityLabel.set('Platform Users');
+      if (!readOnly) {
+        this.userService.getPublicStats().subscribe({
+          next: stats => {
+            this.platformStats.set(stats);
+            this.activityCount.set(stats.founders + stats.investors + stats.cofounders);
+          }
+        });
       }
     }
   }
 
-  saveProfile(): void {
-    if (!this.name.trim()) { this.errorMsg.set('Name is required.'); return; }
-    this.saving.set(true);
-    this.errorMsg.set('');
+  // ── Editing (own profile only) ──
+  startEditing(card: string): void {
+    if (this.isViewingOther()) return;
+    this.editingCard.set(card);
+  }
 
+  cancelEditing(): void {
+    this.editingCard.set(null);
+    this.loadProfile();
+  }
+
+  saveCard(card: string): void {
+    this.saving.set(true);
     const req: UserUpdateRequest = {
-      name: this.name || null,
-      skills: this.skills || null,
-      experience: this.experience || null,
-      bio: this.bio || null,
+      name:           this.name           || null,
+      bio:            this.bio            || null,
+      skills:         this.skills         || null,
+      experience:     this.experience     || null,
       portfolioLinks: this.portfolioLinks || null
     };
-
     this.userService.updateMyProfile(req).subscribe({
       next: env => {
         this.user.set(env.data);
-        this.editing.set(false);
+        this.editingCard.set(null);
         this.saving.set(false);
-        this.successMsg.set('Profile updated successfully!');
+        this.successMsg.set('Saved!');
         setTimeout(() => this.successMsg.set(''), 3000);
       },
       error: env => {
         this.saving.set(false);
-        this.errorMsg.set(env.error ?? 'Failed to update profile.');
+        this.errorMsg.set(env.error ?? 'Failed to update.');
       }
     });
   }
 
-  logout(): void {
-    this.authService.logout();
+  // ── Navigation helper (used from other components) ──
+  goBack(): void { history.back(); }
+
+  // ── Profile Completion (computed from whichever user is loaded) ──
+  completionPercentage = computed(() => {
+    const items = this.completionItems();
+    const done  = items.filter(i => i.completed).length;
+    return Math.round((done / items.length) * 100);
+  });
+
+  completionItems = computed(() => {
+    const u = this.user();
+    return [
+      { label: 'Basic Identity',     completed: !!u?.name && !!u?.email },
+      { label: 'Professional Bio',   completed: !!u?.bio },
+      { label: 'Skills & Expertise', completed: !!u?.skills },
+      { label: 'Experience Record',  completed: !!u?.experience },
+      { label: 'Portfolio Links',    completed: !!u?.portfolioLinks },
+      { label: 'Ecosystem Activity', completed: this.activityCount() > 0 }
+    ];
+  });
+
+  // ── Helpers ──
+  /** Number of past (inactive) roles in the history list — avoids inline template logic */
+  get pastRoleCount(): number {
+    return this.myRoleHistory().filter(r => !r.isActive).length;
   }
 
-  getRoleDisplay(): { label: string; icon: string; color: string; aura: string } {
-    const role = (this.authService.role() ?? '').replace('ROLE_', '');
-    const map: Record<string, { label: string; icon: string; color: string; aura: string }> = {
-      FOUNDER:   { label: 'Founder',    icon: '🚀', color: '#6366f1', aura: 'aura-blue' },
-      INVESTOR:  { label: 'Investor',   icon: '💰', color: '#10b981', aura: 'aura-green' },
-      COFOUNDER: { label: 'Co-Founder', icon: '👥', color: '#06b6d4', aura: 'aura-cyan' },
-      ADMIN:     { label: 'Admin',      icon: '⚙️', color: '#f43f5e', aura: 'aura-rose' }
-    };
-    return map[role] ?? { label: role, icon: '👤', color: '#94a3b8', aura: 'aura-gray' };
+  stageLabel(stage: string): string {
+    const m: Record<string,string> = { IDEA:'Idea', MVP:'MVP', EARLY_TRACTION:'Early Traction', SCALING:'Scaling' };
+    return m[stage] ?? stage;
   }
 
-  get skillArray(): string[] {
-    return this.skills ? this.skills.split(',').map(s => s.trim()).filter(s => !!s) : [];
+  stageColor(stage: string): string {
+    const m: Record<string,string> = { IDEA:'#8b5cf6', MVP:'#3b82f6', EARLY_TRACTION:'#f59e0b', SCALING:'#10b981' };
+    return m[stage] ?? '#6366f1';
   }
+
+  investmentStatusColor(status: string): string {
+    const m: Record<string,string> = { PENDING:'#f59e0b', APPROVED:'#3b82f6', COMPLETED:'#10b981', REJECTED:'#ef4444', PAYMENT_FAILED:'#ef4444', STARTUP_CLOSED:'#6b7280' };
+    return m[status] ?? '#6366f1';
+  }
+
+  teamRoleLabel(role: string): string {
+    const m: Record<string,string> = { CTO:'CTO', CPO:'CPO', MARKETING_HEAD:'Marketing Head', ENGINEERING_LEAD:'Engineering Lead' };
+    return m[role] ?? role;
+  }
+
+  formatCurrency(amount: number): string {
+    if (amount >= 10_000_000) return `₹${(amount/10_000_000).toFixed(1)}Cr`;
+    if (amount >= 100_000)    return `₹${(amount/100_000).toFixed(1)}L`;
+    return `₹${amount.toLocaleString('en-IN')}`;
+  }
+
+  logout(): void { this.authService.logout(); }
 }

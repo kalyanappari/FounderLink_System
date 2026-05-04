@@ -13,12 +13,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    public static final String PASSWORD_RESET_QUEUE = "password-reset-queue";
-    public static final String FOUNDERLINK_EXCHANGE = "founderlink.exchange";
-    public static final String PASSWORD_RESET_ROUTING_KEY = "password.reset";
+    public static final String PASSWORD_RESET_QUEUE       = "password-reset-queue";
+    public static final String FOUNDERLINK_EXCHANGE        = "founderlink.exchange";
+    public static final String PASSWORD_RESET_ROUTING_KEY  = "password.reset";
 
     public static final String USER_REGISTERED_ROUTING_KEY = "user.registered";
-    public static final String USER_REGISTERED_QUEUE = "user-registered-queue";
+    public static final String USER_REGISTERED_QUEUE       = "user-registered-queue";
+
+    // ── Email Verification ────────────────────────────────────────────────────
+    public static final String EMAIL_VERIFICATION_QUEUE       = "email-verification-queue";
+    public static final String EMAIL_VERIFICATION_ROUTING_KEY = "email.verification";
 
     @Bean
     public Queue passwordResetQueue() {
@@ -47,6 +51,18 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(passwordResetQueue)
             .to(founderLinkExchange)
             .with(PASSWORD_RESET_ROUTING_KEY);
+    }
+
+    @Bean
+    public Queue emailVerificationQueue() {
+        return new Queue(EMAIL_VERIFICATION_QUEUE, true);
+    }
+
+    @Bean
+    public Binding emailVerificationBinding(Queue emailVerificationQueue, DirectExchange founderLinkExchange) {
+        return BindingBuilder.bind(emailVerificationQueue)
+            .to(founderLinkExchange)
+            .with(EMAIL_VERIFICATION_ROUTING_KEY);
     }
 
     @Bean

@@ -135,6 +135,40 @@ public class InvestmentController {
                         response));
     }
 
+    // GET COMPLETED INVESTMENT COUNT BY INVESTOR ID
+    // GET /investments/investor/{investorId}/completed-count
+    // Called by → FOUNDER, ADMIN (cross-role profile view — privacy-safe, no amounts)
+
+    @GetMapping("/investor/{investorId}/completed-count")
+    @Operation(
+        summary = "Get completed investment count for an investor",
+        description = "Returns the number of COMPLETED investments for a given investor. "
+                    + "Accessible by FOUNDER and ADMIN for cross-role profile views. "
+                    + "No investment amounts or details are exposed.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Count fetched successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Access denied — FOUNDER or ADMIN role required")
+    })
+    public ResponseEntity<ApiResponse<?>> getCompletedInvestmentCount(
+            @RequestHeader("X-User-Role") String userRole,
+            @PathVariable Long investorId) {
+
+        log.info("GET /investments/investor/{}/completed-count - role: {}", investorId, userRole);
+        if (!userRole.equals("ROLE_FOUNDER") &&
+            !userRole.equals("ROLE_ADMIN")) {
+            log.warn("Access denied for getCompletedInvestmentCount - role: {}", userRole);
+            throw new ForbiddenAccessException(
+                    "Access denied. Only FOUNDERS and ADMINS can view investor completion counts");
+        }
+
+        long count = investmentService.countCompletedInvestmentsByInvestorId(investorId);
+
+        return ResponseEntity
+                .ok(new ApiResponse<>(
+                        "Completed investment count fetched successfully",
+                        java.util.Map.of("count", count)));
+    }
+
     // UPDATE INVESTMENT STATUS
     // PUT /investments/{id}/status
     // Called by → FOUNDER

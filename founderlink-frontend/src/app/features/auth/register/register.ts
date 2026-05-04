@@ -81,8 +81,10 @@ export class RegisterComponent implements OnInit {
     this.authService.register(this.form.value).subscribe({
       next: () => {
         this.loading.set(false);
-        this.successMsg.set('Account created successfully! Redirecting to login...');
-        setTimeout(() => this.router.navigate(['/auth/login']), 1800);
+        // Store email for the verify-email OTP page
+        localStorage.setItem('pendingVerificationEmail', this.form.value.email);
+        this.successMsg.set('Account created! Please check your email for a verification code.');
+        setTimeout(() => this.router.navigate(['/auth/verify-email']), 1200);
       },
       error: (err) => {
         this.loading.set(false);

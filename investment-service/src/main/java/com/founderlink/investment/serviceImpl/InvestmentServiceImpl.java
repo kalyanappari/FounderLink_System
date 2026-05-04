@@ -58,6 +58,11 @@ public class InvestmentServiceImpl implements InvestmentService {
     }
 
     @Override
+    public long countCompletedInvestmentsByInvestorId(Long investorId) {
+        return queryService.countCompletedByInvestorId(investorId);
+    }
+
+    @Override
     @Caching(evict = {
         @CacheEvict(value = "investmentById", key = "#investmentId"),
         @CacheEvict(value = "investmentsByStartup", allEntries = true),

@@ -126,6 +126,10 @@ eureka:
 #        - /auth/register
 #        - /auth/refresh
 #        - /auth/logout
+#        - /auth/verify-email
+#        - /auth/resend-verification
+#        - /auth/oauth/google
+#        - /auth/oauth/google/complete
 #        - /eureka/**
 #        # Swagger/OpenAPI endpoints (root and service-prefixed)
 #        - /v3/api-docs
@@ -233,6 +237,11 @@ eureka:
 #        path: /investments/investor
 #        roles: [INVESTOR, ADMIN]
 
+#      # Cross-role: Founder views completed-investment count for an investor (no amounts exposed)
+#      - method: GET
+#        path: /investments/investor/*/completed-count
+#        roles: [FOUNDER, ADMIN]
+
 #      - method: PUT
 #        path: /investments/*/status
 #        roles: [FOUNDER, ADMIN]
@@ -280,6 +289,15 @@ eureka:
 #      - method: GET
 #        path: /teams/member/active
 #        roles: [COFOUNDER, ADMIN]
+
+#      # Cross-role: Founder views a co-founder's active roles and work history
+#      - method: GET
+#        path: /teams/member/active/*
+#        roles: [FOUNDER, ADMIN]
+
+#      - method: GET
+#        path: /teams/member/history/*
+#        roles: [FOUNDER, ADMIN]
 
 #      - method: POST
 #        path: /messages

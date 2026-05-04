@@ -122,7 +122,7 @@ describe('RegisterComponent', () => {
       
       vi.advanceTimersByTime(1800);
       
-      expect(router.navigate).toHaveBeenCalledWith(['/auth/login']);
+      expect(router.navigate).toHaveBeenCalledWith(['/auth/verify-email']);
       vi.useRealTimers();
     });
 

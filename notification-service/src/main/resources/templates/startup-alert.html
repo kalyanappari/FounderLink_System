@@ -1,33 +1,107 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base-layout :: layout('Ecosystem Update', 'New Venture Opportunity', ~{::email_content})}">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base-layout :: layout('Ecosystem Update', 'New Venture Opportunity', ~{::email_content})}">
 <body>
-    <div th:fragment="email_content">
-        <p>A new startup has recently joined the FounderLink ecosystem. Review the venture details below to see if it aligns with your investment strategy.</p>
+<div th:fragment="email_content">
 
-        <table class="form-table">
-            <tr class="form-row">
-                <td class="label">Venture Name</td>
-                <td class="value"><strong th:text="${startupName}">Acme Corp</strong></td>
-            </tr>
-            <tr class="form-row">
-                <td class="label">Industry</td>
-                <td class="value" th:text="${industry}">Technology</td>
-            </tr>
-            <tr class="form-row">
-                <td class="label">Funding Goal</td>
-                <td class="value" th:text="${fundingGoal}">$1,000,000</td>
-            </tr>
-            <tr class="form-row">
-                <td class="label">Venture ID</td>
-                <td class="value" th:text="${startupId}">#12345</td>
-            </tr>
-        </table>
+    <!-- ── Intro ── -->
+    <p class="email-intro"
+       style="color:#475569;font-size:15px;line-height:1.7;margin:0 0 32px 0;">
+        A new startup has just joined the FounderLink ecosystem. Review the venture details below
+        to see whether it aligns with your investment thesis and portfolio strategy.
+    </p>
 
-        <div style="text-align: center; margin-top: 40px;">
-            <a href="https://founderlink.tech/dashboard" class="button">View Venture Details</a>
-        </div>
+    <!-- ── Venture Details Table ── -->
+    <table class="data-table" role="presentation"
+           style="width:100%;border-collapse:collapse;margin:0 0 32px 0;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
+        <thead>
+            <tr>
+                <td colspan="2"
+                    style="background:linear-gradient(135deg,#f8f7ff,#fdf4ff);padding:10px 16px;font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#7c3aed;border-bottom:1px solid #e2e8f0;">
+                    Venture Intelligence Brief
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Venture Name -->
+            <tr class="data-row">
+                <td class="col-label"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;width:38%;white-space:nowrap;">
+                    Venture Name
+                </td>
+                <td class="col-value"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#0f172a;font-size:16px;font-weight:800;">
+                    <strong th:text="${startupName}">Acme Corp</strong>
+                </td>
+            </tr>
+            <!-- Industry -->
+            <tr class="data-row" style="background-color:#fafbff;">
+                <td class="col-label"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;width:38%;white-space:nowrap;background-color:#fafbff;">
+                    Industry Vertical
+                </td>
+                <td class="col-value"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;background-color:#fafbff;">
+                    <span class="badge badge-accent"
+                          style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;background:linear-gradient(135deg,#ede9fe,#fce7f3);color:#4c1d95;"
+                          th:text="${industry}">Technology</span>
+                </td>
+            </tr>
+            <!-- Funding Goal -->
+            <tr class="data-row">
+                <td class="col-label"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;width:38%;white-space:nowrap;">
+                    Funding Goal
+                </td>
+                <td class="col-value amount-highlight"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#4f46e5;font-size:18px;font-weight:800;letter-spacing:-0.01em;"
+                    th:text="${fundingGoal}">$1,000,000</td>
+            </tr>
+            <!-- Venture ID -->
+            <tr class="data-row" style="background-color:#fafbff;">
+                <td class="col-label"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:none;color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;width:38%;white-space:nowrap;background-color:#fafbff;">
+                    Venture ID
+                </td>
+                <td class="col-value"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:none;color:#0f172a;font-size:14px;font-weight:700;font-family:monospace;background-color:#fafbff;"
+                    th:text="${startupId}">#12345</td>
+            </tr>
+        </tbody>
+    </table>
 
-        <p style="margin-top: 40px; font-size: 14px; color: #64748b;">You are receiving this because you are registered as an Investor on the FounderLink platform.</p>
+    <!-- ── Opportunity Callout ── -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0"
+           style="width:100%;margin:0 0 28px 0;">
+        <tr>
+            <td style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-left:4px solid #22c55e;border-radius:0 10px 10px 0;padding:16px 20px;">
+                <p style="margin:0;font-size:13px;font-weight:700;color:#15803d;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;">
+                    &#127775; Investment Opportunity
+                </p>
+                <p style="margin:0;font-size:14px;color:#166534;line-height:1.6;">
+                    This venture has just opened itself to the investor network. Early engagement increases your
+                    visibility and negotiating position on the FounderLink platform.
+                </p>
+            </td>
+        </tr>
+    </table>
+
+    <!-- ── CTA ── -->
+    <div class="cta-wrapper" style="text-align:center;padding:8px 0 8px;">
+        <a href="https://founderlink.tech/dashboard"
+           class="cta-button"
+           style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);color:#ffffff !important;text-decoration:none !important;border-radius:10px;font-size:14px;font-weight:800;letter-spacing:0.04em;box-shadow:0 4px 20px rgba(99,102,241,0.35);">
+            View Venture Details &rarr;
+        </a>
     </div>
+
+    <p class="email-note"
+       style="color:#94a3b8;font-size:13px;line-height:1.65;margin:24px 0 0;text-align:center;">
+        You are receiving this because you are registered as an <strong style="color:#6366f1;">Investor</strong> on the FounderLink platform.<br>
+        To manage your alert preferences, visit your
+        <a href="https://founderlink.tech/settings/notifications" style="color:#6366f1;text-decoration:none;font-weight:600;">notification settings</a>.
+    </p>
+
+</div>
 </body>
 </html>

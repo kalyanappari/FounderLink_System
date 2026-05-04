@@ -145,4 +145,8 @@ export class InvestmentsComponent implements OnInit {
   messageInvestor(investorId: number): void {
     this.router.navigate(['/dashboard/messages'], { queryParams: { user: investorId } });
   }
+
+  viewInvestorProfile(investorId: number): void {
+    this.router.navigate(['/dashboard/profile', investorId]);
+  }
 }

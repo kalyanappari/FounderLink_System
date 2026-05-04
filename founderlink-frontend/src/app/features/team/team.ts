@@ -293,7 +293,12 @@ export class TeamComponent implements OnInit {
   }
 
   viewProfile(u: UserResponse): void {
-    this.viewedUser.set(u);
+    // Navigate to the full profile page (read-only view)
+    this.router.navigate(['/dashboard/profile', u.userId]);
+  }
+
+  viewUserProfile(userId: number): void {
+    this.router.navigate(['/dashboard/profile', userId]);
   }
 
   closeProfile(): void {

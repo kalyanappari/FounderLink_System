@@ -1,27 +1,90 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base-layout :: layout('Security Authorization', 'Authorization Required', ~{::email_content})}">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base-layout :: layout('Security Authorization', 'Verify Your Identity', ~{::email_content})}">
 <body>
-    <div th:fragment="email_content">
-        <p>A secure action was initiated on your account. To verify your identity, please enter the authorization code provided below in the system terminal.</p>
+<div th:fragment="email_content">
 
-        <table class="form-table">
-            <tr class="form-row">
-                <td class="label">Initiated For</td>
-                <td class="value" th:text="${userName}">User</td>
-            </tr>
-            <tr class="form-row">
-                <td class="label">Authorization Code</td>
-                <td class="value">
-                    <span style="font-size: 24px; font-weight: 800; letter-spacing: 0.1em; color: #6366f1;" th:text="${pin}">000000</span>
+    <!-- ── Intro ── -->
+    <p class="email-intro"
+       style="color:#475569;font-size:15px;line-height:1.7;margin:0 0 28px 0;">
+        A secure action was initiated on your FounderLink account. Use the one-time authorization code below
+        to complete verification. This code is valid for <strong style="color:#0f172a;">5 minutes</strong>.
+    </p>
+
+    <!-- ── Request Details Table ── -->
+    <table class="data-table" role="presentation"
+           style="width:100%;border-collapse:collapse;margin:0 0 28px 0;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
+        <thead>
+            <tr>
+                <td colspan="2"
+                    style="background:linear-gradient(135deg,#f8f7ff,#fdf4ff);padding:10px 16px;font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#7c3aed;border-bottom:1px solid #e2e8f0;">
+                    Authorization Request
                 </td>
             </tr>
-            <tr class="form-row">
-                <td class="label">Token Expiration</td>
-                <td class="value">5 Minutes</td>
+        </thead>
+        <tbody>
+            <tr class="data-row">
+                <td class="col-label"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;width:38%;white-space:nowrap;">
+                    Initiated For
+                </td>
+                <td class="col-value"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:1px solid #f1f5f9;color:#0f172a;font-size:15px;font-weight:600;"
+                    th:text="${userName}">User</td>
             </tr>
-        </table>
+            <tr class="data-row" style="background-color:#fafbff;">
+                <td class="col-label"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:none;color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;width:38%;white-space:nowrap;background-color:#fafbff;">
+                    Token Expiration
+                </td>
+                <td class="col-value"
+                    style="padding:14px 16px;vertical-align:middle;border-bottom:none;color:#0f172a;font-size:15px;font-weight:600;background-color:#fafbff;">
+                    <span class="badge badge-warning"
+                          style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;background:linear-gradient(135deg,#fffbeb,#fde68a);color:#78350f;">
+                        5 Minutes
+                    </span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
-        <p style="margin-top: 30px; font-size: 14px; color: #64748b;">If you did not authorize this action, please ignore this request. Your credentials remain protected.</p>
-    </div>
+    <!-- ── OTP Code Block ── -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0"
+           style="width:100%;margin:0 0 8px 0;">
+        <tr>
+            <td style="text-align:center;padding:8px 0 20px;">
+                <p style="margin:0 0 14px;font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:0.12em;text-transform:uppercase;">
+                    Your One-Time Code
+                </p>
+                <div class="otp-block" style="text-align:center;">
+                    <span class="otp-code"
+                          style="display:inline-block;font-size:40px;font-weight:900;letter-spacing:0.22em;color:#4f46e5;background:linear-gradient(135deg,#eef2ff,#f5f3ff);border:2px solid #c7d2fe;border-radius:14px;padding:18px 36px;"
+                          th:text="${pin}">000000</span>
+                </div>
+                <p class="otp-timer-text"
+                   style="color:#94a3b8;font-size:13px;margin:12px 0 0;">
+                    &#128274; This code expires in <strong style="color:#4f46e5;">5 minutes</strong>
+                </p>
+            </td>
+        </tr>
+    </table>
+
+    <!-- ── Security Notice ── -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0"
+           style="width:100%;margin:8px 0 0;">
+        <tr>
+            <td style="background:linear-gradient(135deg,#fff7ed,#ffedd5);border-left:4px solid #f97316;border-radius:0 10px 10px 0;padding:14px 18px;">
+                <p style="margin:0;font-size:13px;font-weight:700;color:#c2410c;letter-spacing:0.04em;margin-bottom:4px;">
+                    &#9888;&#65039; Security Notice
+                </p>
+                <p style="margin:0;font-size:13px;color:#78350f;line-height:1.55;">
+                    FounderLink will <strong>never</strong> ask for your authorization code via phone or chat.
+                    If you did not initiate this request, please ignore this email — your account remains secure.
+                </p>
+            </td>
+        </tr>
+    </table>
+
+</div>
 </body>
 </html>

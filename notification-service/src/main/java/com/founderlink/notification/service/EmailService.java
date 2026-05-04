@@ -59,6 +59,14 @@ public class EmailService {
         sendEmail(to, "Security Verification - FounderLink", html);
     }
 
+    public void sendEmailVerificationOtpEmail(String to, String userName, String otp) {
+        Context context = new Context();
+        context.setVariable("userName", userName);
+        context.setVariable("otp", otp);
+        String html = templateEngine.process("email-verification", context);
+        sendEmail(to, "Verify Your Email - FounderLink", html);
+    }
+
     public void sendInvestmentApprovedEmail(String investorEmail, String investorName, Long startupId, String amount) {
         Context context = new Context();
         context.setVariable("userName", investorName);

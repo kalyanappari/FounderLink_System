@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FounderLink — Email Template Previews</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background: #0a0820; color: #fff; }
+
+  /* ── Nav ── */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(15,12,41,0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(99,102,241,0.2);
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 32px; overflow-x: auto;
+  }
+  .nav-brand { font-weight: 900; font-size: 16px; color: #a5b4fc; margin-right: 24px; white-space: nowrap; }
+  .nav-btn {
+    padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(99,102,241,0.3);
+    background: transparent; color: #94a3b8; font-family: inherit; font-size: 12px;
+    font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
+    white-space: nowrap; transition: all 0.2s;
+  }
+  .nav-btn:hover, .nav-btn.active {
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    color: #fff; border-color: transparent;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    text-align: center; padding: 64px 24px 48px;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,0.18) 0%, transparent 70%);
+  }
+  .hero-label { font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: #6366f1; margin-bottom: 14px; }
+  .hero h1 { font-size: 40px; font-weight: 900; letter-spacing: -0.03em; margin: 0 0 14px; }
+  .hero h1 span { background: linear-gradient(135deg,#a5b4fc,#e879f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero p { color: #94a3b8; font-size: 16px; line-height: 1.6; max-width: 520px; margin: 0 auto; }
+
+  /* ── Section ── */
+  .section { padding: 40px 24px 64px; max-width: 1100px; margin: 0 auto; }
+  .section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 36px; }
+  .section-tag {
+    padding: 4px 12px; background: linear-gradient(135deg,#ede9fe,#fce7f3);
+    color: #7c3aed; font-size: 10px; font-weight: 800; letter-spacing: 0.15em;
+    text-transform: uppercase; border-radius: 20px;
+  }
+  .section-title { font-size: 22px; font-weight: 800; color: #fff; margin: 0; }
+  .section-divider { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(99,102,241,0.3), transparent); }
+
+  /* ── Email preview wrapper ── */
+  .preview-outer {
+    width: 100%; padding: 48px 16px;
+    background: linear-gradient(135deg,#0f0c29 0%,#1a1a3e 50%,#24243e 100%);
+    border-radius: 20px; overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(99,102,241,0.15), 0 24px 64px rgba(0,0,0,0.5);
+    margin-bottom: 12px;
+  }
+
+  /* ── Email card ── */
+  .email-card {
+    width: 100%; max-width: 620px; margin: 0 auto;
+    background: #fff; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45), 0 0 0 1px rgba(99,102,241,0.15);
+    color: #0f172a;
+  }
+  .accent-bar { height: 5px; background: linear-gradient(90deg,#6366f1,#a855f7 50%,#ec4899); }
+  .email-header {
+    background: linear-gradient(135deg,#1e1b4b,#312e81);
+    padding: 32px 40px 28px; text-align: center;
+  }
+  .brand-label { font-size: 11px; font-weight: 800; letter-spacing: 0.25em; text-transform: uppercase; color: #c7d2fe; margin: 0 0 10px; }
+  .brand-name { font-size: 28px; font-weight: 900; letter-spacing: -0.03em; color: #fff; margin: 0; }
+  .brand-name span { color: #a5b4fc; }
+
+  .email-body { padding: 44px 40px 36px; background: #fff; }
+  .section-badge {
+    display: inline-block; padding: 4px 12px; border-radius: 20px;
+    background: linear-gradient(135deg,#ede9fe,#fce7f3); color: #7c3aed;
+    font-size: 10px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .email-heading { color: #0f172a; font-size: 26px; font-weight: 800; margin: 0 0 20px; line-height: 1.25; letter-spacing: -0.02em; }
+  .email-intro { color: #475569; font-size: 15px; line-height: 1.7; margin: 0 0 32px; }
+
+  .data-table { width: 100%; border-collapse: collapse; margin: 0 0 32px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+  .data-table thead td { background: linear-gradient(135deg,#f8f7ff,#fdf4ff); padding: 10px 16px; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #7c3aed; border-bottom: 1px solid #e2e8f0; }
+  .data-row td { padding: 14px 16px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
+  .data-row:last-child td { border-bottom: none; }
+  .data-row:nth-child(even) td { background: #fafbff; }
+  .col-label { color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; width: 38%; }
+  .col-value { color: #0f172a; font-size: 15px; font-weight: 600; }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+  .badge-default { background: linear-gradient(135deg,#ede9fe,#ddd6fe); color: #4c1d95; }
+  .badge-success { background: linear-gradient(135deg,#dcfce7,#bbf7d0); color: #14532d; }
+  .badge-danger  { background: linear-gradient(135deg,#fef2f2,#fecaca); color: #7f1d1d; }
+  .badge-warning { background: linear-gradient(135deg,#fffbeb,#fde68a); color: #78350f; }
+  .badge-accent  { background: linear-gradient(135deg,#ede9fe,#fce7f3); color: #4c1d95; }
+
+  .amount-highlight { color: #4f46e5; font-size: 18px; font-weight: 800; }
+
+  .otp-code {
+    display: inline-block; font-size: 40px; font-weight: 900; letter-spacing: 0.22em; color: #4f46e5;
+    background: linear-gradient(135deg,#eef2ff,#f5f3ff); border: 2px solid #c7d2fe;
+    border-radius: 14px; padding: 18px 36px;
+  }
+
+  .callout { padding: 16px 20px; border-radius: 0 10px 10px 0; margin-bottom: 28px; }
+  .callout-green  { background: linear-gradient(135deg,#f0fdf4,#dcfce7); border-left: 4px solid #22c55e; }
+  .callout-red    { background: linear-gradient(135deg,#fff1f2,#fecaca); border-left: 4px solid #ef4444; }
+  .callout-yellow { background: linear-gradient(135deg,#fffbeb,#fef9c3); border-left: 4px solid #f59e0b; }
+  .callout-orange { background: linear-gradient(135deg,#fff7ed,#ffedd5); border-left: 4px solid #f97316; }
+  .callout-indigo { background: linear-gradient(135deg,#f8f7ff,#eef2ff); border-left: 4px solid #6366f1; }
+  .callout-title { margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+  .callout-text  { margin: 0; font-size: 14px; line-height: 1.6; }
+
+  .cta-btn {
+    display: inline-block; padding: 14px 40px;
+    background: linear-gradient(135deg,#6366f1,#8b5cf6); color: #fff; text-decoration: none;
+    border-radius: 10px; font-size: 14px; font-weight: 800; letter-spacing: 0.04em;
+    box-shadow: 0 4px 20px rgba(99,102,241,0.35);
+  }
+  .email-note { color: #94a3b8; font-size: 13px; line-height: 1.65; margin: 24px 0 0; text-align: center; }
+  .email-note a { color: #6366f1; text-decoration: none; font-weight: 600; }
+
+  .email-footer {
+    background: linear-gradient(135deg,#f8f7ff,#fdf4ff);
+    border-top: 1px solid #e2e8f0; padding: 28px 40px; text-align: center;
+  }
+  .footer-brand { color: #7c3aed; font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 6px; }
+  .footer-tagline { color: #94a3b8; font-size: 12px; margin: 0 0 14px; }
+  .footer-copy { color: #cbd5e1; font-size: 11px; margin: 0; }
+  .footer-copy a { color: #a5b4fc; text-decoration: none; }
+
+  /* tabs */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* page chips */
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; font-size: 12px; color: #64748b; }
+  .chip { padding: 3px 10px; border-radius: 20px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 11px; font-weight: 600; color: #475569; }
+  .chip.file { background: #eef2ff; border-color: #c7d2fe; color: #4338ca; }
+
+  @media (max-width: 640px) {
+    .email-body { padding: 28px 20px 24px; }
+    .email-header { padding: 22px 20px 18px; }
+    .brand-name { font-size: 22px; }
+    .email-heading { font-size: 20px; }
+    .otp-code { font-size: 28px; padding: 14px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav class="nav">
+  <span class="nav-brand">FounderLink Emails</span>
+  <button class="nav-btn active" onclick="showTab('welcome')">Welcome</button>
+  <button class="nav-btn"        onclick="showTab('otp')">OTP</button>
+  <button class="nav-btn"        onclick="showTab('investment')">Investment</button>
+  <button class="nav-btn"        onclick="showTab('startup')">Startup Alert</button>
+  <button class="nav-btn"        onclick="showTab('team')">Team Invite</button>
+</nav>
+
+<!-- ═══════════ HERO ═══════════ -->
+<div class="hero">
+  <p class="hero-label">Notification Service</p>
+  <h1>Email <span>Template</span> Preview</h1>
+  <p>All transactional emails for the FounderLink platform — styled for every major email client.</p>
+</div>
+
+<!-- ════════════════════════════════════════
+     TAB 1 — WELCOME EMAIL
+════════════════════════════════════════ -->
+<div id="tab-welcome" class="tab-panel active">
+<div class="section">
+  <div class="section-header">
+    <span class="section-tag">Onboarding Portal</span>
+    <h2 class="section-title">welcome-email.html</h2>
+    <div class="section-divider"></div>
+    <span class="chip file">base-layout.html</span>
+  </div>
+
+  <div class="preview-outer">
+    <div class="email-card">
+      <div class="accent-bar"></div>
+      <div class="email-header">
+        <p class="brand-label">Venture Platform</p>
+        <h1 class="brand-name">Founder<span>Link</span></h1>
+      </div>
+      <div class="email-body">
+        <span class="section-badge">Onboarding Portal</span>
+        <h2 class="email-heading">Welcome to FounderLink</h2>
+        <p class="email-intro">Your strategic account has been provisioned on the FounderLink ecosystem. We're excited to have you on board. Below is a summary of your account details and the next steps to complete your platform setup.</p>
+
+        <table class="data-table">
+          <thead><tr><td colspan="2">Account Information</td></tr></thead>
+          <tbody>
+            <tr class="data-row"><td class="col-label">Full Name</td><td class="col-value">Aditya Sanghai</td></tr>
+            <tr class="data-row"><td class="col-label">Assigned Role</td><td class="col-value"><span class="badge badge-accent">FOUNDER</span></td></tr>
+            <tr class="data-row"><td class="col-label">Account Status</td><td class="col-value"><span class="badge badge-warning">Active · Pending Setup</span></td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-indigo">
+          <p class="callout-title" style="color:#4338ca;">Next Steps</p>
+          <p class="callout-text" style="color:#475569;">Complete your profile → Connect with co-founders &amp; investors → Launch your first venture.</p>
+        </div>
+
+        <div style="text-align:center;padding:20px 0 8px;">
+          <a href="#" class="cta-btn">Access Your Dashboard →</a>
+        </div>
+        <p class="email-note">If you did not create this account, please disregard this email.<br>
+          Need help? Contact us at <a href="#">support@founderlink.tech</a></p>
+      </div>
+      <div class="email-footer">
+        <p class="footer-brand">FounderLink Ecosystem</p>
+        <p class="footer-tagline">Powering the future of venture collaboration</p>
+        <p class="footer-copy">© 2026 FounderLink. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Use</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════
+     TAB 2 — OTP EMAIL
+════════════════════════════════════════ -->
+<div id="tab-otp" class="tab-panel">
+<div class="section">
+  <div class="section-header">
+    <span class="section-tag">Security Authorization</span>
+    <h2 class="section-title">otp-email.html</h2>
+    <div class="section-divider"></div>
+    <span class="chip file">base-layout.html</span>
+  </div>
+
+  <div class="preview-outer">
+    <div class="email-card">
+      <div class="accent-bar"></div>
+      <div class="email-header">
+        <p class="brand-label">Venture Platform</p>
+        <h1 class="brand-name">Founder<span>Link</span></h1>
+      </div>
+      <div class="email-body">
+        <span class="section-badge">Security Authorization</span>
+        <h2 class="email-heading">Verify Your Identity</h2>
+        <p class="email-intro">A secure action was initiated on your FounderLink account. Use the one-time authorization code below to complete verification. This code is valid for <strong style="color:#0f172a;">5 minutes</strong>.</p>
+
+        <table class="data-table">
+          <thead><tr><td colspan="2">Authorization Request</td></tr></thead>
+          <tbody>
+            <tr class="data-row"><td class="col-label">Initiated For</td><td class="col-value">Aditya Sanghai</td></tr>
+            <tr class="data-row"><td class="col-label">Token Expiration</td><td class="col-value"><span class="badge badge-warning">5 Minutes</span></td></tr>
+          </tbody>
+        </table>
+
+        <div style="text-align:center;padding:8px 0 20px;">
+          <p style="margin:0 0 14px;font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:0.12em;text-transform:uppercase;">Your One-Time Code</p>
+          <div class="otp-code">482 917</div>
+          <p style="color:#94a3b8;font-size:13px;margin:12px 0 0;">🔒 This code expires in <strong style="color:#4f46e5;">5 minutes</strong></p>
+        </div>
+
+        <div class="callout callout-orange" style="margin-top:8px;">
+          <p class="callout-title" style="color:#c2410c;">⚠️ Security Notice</p>
+          <p class="callout-text" style="color:#78350f;">FounderLink will <strong>never</strong> ask for your authorization code via phone or chat. If you did not initiate this request, please ignore this email — your account remains secure.</p>
+        </div>
+      </div>
+      <div class="email-footer">
+        <p class="footer-brand">FounderLink Ecosystem</p>
+        <p class="footer-tagline">Powering the future of venture collaboration</p>
+        <p class="footer-copy">© 2026 FounderLink. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Use</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════
+     TAB 3 — INVESTMENT UPDATE
+════════════════════════════════════════ -->
+<div id="tab-investment" class="tab-panel">
+<div class="section">
+  <div class="section-header">
+    <span class="section-tag">Financial Transaction</span>
+    <h2 class="section-title">investment-update.html</h2>
+    <div class="section-divider"></div>
+    <span class="chip file">base-layout.html</span>
+  </div>
+
+  <div class="preview-outer">
+    <div class="email-card">
+      <div class="accent-bar"></div>
+      <div class="email-header">
+        <p class="brand-label">Venture Platform</p>
+        <h1 class="brand-name">Founder<span>Link</span></h1>
+      </div>
+      <div class="email-body">
+        <span class="section-badge">Financial Transaction</span>
+        <h2 class="email-heading">Investment Update</h2>
+        <p class="email-intro">A new status update has been recorded for your investment transaction on the FounderLink platform. Full audit details are summarized below for your records.</p>
+
+        <table class="data-table">
+          <thead><tr><td colspan="2">Transaction Summary</td></tr></thead>
+          <tbody>
+            <tr class="data-row"><td class="col-label">Reference ID</td><td class="col-value" style="font-family:monospace;font-weight:700;">#INV-7291</td></tr>
+            <tr class="data-row"><td class="col-label">Legal Entity</td><td class="col-value">Nexus Ventures LLC</td></tr>
+            <tr class="data-row"><td class="col-label">Update Status</td><td class="col-value"><span class="badge badge-accent">APPROVED</span></td></tr>
+            <tr class="data-row"><td class="col-label">Verified Amount</td><td class="col-value amount-highlight">$250,000.00</td></tr>
+            <tr class="data-row"><td class="col-label">Strategic Note</td><td class="col-value" style="color:#64748b;font-style:italic;font-size:14px;">Milestone 2 payout — product launch confirmed.</td></tr>
+          </tbody>
+        </table>
+
+        <div style="text-align:center;padding:8px 0 8px;">
+          <a href="#" class="cta-btn">Audit Full Transaction →</a>
+        </div>
+        <p class="email-note">This is an automated financial notification from FounderLink.<br>
+          Questions? Reach us at <a href="#">support@founderlink.tech</a></p>
+      </div>
+      <div class="email-footer">
+        <p class="footer-brand">FounderLink Ecosystem</p>
+        <p class="footer-tagline">Powering the future of venture collaboration</p>
+        <p class="footer-copy">© 2026 FounderLink. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Use</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════
+     TAB 4 — STARTUP ALERT
+════════════════════════════════════════ -->
+<div id="tab-startup" class="tab-panel">
+<div class="section">
+  <div class="section-header">
+    <span class="section-tag">Ecosystem Update</span>
+    <h2 class="section-title">startup-alert.html</h2>
+    <div class="section-divider"></div>
+    <span class="chip file">base-layout.html</span>
+  </div>
+
+  <div class="preview-outer">
+    <div class="email-card">
+      <div class="accent-bar"></div>
+      <div class="email-header">
+        <p class="brand-label">Venture Platform</p>
+        <h1 class="brand-name">Founder<span>Link</span></h1>
+      </div>
+      <div class="email-body">
+        <span class="section-badge">Ecosystem Update</span>
+        <h2 class="email-heading">New Venture Opportunity</h2>
+        <p class="email-intro">A new startup has just joined the FounderLink ecosystem. Review the venture details below to see whether it aligns with your investment thesis and portfolio strategy.</p>
+
+        <table class="data-table">
+          <thead><tr><td colspan="2">Venture Intelligence Brief</td></tr></thead>
+          <tbody>
+            <tr class="data-row"><td class="col-label">Venture Name</td><td class="col-value" style="font-size:16px;font-weight:800;">NovaSpark AI</td></tr>
+            <tr class="data-row"><td class="col-label">Industry Vertical</td><td class="col-value"><span class="badge badge-accent">Artificial Intelligence</span></td></tr>
+            <tr class="data-row"><td class="col-label">Funding Goal</td><td class="col-value amount-highlight">$5,000,000</td></tr>
+            <tr class="data-row"><td class="col-label">Venture ID</td><td class="col-value" style="font-family:monospace;font-size:14px;font-weight:700;">#88421</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-green">
+          <p class="callout-title" style="color:#15803d;">✨ Investment Opportunity</p>
+          <p class="callout-text" style="color:#166534;">This venture has just opened itself to the investor network. Early engagement increases your visibility and negotiating position on the FounderLink platform.</p>
+        </div>
+
+        <div style="text-align:center;padding:8px 0 8px;">
+          <a href="#" class="cta-btn">View Venture Details →</a>
+        </div>
+        <p class="email-note">You are receiving this because you are registered as an <strong style="color:#6366f1;">Investor</strong> on the FounderLink platform.<br>
+          To manage your alert preferences, visit your <a href="#">notification settings</a>.</p>
+      </div>
+      <div class="email-footer">
+        <p class="footer-brand">FounderLink Ecosystem</p>
+        <p class="footer-tagline">Powering the future of venture collaboration</p>
+        <p class="footer-copy">© 2026 FounderLink. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Use</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════
+     TAB 5 — TEAM INVITE
+════════════════════════════════════════ -->
+<div id="tab-team" class="tab-panel">
+<div class="section">
+  <div class="section-header">
+    <span class="section-tag">Human Resources</span>
+    <h2 class="section-title">team-invite-update.html</h2>
+    <div class="section-divider"></div>
+    <span class="chip file">base-layout.html</span>
+  </div>
+
+  <!-- ACCEPTED state -->
+  <div class="chip-row"><span class="chip">State:</span><span class="chip file">ACCEPTED</span></div>
+  <div class="preview-outer" style="margin-bottom:32px;">
+    <div class="email-card">
+      <div class="accent-bar"></div>
+      <div class="email-header">
+        <p class="brand-label">Venture Platform</p>
+        <h1 class="brand-name">Founder<span>Link</span></h1>
+      </div>
+      <div class="email-body">
+        <span class="section-badge">Human Resources</span>
+        <h2 class="email-heading">Team Collaboration Update</h2>
+        <p class="email-intro">A strategic recruitment update has been logged for your venture. The current status of the team collaboration request is detailed below.</p>
+
+        <table class="data-table">
+          <thead><tr><td colspan="2">Collaboration Request Summary</td></tr></thead>
+          <tbody>
+            <tr class="data-row"><td class="col-label">Primary Founder</td><td class="col-value">Aditya Sanghai</td></tr>
+            <tr class="data-row"><td class="col-label">Candidate Name</td><td class="col-value">Rohan Mehta</td></tr>
+            <tr class="data-row"><td class="col-label">Provisioned Role</td><td class="col-value"><span class="badge badge-default">CO-FOUNDER</span></td></tr>
+            <tr class="data-row"><td class="col-label">Current Status</td><td class="col-value"><span class="badge badge-success" style="padding:4px 12px;">✓ ACCEPTED</span></td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-green">
+          <p class="callout-title" style="color:#15803d;">🎉 Collaboration Confirmed</p>
+          <p class="callout-text" style="color:#166534;">The candidate has accepted the invitation. Head to your team dashboard to assign responsibilities and begin collaborating.</p>
+        </div>
+        <div style="text-align:center;padding:8px 0 8px;"><a href="#" class="cta-btn">Manage Team Structure →</a></div>
+        <p class="email-note">This is an automated team notification from FounderLink.<br>Questions? Contact us at <a href="#">support@founderlink.tech</a></p>
+      </div>
+      <div class="email-footer">
+        <p class="footer-brand">FounderLink Ecosystem</p>
+        <p class="footer-tagline">Powering the future of venture collaboration</p>
+        <p class="footer-copy">© 2026 FounderLink. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Use</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- REJECTED state -->
+  <div class="chip-row"><span class="chip">State:</span><span class="chip file">REJECTED</span></div>
+  <div class="preview-outer">
+    <div class="email-card">
+      <div class="accent-bar"></div>
+      <div class="email-header">
+        <p class="brand-label">Venture Platform</p>
+        <h1 class="brand-name">Founder<span>Link</span></h1>
+      </div>
+      <div class="email-body">
+        <span class="section-badge">Human Resources</span>
+        <h2 class="email-heading">Team Collaboration Update</h2>
+        <p class="email-intro">A strategic recruitment update has been logged for your venture. The current status of the team collaboration request is detailed below.</p>
+        <table class="data-table">
+          <thead><tr><td colspan="2">Collaboration Request Summary</td></tr></thead>
+          <tbody>
+            <tr class="data-row"><td class="col-label">Primary Founder</td><td class="col-value">Aditya Sanghai</td></tr>
+            <tr class="data-row"><td class="col-label">Candidate Name</td><td class="col-value">Priya Sharma</td></tr>
+            <tr class="data-row"><td class="col-label">Provisioned Role</td><td class="col-value"><span class="badge badge-default">CTO</span></td></tr>
+            <tr class="data-row"><td class="col-label">Current Status</td><td class="col-value"><span class="badge badge-danger" style="padding:4px 12px;">✗ REJECTED</span></td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-red">
+          <p class="callout-title" style="color:#b91c1c;">🚫 Invitation Declined</p>
+          <p class="callout-text" style="color:#7f1d1d;">The candidate has declined the collaboration request. You can explore other co-founders on the platform via your startup dashboard.</p>
+        </div>
+        <div style="text-align:center;padding:8px 0 8px;"><a href="#" class="cta-btn">Manage Team Structure →</a></div>
+        <p class="email-note">This is an automated team notification from FounderLink.<br>Questions? Contact us at <a href="#">support@founderlink.tech</a></p>
+      </div>
+      <div class="email-footer">
+        <p class="footer-brand">FounderLink Ecosystem</p>
+        <p class="footer-tagline">Powering the future of venture collaboration</p>
+        <p class="footer-copy">© 2026 FounderLink. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Use</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+  function showTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.currentTarget.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>

@@ -212,4 +212,74 @@ public class TeamMemberController {
                         "Active roles fetched successfully",
                         response));
     }
+
+    // ────────────────────────────────────────────
+    // CROSS-VIEW: GET ACTIVE ROLES FOR A SPECIFIC USER
+    // GET /teams/member/active/{userId}
+    // Called by → FOUNDER, ADMIN (read-only profile cross-view)
+    // ────────────────────────────────────────────
+
+    @Operation(summary = "Get active roles for a specific user (cross-view)",
+               description = "Returns active team roles for any given userId. Accessible by FOUNDER and ADMIN for profile cross-view.")
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Active roles fetched successfully"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Access denied — FOUNDER or ADMIN role required")
+    })
+    @GetMapping("/member/active/{userId}")
+    public ResponseEntity<ApiResponse<?>> getActiveMemberRolesByUserId(
+            @RequestHeader("X-User-Id") Long requesterId,
+            @RequestHeader("X-User-Role") String userRole,
+            @PathVariable Long userId) {
+
+        log.info("GET /teams/member/active/{} - requesterId: {}, role: {}", userId, requesterId, userRole);
+        if (!userRole.equals("ROLE_FOUNDER") &&
+            !userRole.equals("ROLE_ADMIN")) {
+            log.warn("Access denied for getActiveMemberRolesByUserId - role: {}", userRole);
+            throw new ForbiddenAccessException(
+                    "Access denied. Only FOUNDERS and ADMINS can view another user's active roles");
+        }
+
+        List<TeamMemberResponseDto> response =
+                teamMemberService.getActiveMemberRoles(userId);
+
+        return ResponseEntity
+                .ok(new ApiResponse<>(
+                        "Active roles fetched successfully",
+                        response));
+    }
+
+    // ────────────────────────────────────────────
+    // CROSS-VIEW: GET WORK HISTORY FOR A SPECIFIC USER
+    // GET /teams/member/history/{userId}
+    // Called by → FOUNDER, ADMIN (read-only profile cross-view)
+    // ────────────────────────────────────────────
+
+    @Operation(summary = "Get work history for a specific user (cross-view)",
+               description = "Returns full team membership history (active + past) for any given userId. Accessible by FOUNDER and ADMIN.")
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Member history fetched successfully"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Access denied — FOUNDER or ADMIN role required")
+    })
+    @GetMapping("/member/history/{userId}")
+    public ResponseEntity<ApiResponse<?>> getMemberHistoryByUserId(
+            @RequestHeader("X-User-Id") Long requesterId,
+            @RequestHeader("X-User-Role") String userRole,
+            @PathVariable Long userId) {
+
+        log.info("GET /teams/member/history/{} - requesterId: {}, role: {}", userId, requesterId, userRole);
+        if (!userRole.equals("ROLE_FOUNDER") &&
+            !userRole.equals("ROLE_ADMIN")) {
+            log.warn("Access denied for getMemberHistoryByUserId - role: {}", userRole);
+            throw new ForbiddenAccessException(
+                    "Access denied. Only FOUNDERS and ADMINS can view another user's work history");
+        }
+
+        List<TeamMemberResponseDto> response =
+                teamMemberService.getMemberHistory(userId);
+
+        return ResponseEntity
+                .ok(new ApiResponse<>(
+                        "Member history fetched successfully",
+                        response));
+    }
 }

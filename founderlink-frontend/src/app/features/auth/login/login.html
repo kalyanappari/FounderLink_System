@@ -124,14 +124,31 @@
           <a routerLink="/auth/forgot-password" class="forgot-link">Forgot password?</a>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-full" [disabled]="loading()">
+        <!-- Email not verified banner -->
+        @if (showVerifyBanner()) {
+          <div class="alert-verify">
+            <span>📧</span>
+            <div>
+              <strong>Email not verified.</strong> Check your inbox for a code.
+              <button type="button" class="verify-redirect-btn" (click)="goToVerify()">Verify now →</button>
+            </div>
+          </div>
+        }
+
+        <button type="submit" id="login-submit-btn" class="btn btn-primary btn-full" [disabled]="loading()">
           @if (loading()) { <span class="spinner"></span> }
           Sign In
         </button>
 
       </form>
 
-      <div class="divider">or</div>
+      <!-- Divider -->
+      <div class="divider">or continue with</div>
+
+      <!-- Google Sign-In -->
+      <div id="google-btn-container" style="display: flex; justify-content: center; margin-bottom: 24px; min-height: 40px; border-radius: 8px; overflow: hidden;">
+        <div id="google-btn"></div>
+      </div>
 
       <p class="auth-switch">
         Don't have an account?

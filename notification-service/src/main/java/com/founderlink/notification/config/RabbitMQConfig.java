@@ -49,6 +49,9 @@ public class RabbitMQConfig {
     @Value("${rabbitmq.queue.user-registered}")
     private String userRegisteredQueue;
 
+    @Value("${rabbitmq.queue.email-verification}")
+    private String emailVerificationQueue;
+
     @Bean
     public DirectExchange exchange() {
         return new DirectExchange(exchange);
@@ -115,6 +118,11 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue emailVerificationQueue() {
+        return new Queue(emailVerificationQueue, true);
+    }
+
+    @Bean
     public Binding startupBinding(Queue startupQueue, DirectExchange exchange) {
         return BindingBuilder.bind(startupQueue).to(exchange).with("startup.created");
     }
@@ -172,6 +180,11 @@ public class RabbitMQConfig {
     @Bean
     public Binding userRegisteredBinding(Queue userRegisteredQueue, DirectExchange exchange) {
         return BindingBuilder.bind(userRegisteredQueue()).to(exchange).with("user.registered");
+    }
+
+    @Bean
+    public Binding emailVerificationBinding(Queue emailVerificationQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(emailVerificationQueue()).to(exchange).with("email.verification");
     }
 
     @Bean

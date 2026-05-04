@@ -82,3 +82,8 @@ logging:
     com:
       founderlink:
         auth: DEBUG
+
+# Google OAuth 2.0 — client ID used to verify Google ID tokens server-side
+google:
+  oauth:
+    client-id: ${GOOGLE_CLIENT_ID}

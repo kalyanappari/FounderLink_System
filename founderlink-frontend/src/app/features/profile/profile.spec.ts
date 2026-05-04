@@ -5,6 +5,7 @@ import { UserService } from '../../core/services/user.service';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 
 describe('ProfileComponent', () => {
   let component: ProfileComponent;
@@ -29,7 +30,8 @@ describe('ProfileComponent', () => {
       imports: [ProfileComponent, FormsModule],
       providers: [
         { provide: AuthService, useValue: authServiceSpy },
-        { provide: UserService, useValue: userServiceSpy }
+        { provide: UserService, useValue: userServiceSpy },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => null } } } }
       ]
     }).compileComponents();
   });
@@ -83,15 +85,14 @@ describe('ProfileComponent', () => {
     });
 
     it('should open edit form and cancel edit form', () => {
-      expect(component.editing()).toBe(false);
-      component.toggleEdit();
-      expect(component.editing()).toBe(true);
+      expect(component.editingCard()).toBeNull();
+      component.startEditing('basic');
+      expect(component.editingCard()).toBe('basic');
       
       component.name = 'Changes';
-      component.toggleEdit(); // cancel
+      component.cancelEditing(); // cancel
       
-      expect(component.editing()).toBe(false);
-      expect(component.name).toBe('Bob'); // Should revert
+      expect(component.editingCard()).toBeNull();
     });
 
     it('should handle profile update success', () => {
@@ -99,30 +100,23 @@ describe('ProfileComponent', () => {
       userServiceSpy.updateMyProfile.mockReturnValue(of({ data: { name: 'Bob Updated' } }));
 
       vi.useFakeTimers();
-      component.saveProfile();
+      component.saveCard('basic');
       
       expect(userServiceSpy.updateMyProfile).toHaveBeenCalledWith(expect.objectContaining({ name: 'Bob Updated' }));
       expect(component.user()?.name).toBe('Bob Updated');
-      expect(component.editing()).toBe(false);
+      expect(component.editingCard()).toBeNull();
       expect(component.saving()).toBe(false);
-      expect(component.successMsg()).toBe('Profile updated successfully!');
+      expect(component.successMsg()).toBe('Saved!');
       
       vi.advanceTimersByTime(3000);
       expect(component.successMsg()).toBe('');
       vi.useRealTimers();
     });
 
-    it('should block empty name update', () => {
-      component.name = ' ';
-      component.saveProfile();
-      expect(component.errorMsg()).toBe('Name is required.');
-      expect(userServiceSpy.updateMyProfile).not.toHaveBeenCalled();
-    });
-
     it('should handle profile update failure', () => {
       component.name = 'Bob Updated';
       userServiceSpy.updateMyProfile.mockReturnValue(throwError(() => ({ error: 'Failed' })));
-      component.saveProfile();
+      component.saveCard('basic');
       
       expect(component.errorMsg()).toBe('Failed');
       expect(component.saving()).toBe(false);
@@ -143,26 +137,15 @@ describe('ProfileComponent', () => {
       expect(authServiceSpy.logout).toHaveBeenCalled();
     });
 
-    it('should get correct role display', () => {
-      authServiceSpy.role.mockReturnValue('ROLE_FOUNDER');
-      expect(component.getRoleDisplay().label).toBe('Founder');
-
-      authServiceSpy.role.mockReturnValue('INVESTOR'); // No prefix
-      expect(component.getRoleDisplay().label).toBe('Investor');
-
-      authServiceSpy.role.mockReturnValue('COFOUNDER');
-      expect(component.getRoleDisplay().label).toBe('Co-Founder');
-
-      authServiceSpy.role.mockReturnValue('ROLE_ADMIN');
-      expect(component.getRoleDisplay().label).toBe('Admin');
-
-      authServiceSpy.role.mockReturnValue('UNKNOWN');
-      expect(component.getRoleDisplay().label).toBe('UNKNOWN');
+    it('should convert stages correctly', () => {
+      expect(component.stageLabel('EARLY_TRACTION')).toBe('Early Traction');
+      expect(component.stageLabel('UNKNOWN')).toBe('UNKNOWN');
     });
 
-    it('should map skill string to arrays', () => {
-      component.skills = 'Angular, , React ,';
-      expect(component.skillArray).toEqual(['Angular', 'React']);
+    it('should format currency correctly', () => {
+      expect(component.formatCurrency(5_000_000)).toBe('₹50.0L');
+      expect(component.formatCurrency(15_000_000)).toBe('₹1.5Cr');
+      expect(component.formatCurrency(150_000)).toBe('₹1.5L');
     });
   });
 });

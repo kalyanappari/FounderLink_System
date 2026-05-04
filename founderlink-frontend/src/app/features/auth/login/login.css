@@ -266,6 +266,72 @@ form {
   text-decoration: underline;
 }
 
+/* ── Google button ────────────────────────────────────────────── */
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .65rem;
+  width: 100%;
+  padding: .8rem 1rem;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .04);
+  color: rgba(255, 255, 255, .85);
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, border-color .2s, transform .1s;
+  margin-bottom: .25rem;
+}
+.btn-google:hover:not(:disabled) {
+  background: rgba(255, 255, 255, .08);
+  border-color: rgba(255, 255, 255, .22);
+  transform: translateY(-1px);
+}
+.btn-google:disabled { opacity: .45; cursor: not-allowed; }
+
+.spinner-dark {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,.25);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Email-not-verified banner ─────────────────────────────────── */
+.alert-verify {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  padding: .875rem 1rem;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, .08);
+  border: 1px solid rgba(245, 158, 11, .25);
+  color: #fbbf24;
+  font-size: .85rem;
+  line-height: 1.5;
+  margin-bottom: .15rem;
+}
+.alert-verify span { font-size: 1.1rem; flex-shrink: 0; margin-top: .05rem; }
+.alert-verify strong { color: #fcd34d; }
+.verify-redirect-btn {
+  display: inline-block;
+  margin-left: .35rem;
+  background: none;
+  border: none;
+  color: #fbbf24;
+  font-weight: 700;
+  font-size: .85rem;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  transition: color .15s;
+}
+.verify-redirect-btn:hover { color: #fcd34d; }
+
 /* ── Responsive ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .auth-layout {

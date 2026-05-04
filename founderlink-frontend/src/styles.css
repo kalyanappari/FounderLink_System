@@ -116,6 +116,7 @@ textarea {
   background: var(--primary-light);
 }
 
+
 .btn-danger {
   background: var(--danger);
   color: #ffffff !important;
@@ -145,8 +146,20 @@ textarea {
   padding: .45rem .9rem;
   font-size: .825rem;
 }
+/* Icon-only — must come after btn-sm to override its padding */
+.btn-icon-only {
+  padding: 0 !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-width: unset !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  flex-shrink: 0;
+  color: var(--primary);
+}
 
-/* ── Forms ────────────────────────────────────────────────────── */
 .form-group {
   display: flex;
   flex-direction: column;
